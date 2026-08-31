@@ -1,0 +1,39 @@
+schema = "requirement-set"
+domain = "operations"
+domain_code = "OPS"
+
+[[requirements]]
+id = "REQ-OPS-001"
+title = "営業開始前に業務を確認できる"
+kind = "constraint"
+statement = "運用担当者は、営業開始前に公開情報、在庫、端末、権限、注文から受け渡しまでの流れを確認できる。"
+reason = "本番データや利用環境の不備を営業開始前に発見するため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-OPS-001"]
+depends_on = []
+sources = []
+
+[[requirements]]
+id = "REQ-OPS-002"
+title = "障害時に安全な運用へ切り替えられる"
+kind = "constraint"
+statement = "運用担当者は、通信、端末、電源またはシステムの障害時に、重複注文と在庫不一致を防ぐ代替運用へ切り替えられる。"
+reason = "混雑時に業務全体が停止することと、復旧後のデータ不一致を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-OPS-002", "SPEC-SYS-002"]
+depends_on = ["REQ-SYS-002"]
+sources = []
+
+[[requirements]]
+id = "REQ-OPS-003"
+title = "提供可否を要件と検証結果で判断する"
+kind = "constraint"
+statement = "出店責任者と開発担当者は、対象要件、受け入れ結果、未決事項、利用環境、既知の不具合を確認して提供可否を判断する。"
+reason = "画面の有無だけで本番利用を判断せず、業務上必要な結果と残るリスクを確認するため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-OPS-003"]
+depends_on = ["REQ-OPS-001", "REQ-OPS-002"]
+sources = []

@@ -1,0 +1,39 @@
+schema = "requirement-set"
+domain = "inventory"
+domain_code = "INV"
+
+[[requirements]]
+id = "REQ-INV-001"
+title = "在庫に基づく販売可否を確認できる"
+kind = "functional"
+statement = "来場者と会計担当者は、現在の在庫に基づく商品の販売可否を確認できる。"
+reason = "在庫切れ商品の受付を減らすため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-INV-001", "SPEC-VIS-002"]
+depends_on = []
+sources = []
+
+[[requirements]]
+id = "REQ-INV-002"
+title = "注文確定時に在庫を再確認する"
+kind = "constraint"
+statement = "システムは、注文を確定する直前に現在の在庫で販売可能か判定し、不足する場合は注文と在庫を変更しない。"
+reason = "注文候補の作成後に在庫が変化しても過剰販売しないため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-INV-002", "SPEC-SAL-005"]
+depends_on = ["REQ-INV-001"]
+sources = []
+
+[[requirements]]
+id = "REQ-INV-003"
+title = "注文と在庫を一体で更新する"
+kind = "constraint"
+statement = "システムは、注文確定時に注文の保存と在庫の減算を一体として行い、在庫を超える注文を成立させない。"
+reason = "注文と在庫の不一致および過剰販売を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-INV-003", "SPEC-SAL-005", "SPEC-SYS-002"]
+depends_on = ["REQ-INV-002"]
+sources = []

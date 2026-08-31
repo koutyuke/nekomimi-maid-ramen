@@ -1,0 +1,87 @@
+schema = "requirement-set"
+domain = "system-wide"
+domain_code = "SYS"
+
+[[requirements]]
+id = "REQ-SYS-001"
+title = "営業時間中に注文を受け付けられる"
+kind = "quality"
+statement = "システムは、合意した営業時間と可用性の範囲で注文確定機能を利用できる状態を保つ。"
+reason = "営業中の注文受付を継続するため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-001"]
+depends_on = []
+sources = []
+
+[[requirements]]
+id = "REQ-SYS-002"
+title = "障害後も注文と在庫を一致させる"
+kind = "quality"
+statement = "システムは、通信断または再起動後も確定済み注文と在庫に不整合を生じさせない。"
+reason = "復旧後の重複注文と過剰販売を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-002", "SPEC-INV-003", "SPEC-OPS-002"]
+depends_on = ["REQ-INV-003"]
+sources = []
+
+[[requirements]]
+id = "REQ-SYS-003"
+title = "注文確定結果を所定時間内に表示する"
+kind = "quality"
+statement = "システムは、ピーク時の注文確定操作に対し、合意した時間内に結果を表示する。"
+reason = "会計処理の停滞と重複操作を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-003"]
+depends_on = ["REQ-SAL-005"]
+sources = []
+
+[[requirements]]
+id = "REQ-SYS-004"
+title = "確定注文を所定時間内に調理へ反映する"
+kind = "quality"
+statement = "システムは、確定した注文を合意した時間内に調理担当者の画面へ反映する。"
+reason = "会計から調理への伝達待ちを減らすため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-004"]
+depends_on = ["REQ-KIT-001"]
+sources = []
+
+[[requirements]]
+id = "REQ-SYS-005"
+title = "会計担当者が注文確定を完了できる"
+kind = "quality"
+statement = "会計担当者は、合意した利用条件のもとで商品と個数の入力から注文確定までを正しく完了できる。"
+reason = "会計担当者の誤操作と処理時間を減らすため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-005"]
+depends_on = ["REQ-SAL-001", "REQ-SAL-005"]
+sources = []
+
+[[requirements]]
+id = "REQ-SYS-006"
+title = "スタッフ向け更新を許可された担当者に限定する"
+kind = "constraint"
+statement = "システムは、注文、在庫、調理状況、受け渡し状況を更新する機能を許可された担当者だけに提供する。"
+reason = "第三者や権限のない担当者による業務データの変更を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-006"]
+depends_on = []
+sources = []
+
+[[requirements]]
+id = "REQ-SYS-007"
+title = "不要な個人情報を収集しない"
+kind = "constraint"
+statement = "システムは、現在の業務に不要な来場者の個人情報を収集しない。"
+reason = "一時的なイベントで保持する個人情報とプライバシー上のリスクを増やさないため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-007"]
+depends_on = []
+sources = []

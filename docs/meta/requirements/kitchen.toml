@@ -1,0 +1,27 @@
+schema = "requirement-set"
+domain = "kitchen"
+domain_code = "KIT"
+
+[[requirements]]
+id = "REQ-KIT-001"
+title = "確定した注文を確認できる"
+kind = "functional"
+statement = "調理担当者は、確定した注文の番号、商品、数量、現在の調理状況を確認できる。"
+reason = "未確定の注文を調理せず、会計から調理への伝達漏れを減らすため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-KIT-001", "SPEC-SYS-004"]
+depends_on = ["REQ-SAL-005"]
+sources = []
+
+[[requirements]]
+id = "REQ-KIT-002"
+title = "調理状況を更新できる"
+kind = "functional"
+statement = "調理担当者は、許可された順序で注文の調理状況を更新できる。"
+reason = "調理と受け渡しの担当者が同じ進行状況を確認できるようにするため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-KIT-002", "SPEC-HAND-001"]
+depends_on = ["REQ-KIT-001"]
+sources = []

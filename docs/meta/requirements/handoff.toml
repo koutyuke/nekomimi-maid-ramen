@@ -1,0 +1,27 @@
+schema = "requirement-set"
+domain = "handoff"
+domain_code = "HAND"
+
+[[requirements]]
+id = "REQ-HAND-001"
+title = "完成した注文を番号で照合できる"
+kind = "functional"
+statement = "受け渡し担当者は、完成した注文を注文番号で識別し、内容を確認できる。"
+reason = "別の来場者へ商品を渡すことを防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-HAND-001", "SPEC-KIT-002"]
+depends_on = ["REQ-KIT-002"]
+sources = []
+
+[[requirements]]
+id = "REQ-HAND-002"
+title = "受け渡し済みに更新できる"
+kind = "functional"
+statement = "受け渡し担当者は、商品を渡した注文を受け渡し済みに更新し、同じ注文の二重受け渡しを防止できる。"
+reason = "同じ注文の商品を複数回渡すことを防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-HAND-002"]
+depends_on = ["REQ-HAND-001"]
+sources = []

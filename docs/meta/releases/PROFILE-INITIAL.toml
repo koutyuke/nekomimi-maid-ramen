@@ -1,0 +1,48 @@
+schema = "release-profile"
+id = "PROFILE-INITIAL"
+title = "初期提供範囲"
+
+requirements = [
+  "REQ-VIS-001",
+  "REQ-VIS-002",
+  "REQ-VIS-003",
+  "REQ-SAL-001",
+  "REQ-SAL-002",
+  "REQ-SAL-003",
+  "REQ-SAL-004",
+  "REQ-SAL-005",
+  "REQ-INV-001",
+  "REQ-INV-002",
+  "REQ-INV-003",
+  "REQ-KIT-001",
+  "REQ-KIT-002",
+  "REQ-HAND-001",
+  "REQ-HAND-002",
+  "REQ-OPS-001",
+  "REQ-OPS-002",
+  "REQ-OPS-003",
+  "REQ-SYS-001",
+  "REQ-SYS-002",
+  "REQ-SYS-003",
+  "REQ-SYS-004",
+  "REQ-SYS-005",
+  "REQ-SYS-006",
+  "REQ-SYS-007",
+]
+
+blocking_questions = [
+  "Q-SYS-001",
+  "Q-SAL-001",
+  "Q-SAL-002",
+  "Q-SAL-003",
+  "Q-SAL-004",
+  "Q-INV-001",
+  "Q-KIT-001",
+  "Q-OPS-001",
+  "Q-SYS-003",
+  "Q-OPS-002",
+  "Q-OPS-004",
+  "Q-SYS-004",
+  "Q-SYS-005",
+  "Q-VIS-002",
+]

@@ -1,0 +1,63 @@
+schema = "requirement-set"
+domain = "sales"
+domain_code = "SAL"
+
+[[requirements]]
+id = "REQ-SAL-001"
+title = "注文候補を入力できる"
+kind = "functional"
+statement = "会計担当者は、来場者から聞いた商品と個数を注文候補として入力・修正できる。"
+reason = "口頭で受けた注文を正確に記録し、確定前に来場者と照合するため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SAL-001", "SPEC-SYS-005"]
+depends_on = []
+sources = []
+
+[[requirements]]
+id = "REQ-SAL-002"
+title = "注文候補で業務状態を変更しない"
+kind = "constraint"
+statement = "システムは、注文候補を作成・修正しただけでは正式な注文を作成せず、在庫も変更しない。"
+reason = "入力途中の内容で調理や在庫更新が始まることを防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SAL-002"]
+depends_on = ["REQ-SAL-001"]
+sources = []
+
+[[requirements]]
+id = "REQ-SAL-003"
+title = "合計金額を確認できる"
+kind = "functional"
+statement = "会計担当者は、注文候補の商品、価格、個数に基づく小計と合計金額を確認できる。"
+reason = "手計算による会計ミスを減らすため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SAL-003"]
+depends_on = ["REQ-SAL-001"]
+sources = []
+
+[[requirements]]
+id = "REQ-SAL-004"
+title = "お釣りを確認できる"
+kind = "functional"
+statement = "会計担当者は、受取金額を入力してお釣りを確認できる。"
+reason = "現金会計の計算ミスを減らすため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SAL-004"]
+depends_on = ["REQ-SAL-003"]
+sources = []
+
+[[requirements]]
+id = "REQ-SAL-005"
+title = "販売可能な注文を一度だけ確定できる"
+kind = "functional"
+statement = "会計担当者は、内容と在庫を確認した販売可能な注文を一度だけ確定できる。"
+reason = "正式な注文、在庫、調理対象を一致させ、重複注文を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SAL-005", "SPEC-INV-002", "SPEC-INV-003", "SPEC-KIT-001", "SPEC-SYS-005"]
+depends_on = ["REQ-SAL-001", "REQ-INV-002", "REQ-INV-003"]
+sources = []

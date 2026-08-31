@@ -1,0 +1,7 @@
+schema = "release-profile"
+id = "PROFILE-NAME"
+title = "提供範囲の名称"
+
+requirements = []
+blocking_questions = []
+

@@ -1,0 +1,39 @@
+schema = "requirement-set"
+domain = "visitor-information"
+domain_code = "VIS"
+
+[[requirements]]
+id = "REQ-VIS-001"
+title = "出店情報を確認できる"
+kind = "functional"
+statement = "来場者は、ユーザー登録やログインをせずに出店場所と営業時間を確認できる。"
+reason = "来場者が来店前に出店場所と利用可能な時間を判断できるようにするため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-VIS-001"]
+depends_on = []
+sources = []
+
+[[requirements]]
+id = "REQ-VIS-002"
+title = "販売可能な商品を確認できる"
+kind = "functional"
+statement = "来場者は、商品名、価格、説明、販売可否を含むメニューを確認できる。"
+reason = "来場者が注文前に商品を選び、売り切れ商品を把握できるようにするため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-VIS-002", "SPEC-INV-001"]
+depends_on = ["REQ-INV-001"]
+sources = []
+
+[[requirements]]
+id = "REQ-VIS-003"
+title = "スポンサー情報を確認できる"
+kind = "functional"
+statement = "来場者は、材料を提供するスポンサーについて承認された情報を確認できる。"
+reason = "材料の提供者を来場者へ紹介するため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-VIS-003"]
+depends_on = []
+sources = []

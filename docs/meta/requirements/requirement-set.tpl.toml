@@ -1,0 +1,16 @@
+schema = "requirement-set"
+domain = "DOMAIN_NAME"
+domain_code = "DOMAIN_CODE"
+
+[[requirements]]
+id = "REQ-DOMAIN_CODE-001"
+title = "要件の短い名称"
+kind = "functional"
+statement = "主体、条件、必要な結果を一文で記載する。"
+reason = "この要件が必要な理由を記載する。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-DOMAIN_CODE-001"]
+depends_on = []
+sources = []
+
