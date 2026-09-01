@@ -40,5 +40,5 @@ Ownerを画面から変更できないようにするのは、ロールの誤操
 
 - スタッフのメールアドレスと表示名を保持する。保持期間と削除は[`Q-OPS-003`](../questions/Q-OPS-003-data-retention.md)で決定する。
 - ログインにはGoogleへ到達できる通信が必要である。当日の失敗を避けるため、開店前確認([運用仕様](../../specs/operations.md))で全担当者のログインとロールを確かめる。
-- 在庫を修正できる担当者([`Q-INV-001`](../questions/Q-INV-001-inventory-adjustment.md))と、確定した注文を訂正・取り消しできる担当者([`Q-SAL-003`](../questions/Q-SAL-003-correction-cancellation-refund.md))はAdmin以上である。各未決事項に残るのは、その条件と手順である。
+- 在庫の修正と、確定した注文の取り消しはAdmin以上に限る。操作内容は[在庫仕様](../../specs/inventory.md)と[注文・会計仕様](../../specs/sales.md)で定義する。
 - 権限を誤って失った場合の回復はOwnerが行う。
