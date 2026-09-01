@@ -29,6 +29,7 @@ requirements = [
   "REQ-SYS-005",
   "REQ-SYS-006",
   "REQ-SYS-007",
+  "REQ-SYS-008",
 ]
 
 blocking_questions = [
