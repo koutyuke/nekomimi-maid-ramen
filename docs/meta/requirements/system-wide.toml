@@ -72,7 +72,19 @@ priority = "must"
 status = "draft"
 specs = ["SPEC-SYS-006"]
 depends_on = []
-sources = []
+sources = ["DEC-SYS-002"]
+
+[[requirements]]
+id = "REQ-SYS-008"
+title = "スタッフのロールを付与・剥奪できる"
+kind = "functional"
+statement = "OwnerとAdminは、ログインした利用者のロールを付与・剥奪し、業務を操作できる担当者を管理できる。"
+reason = "当日の人員変更に合わせて、業務を操作できる担当者を必要な範囲へ保つため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-008"]
+depends_on = ["REQ-SYS-006"]
+sources = ["DEC-SYS-002"]
 
 [[requirements]]
 id = "REQ-SYS-007"

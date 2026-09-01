@@ -37,3 +37,15 @@ status = "draft"
 specs = ["SPEC-VIS-003"]
 depends_on = []
 sources = []
+
+[[requirements]]
+id = "REQ-VIS-004"
+title = "商品に含まれる特定原材料を確認できる"
+kind = "functional"
+statement = "来場者は、商品ごとに含まれる特定原材料と、原材料を確認済みかどうかを判別できる。"
+reason = "食物アレルギーのある来場者が、注文前に食べられる商品を判断できるようにするため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-VIS-004"]
+depends_on = ["REQ-VIS-002"]
+sources = []

@@ -10,9 +10,9 @@ statement = "来場者と会計担当者は、現在の在庫に基づく商品�
 reason = "在庫切れ商品の受付を減らすため。"
 priority = "must"
 status = "draft"
-specs = ["SPEC-INV-001", "SPEC-VIS-002"]
+specs = ["SPEC-INV-001", "SPEC-INV-004", "SPEC-VIS-002"]
 depends_on = []
-sources = []
+sources = ["DEC-SYS-002"]
 
 [[requirements]]
 id = "REQ-INV-002"
