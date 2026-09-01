@@ -18,7 +18,7 @@ domain: VIS
 | 商品           | 商品名、説明、価格、表示順、販売可否 | メニュー       |
 | スポンサー情報 | 承認された名称、紹介文、画像、リンク | スポンサー紹介 |
 
-商品と価格は[`Q-VIS-002`](../meta/questions/Q-VIS-002-menu-content.md)、スポンサーの掲載項目は[`Q-VIS-001`](../meta/questions/Q-VIS-001-sponsor-content.md)で決定する。
+商品、分類、価格、表示順は[メニュー](../product/menu.md)を正本とする。スポンサーの掲載項目は[`Q-VIS-001`](../meta/questions/Q-VIS-001-sponsor-content.md)で決定する。
 
 ## SPEC-VIS-001 出店情報を表示する
 
