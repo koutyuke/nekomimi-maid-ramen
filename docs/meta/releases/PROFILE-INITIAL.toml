@@ -31,7 +31,6 @@ requirements = [
 ]
 
 blocking_questions = [
-  "Q-SYS-001",
   "Q-SAL-001",
   "Q-SAL-002",
   "Q-SAL-003",

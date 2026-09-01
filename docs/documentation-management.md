@@ -82,6 +82,8 @@ sources = []
 | `priority` | `must`、`should`、`could`             |
 | `status`   | `draft`、`accepted`                   |
 
+`status`を`accepted`へ変更する決定者と条件は[`DEC-SYS-001`](meta/decisions/DEC-SYS-001-requirement-approval.md)で定める。
+
 `specs`は、要件を具体化する仕様IDの正本である。`depends_on`は前提となる要件ID、`sources`は判断または根拠のIDを記載する。詳細な操作、例外、受け入れ例はTOMLへ書かない。
 
 ## YAML Front Matter
