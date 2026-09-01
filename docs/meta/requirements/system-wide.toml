@@ -72,7 +72,7 @@ priority = "must"
 status = "draft"
 specs = ["SPEC-SYS-006"]
 depends_on = []
-sources = []
+sources = ["DEC-SYS-002"]
 
 [[requirements]]
 id = "REQ-SYS-007"

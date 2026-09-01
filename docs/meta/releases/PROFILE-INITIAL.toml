@@ -39,7 +39,6 @@ blocking_questions = [
   "Q-INV-001",
   "Q-KIT-001",
   "Q-OPS-001",
-  "Q-SYS-003",
   "Q-OPS-002",
   "Q-OPS-004",
   "Q-SYS-005",
