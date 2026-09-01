@@ -12,6 +12,7 @@ requirements = [
   "REQ-SAL-003",
   "REQ-SAL-004",
   "REQ-SAL-005",
+  "REQ-SAL-006",
   "REQ-INV-001",
   "REQ-INV-002",
   "REQ-INV-003",
@@ -34,7 +35,6 @@ requirements = [
 
 blocking_questions = [
   "Q-SAL-002",
-  "Q-SAL-003",
   "Q-KIT-001",
   "Q-OPS-001",
   "Q-OPS-002",

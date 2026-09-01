@@ -61,3 +61,15 @@ status = "draft"
 specs = ["SPEC-SAL-005", "SPEC-INV-002", "SPEC-INV-003", "SPEC-KIT-001", "SPEC-SYS-005"]
 depends_on = ["REQ-SAL-001", "REQ-INV-002", "REQ-INV-003"]
 sources = []
+
+[[requirements]]
+id = "REQ-SAL-006"
+title = "確定した注文を取り消せる"
+kind = "functional"
+statement = "Admin以上のロールを持つ担当者は、確定した注文を取り消し、減算した在庫を戻せる。"
+reason = "確定後に判明した誤りを、在庫と調理対象を一致させたまま解消するため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SAL-006"]
+depends_on = ["REQ-SAL-005", "REQ-INV-003"]
+sources = ["DEC-SYS-002"]
