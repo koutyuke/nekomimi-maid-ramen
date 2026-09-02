@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nekomimi-ramen-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+  },
+  "routes": [
+    {
+      "pattern": "api.nekomimi-ramen.com",
+      "custom_domain": true,
+    },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nekomimi-ramen",
+      // `wrangler d1 create nekomimi-ramen` が出力した値へ置き換える。
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "drizzle",
+    },
+  ],
+  "vars": {
+    "WEB_ORIGIN": "https://nekomimi-ramen.com",
+  },
+}
