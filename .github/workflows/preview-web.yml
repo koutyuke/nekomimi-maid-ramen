@@ -19,10 +19,32 @@ permissions:
   pull-requests: write
 
 jobs:
-  preview:
-    name: Preview and measure
+  # プレビューは補助であり、資格情報が未登録の間は赤を出さずに見送る。
+  # 配備そのものが行われなかった場合とは扱いを分ける。
+  guard:
+    name: Check credentials
     # 別リポジトリからのプルリクエストには秘密情報が渡らない。
     if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        run: |
+          if [[ -n "${CLOUDFLARE_API_TOKEN}" && -n "${CLOUDFLARE_ACCOUNT_ID}" ]]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            echo "::notice::CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID が未登録のため、プレビューを見送った。"
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  preview:
+    name: Preview and measure
+    needs: guard
+    if: needs.guard.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
