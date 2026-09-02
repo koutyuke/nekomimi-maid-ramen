@@ -9,7 +9,6 @@ export default defineConfig({
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,
-      // 試験と見本は画面の隣に置く。経路としては扱わない。
       routeFileIgnorePattern: "\\.(test|stories)\\.tsx?$",
     }),
     react(),

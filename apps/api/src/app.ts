@@ -6,8 +6,6 @@ export type AppDependencies = {
   /** 資格情報付きの要求を許可する送信元。画面を配信するホストを指す。 */
   webOrigin: string;
   /**
-   * 事前コンパイルを行うか。
-   *
    * Elysiaの事前コンパイルは`new Function`で処理を組み立てる。Cloudflare Workersが
    * これを許すのはWorkerの起動時だけであり、起動後に組み立てると拒否される。
    * 本番の入口は起動時に呼ぶため既定で有効にし、テストは起動後に組み立てるため無効にする。
@@ -25,5 +23,4 @@ export const createApp = ({ webOrigin, aot = true }: AppDependencies) => {
   return aot ? app.compile() : app;
 };
 
-// 画面側はこの型からEden Treatyの呼び出しを組み立てる。
 export type App = ReturnType<typeof createApp>;

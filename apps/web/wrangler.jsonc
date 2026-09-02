@@ -2,8 +2,6 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nekomimi-ramen-web",
   "compatibility_date": "2026-08-22",
-  // Workerのコードを持たず、静的アセットだけを配信する。
-  // 未知のパスは`index.html`へ書き換え、経路の解決は画面側で行う。
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
