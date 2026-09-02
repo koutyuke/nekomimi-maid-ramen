@@ -1,0 +1,24 @@
+# 整形と修正は同じファイルを書き換えるため、順に実行する。
+pre-commit:
+  piped: true
+  commands:
+    1_format:
+      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,json,jsonc}"
+      run: oxfmt {staged_files}
+      stage_fixed: true
+    2_lint:
+      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}"
+      run: oxlint --fix {staged_files}
+      stage_fixed: true
+    3_nix:
+      glob: "*.nix"
+      run: nixfmt {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: pnpm run typecheck
+    test:
+      run: pnpm run test
