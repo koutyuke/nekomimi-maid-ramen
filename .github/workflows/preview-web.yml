@@ -1,0 +1,192 @@
+name: Preview Web
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/preview-web.yml"
+
+concurrency:
+  group: preview-web-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # プレビューは補助であり、資格情報が未登録の間は赤を出さずに見送る。
+  # 配備そのものが行われなかった場合とは扱いを分ける。
+  guard:
+    name: Check credentials
+    # 別リポジトリからのプルリクエストには秘密情報が渡らない。
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        run: |
+          if [[ -n "${CLOUDFLARE_API_TOKEN}" && -n "${CLOUDFLARE_ACCOUNT_ID}" ]]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            echo "::notice::CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID が未登録のため、プレビューを見送った。"
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  preview:
+    name: Preview and measure
+    needs: guard
+    if: needs.guard.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter @nekomimi/web run build
+        env:
+          VITE_API_ORIGIN: https://api.nekomimi-ramen.com
+
+      # 版を上げるだけで本番へは昇格させない。別名を固定するため、
+      # 同じプルリクエストへ押し直しても測る先が変わらない。
+      - name: Upload preview version
+        id: preview
+        run: |
+          set -euo pipefail
+          output="$(pnpm --filter @nekomimi/web exec wrangler versions upload --preview-alias "pr-${PR_NUMBER}" 2>&1 | tee /dev/stderr || true)"
+
+          # 版は既存のWorkerにしか足せない。最初の本番配備が済むまでは見送る。
+          if grep -q 'does not yet exist' <<< "${output}"; then
+            echo "::notice::Workerが未作成のため、プレビューを見送った。最初の本番配備の後に有効になる。"
+            exit 0
+          fi
+
+          url="$(grep -oE 'https://[A-Za-z0-9._-]+\.workers\.dev' <<< "${output}" | head -n 1)"
+          if [[ -z "${url}" ]]; then
+            echo "::error::wrangler の出力からプレビューURLを取得できなかった。"
+            exit 1
+          fi
+          echo "url=${url}" >> "${GITHUB_OUTPUT}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      # Lighthouseの既定はスマートフォンの想定であり、対応環境と一致する。
+      - name: Run Lighthouse
+        id: lighthouse
+        if: steps.preview.outputs.url != ''
+        continue-on-error: true
+        run: |
+          mkdir -p .tmp/lighthouse
+          npx --yes lighthouse@13.4.1 "${PREVIEW_URL}" \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --output=json \
+            --output=html \
+            --output-path=.tmp/lighthouse/report \
+            --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage"
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+
+      - name: Upload Lighthouse report
+        id: report
+        if: steps.preview.outputs.url != '' && steps.lighthouse.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report-${{ github.event.pull_request.number }}
+          path: .tmp/lighthouse/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Comment result
+        if: always() && steps.preview.outputs.url != ''
+        run: |
+          set -euo pipefail
+
+          marker="<!-- preview-web-report -->"
+          report=".tmp/lighthouse/report.report.json"
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          score() { jq -r --arg c "$1" '.categories[$c].score * 100 | round' "${report}"; }
+          metric() { jq -r --arg a "$1" '.audits[$a].displayValue // "n/a"' "${report}"; }
+
+          {
+            printf '%s\n' "${marker}"
+            echo "## 🗼 プレビューとLighthouse"
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| コミット | \`${GITHUB_SHA:0:7}\` |"
+            echo "| プレビュー | ${PREVIEW_URL} |"
+          } > .tmp/comment.md
+
+          if [[ "${LIGHTHOUSE_OUTCOME}" == "success" ]]; then
+            {
+              echo "| 計測 | ✅ 成功 |"
+              echo
+              echo "| 分類 | 点数 |"
+              echo "| --- | ---: |"
+              echo "| Performance | $(score performance) |"
+              echo "| Accessibility | $(score accessibility) |"
+              echo "| Best Practices | $(score best-practices) |"
+              echo "| SEO | $(score seo) |"
+              echo
+              echo "| 指標 | 値 |"
+              echo "| --- | ---: |"
+              echo "| First Contentful Paint | $(metric first-contentful-paint) |"
+              echo "| Largest Contentful Paint | $(metric largest-contentful-paint) |"
+              echo "| Total Blocking Time | $(metric total-blocking-time) |"
+              echo "| Cumulative Layout Shift | $(metric cumulative-layout-shift) |"
+              echo "| Speed Index | $(metric speed-index) |"
+              echo
+              echo "[詳細な報告](${ARTIFACT_URL}) ・ [実行ログ](${run_url})"
+            } >> .tmp/comment.md
+          else
+            {
+              echo "| 計測 | ❌ 失敗 |"
+              echo
+              echo "[実行ログ](${run_url})"
+            } >> .tmp/comment.md
+          fi
+
+          cat .tmp/comment.md >> "${GITHUB_STEP_SUMMARY}"
+
+          existing="$(
+            gh api --method GET "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate --field per_page=100 |
+              jq --slurp -r 'flatten | map(select(.user.type == "Bot" and (.body | contains("<!-- preview-web-report -->")))) | first | .id // ""'
+          )"
+
+          jq -n --rawfile body .tmp/comment.md '{body: $body}' > .tmp/payload.json
+
+          if [[ -n "${existing}" ]]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${existing}" --input .tmp/payload.json >/dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --input .tmp/payload.json >/dev/null
+          fi
+        env:
+          ARTIFACT_URL: ${{ steps.report.outputs.artifact-url }}
+          GH_TOKEN: ${{ github.token }}
+          LIGHTHOUSE_OUTCOME: ${{ steps.lighthouse.outcome }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+
+      - name: Fail when Lighthouse failed
+        if: steps.preview.outputs.url != '' && steps.lighthouse.outcome == 'failure'
+        run: exit 1

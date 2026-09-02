@@ -1,0 +1,29 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  "@cloudflare/vitest-pool-workers": ^0.22.0
+  "@tanstack/react-router": ^1.170.32
+  "@tanstack/router-plugin": ^1.168.35
+  "@tsconfig/strictest": ^2.0.8
+  "@types/react": ^19.2.18
+  "@types/react-dom": ^19.2.5
+  "@vitejs/plugin-react": ^6.1.1
+  drizzle-kit: ^0.31.10
+  drizzle-orm: ^0.45.2
+  elysia: ^1.4.30
+  react: ^19.2.8
+  react-dom: ^19.2.8
+  typescript: ~6.0.3
+  vite: ^8.2.2
+  vitest: ^4.1.11
+  wrangler: ^4.127.0
+
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  workerd: true
+
+# 公開直後のパッケージを取り込まないことで、供給網への攻撃が発覚するまでの猶予を作る。
+minimumReleaseAge: 1440

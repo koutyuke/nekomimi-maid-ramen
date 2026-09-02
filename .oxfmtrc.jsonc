@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 120,
+  "ignorePatterns": [
+    // 文書と要件は`docs/documentation-management.md`が書式を定める。整形器で書き換えない。
+    "**/*.md",
+    "**/*.toml",
+    "**/dist/**",
+    "**/.wrangler/**",
+    "**/worker-configuration.d.ts",
+    "**/routeTree.gen.ts",
+    "**/drizzle/**",
+  ],
+}
