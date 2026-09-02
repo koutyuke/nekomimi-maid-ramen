@@ -12,10 +12,6 @@
       "outputs": ["dist/**"]
     },
     "typecheck": {},
-    "test": {},
-    "deploy": {
-      "cache": false,
-      "dependsOn": ["build"]
-    }
+    "test": {}
   }
 }
