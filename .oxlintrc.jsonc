@@ -4,17 +4,17 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "perf": "warn"
+    "perf": "warn",
   },
   "options": {
-    "typeAware": true
+    "typeAware": true,
   },
   "ignorePatterns": [
     "**/dist/**",
     "**/.wrangler/**",
     "**/worker-configuration.d.ts",
     "**/routeTree.gen.ts",
-    "**/drizzle/**"
+    "**/drizzle/**",
   ],
   "rules": {
     "eqeqeq": "error",
@@ -22,8 +22,6 @@
 
     // 新しいJSX変換を使うため、`React`を読み込む必要がない。
     "react/react-in-jsx-scope": "off",
-
-    // スタイルシートは副作用として読み込む。
     "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
 
     // 注文確定は、注文の保存と在庫の減算をひとつのバッチとして実行する。
@@ -31,16 +29,14 @@
     "typescript/no-floating-promises": "error",
     "typescript/no-misused-promises": "error",
     "typescript/await-thenable": "error",
-
-    // 調理状況のように取りうる値が決まっている型へ、分岐の網羅を強制する。
-    "typescript/switch-exhaustiveness-check": "error"
+    "typescript/switch-exhaustiveness-check": "error",
   },
   "overrides": [
     {
       "files": ["apps/web/**"],
       "env": {
-        "browser": true
-      }
-    }
-  ]
+        "browser": true,
+      },
+    },
+  ],
 }

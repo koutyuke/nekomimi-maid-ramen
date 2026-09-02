@@ -9,6 +9,6 @@
     "**/.wrangler/**",
     "**/worker-configuration.d.ts",
     "**/routeTree.gen.ts",
-    "**/drizzle/**"
-  ]
+    "**/drizzle/**",
+  ],
 }
