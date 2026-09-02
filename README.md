@@ -8,7 +8,7 @@
 
 | 作業単位   | デプロイ先               | 内容                                              |
 | ---------- | ------------------------ | ------------------------------------------------- |
-| `apps/web` | `nekomimi-ramen.com`     | React、Vite、TanStack Router、Tailwind CSS        |
+| `apps/web` | `nekomimi-ramen.com`     | React、Vite、TanStack Router、Mantine             |
 | `apps/api` | `api.nekomimi-ramen.com` | ElysiaJS、Drizzle ORM、Cloudflare D1              |
 
 画面は Eden Treaty で `apps/api` の型を読む。依存の向きは画面から API への一方向に限る。
