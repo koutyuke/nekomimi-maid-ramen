@@ -47,10 +47,46 @@ pnpm test
 
 コミット時に整形と静的検査、プッシュ時に型検査と試験が lefthook で走る。
 
+## 配備
+
+`main` へ統合すると GitHub Actions が配備する。**変更された Worker だけ**を対象とし、画面の修正で API を巻き込まない。API を再配備すると Server-Sent Events の接続が切れるためである。
+
+| ワークフロー | 契機 | 内容 |
+| ------------ | ---- | ---- |
+| `deploy-api.yml`  | `main` の `apps/api/**` | 型検査、試験、D1 の移行適用、配備 |
+| `deploy-web.yml`  | `main` の `apps/web/**` | 型検査、試験、ビルド、配備 |
+| `preview-web.yml` | プルリクエストの `apps/web/**` | プレビュー版の作成と Lighthouse 計測 |
+
+配備するジョブは Environment `production` に属する。出店当日だけ、GitHub の Settings → Environments → production で Required reviewers を有効にすると承認待ちへ切り替わる。ワークフローの変更は要らない。
+
+手元から配備する場合は次を使う。
+
+```sh
+pnpm --filter @nekomimi/api exec wrangler deploy
+pnpm --filter @nekomimi/web run build && pnpm --filter @nekomimi/web exec wrangler deploy
+```
+
 ## 未了の設定
 
-次はまだ行っていない。行うまで `pnpm --filter @nekomimi/api dev` と本番へのデプロイは成立しない。
+次はまだ行っていない。行うまで `pnpm --filter @nekomimi/api dev` と配備は成立しない。
 
-- Cloudflare で D1 データベースを作り、`apps/api/wrangler.jsonc` の `database_id` を置き換える。
-- `nekomimi-ramen.com` と `api.nekomimi-ramen.com` を Custom Domain として割り当てる。
-- Google OAuth のクライアントを作り、`apps/api/.dev.vars` と `wrangler secret` へ登録する。
+```sh
+# 1. Cloudflare にログインする
+pnpm --filter @nekomimi/api exec wrangler login
+pnpm --filter @nekomimi/api exec wrangler whoami          # アカウントIDを控える
+
+# 2. D1 を作り、出力された database_id を apps/api/wrangler.jsonc へ書き込む
+pnpm --filter @nekomimi/api exec wrangler d1 create nekomimi-ramen
+
+# 3. GitHub Actions 用の資格情報を登録する
+#    トークンは https://dash.cloudflare.com/profile/api-tokens で
+#    「Edit Cloudflare Workers」を元に作り、D1 の編集を加える
+gh secret set CLOUDFLARE_API_TOKEN
+gh secret set CLOUDFLARE_ACCOUNT_ID
+
+# 4. Google OAuth の秘密情報を Worker へ登録する
+pnpm --filter @nekomimi/api exec wrangler secret put GOOGLE_CLIENT_ID
+pnpm --filter @nekomimi/api exec wrangler secret put GOOGLE_CLIENT_SECRET
+```
+
+`nekomimi-ramen.com` と `api.nekomimi-ramen.com` の Custom Domain 割り当ては、初回の配備時に `wrangler` が作成する。Google OAuth のクライアント作成と戻り先 URL の登録は Google Cloud の画面で行う。
