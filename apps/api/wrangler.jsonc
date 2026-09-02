@@ -17,8 +17,7 @@
     {
       "binding": "DB",
       "database_name": "nekomimi-ramen",
-      // `wrangler d1 create nekomimi-ramen` が出力した値へ置き換える。
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "fd25a1b6-3b25-4c6c-abbc-754e74bbf07c",
       "migrations_dir": "drizzle",
     },
   ],
