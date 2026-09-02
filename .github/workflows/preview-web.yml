@@ -70,7 +70,14 @@ jobs:
         id: preview
         run: |
           set -euo pipefail
-          output="$(pnpm --filter @nekomimi/web exec wrangler versions upload --preview-alias "pr-${PR_NUMBER}" 2>&1 | tee /dev/stderr)"
+          output="$(pnpm --filter @nekomimi/web exec wrangler versions upload --preview-alias "pr-${PR_NUMBER}" 2>&1 | tee /dev/stderr || true)"
+
+          # 版は既存のWorkerにしか足せない。最初の本番配備が済むまでは見送る。
+          if grep -q 'does not yet exist' <<< "${output}"; then
+            echo "::notice::Workerが未作成のため、プレビューを見送った。最初の本番配備の後に有効になる。"
+            exit 0
+          fi
+
           url="$(grep -oE 'https://[A-Za-z0-9._-]+\.workers\.dev' <<< "${output}" | head -n 1)"
           if [[ -z "${url}" ]]; then
             echo "::error::wrangler の出力からプレビューURLを取得できなかった。"
@@ -85,6 +92,7 @@ jobs:
       # Lighthouseの既定はスマートフォンの想定であり、対応環境と一致する。
       - name: Run Lighthouse
         id: lighthouse
+        if: steps.preview.outputs.url != ''
         continue-on-error: true
         run: |
           mkdir -p .tmp/lighthouse
@@ -99,7 +107,7 @@ jobs:
 
       - name: Upload Lighthouse report
         id: report
-        if: steps.lighthouse.outcome == 'success'
+        if: steps.preview.outputs.url != '' && steps.lighthouse.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
           name: lighthouse-report-${{ github.event.pull_request.number }}
@@ -180,5 +188,5 @@ jobs:
           PREVIEW_URL: ${{ steps.preview.outputs.url }}
 
       - name: Fail when Lighthouse failed
-        if: steps.lighthouse.outcome == 'failure'
+        if: steps.preview.outputs.url != '' && steps.lighthouse.outcome == 'failure'
         run: exit 1
