@@ -78,6 +78,8 @@ pnpm --filter @nekomimi/api dev   # API だけ
 pnpm --filter @nekomimi/web sb    # 画面部品のカタログ
 ```
 
+API の起動後は、[`http://localhost:8787/openapi`](http://localhost:8787/openapi) で API リファレンス、[`http://localhost:8787/openapi/json`](http://localhost:8787/openapi/json) で OpenAPI 仕様を確認できる。
+
 初回と表定義を変えたときは、手元の D1 へ移行を当てる。
 
 ```sh

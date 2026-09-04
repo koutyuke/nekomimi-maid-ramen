@@ -1,7 +1,8 @@
+import { openapi } from "@elysia/openapi";
 import { cors } from "@elysiajs/cors";
+import { JSONSchema, type ManagedRuntime, Schema } from "effect";
 import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
-import type { ManagedRuntime } from "effect";
 
 import { makeRunner } from "./core/adapters/elysia/runner";
 import { type MenuRouteServices, menuRoutes } from "./routes/menu/menu.route";
@@ -14,15 +15,54 @@ export type AppDependencies = {
   aot?: boolean;
 };
 
+const apiInformation = "Hello! This is Nekomimi Maid Ramen!";
+
+const ApiInformationResponse = Schema.String.annotations({
+  description: "APIを識別するメッセージ",
+});
+
+const HealthResponse = Schema.Struct({
+  status: Schema.Literal("ok").annotations({ description: "APIの稼働状態" }),
+}).annotations({ description: "APIの稼働状態" });
+
 export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
   const run = makeRunner(runtime);
 
   const app = new Elysia({ adapter: CloudflareAdapter, aot })
     .use(cors({ origin, credentials: true }))
-    .get("/", () => {
-      return "Hello! This is Nekomimi Maid Ramen!";
+    .use(
+      openapi({
+        documentation: {
+          info: {
+            title: "Nekomimi Maid Ramen API",
+            description: "ねこみみメイドラーメンが提供する API",
+            version: "0.0.0",
+          },
+          tags: [
+            { name: "システム", description: "API 自体の情報と稼働状態" },
+            { name: "メニュー", description: "来店者へ提供するメニュー情報" },
+          ],
+        },
+        mapJsonSchema: { effect: JSONSchema.make },
+        scalar: { version: "1.67.0" },
+      }),
+    )
+    .get("/", () => apiInformation, {
+      detail: {
+        operationId: "getApiInformation",
+        summary: "APIの案内を取得",
+        tags: ["システム"],
+      },
+      response: Schema.standardSchemaV1(ApiInformationResponse),
     })
-    .get("/health", () => ({ status: "ok" }) as const)
+    .get("/health", () => ({ status: "ok" }) as const, {
+      detail: {
+        operationId: "getHealth",
+        summary: "APIの稼働状態を取得",
+        tags: ["システム"],
+      },
+      response: Schema.standardSchemaV1(HealthResponse),
+    })
     .use(menuRoutes(run));
 
   return aot ? app.compile() : app;
