@@ -20,6 +20,9 @@
     "eqeqeq": "error",
     "eslint/no-unused-vars": "error",
 
+    // Effectのタグ付きエラーは`_tag`で種類を判別する。ライブラリが定める名前であり変更できない。
+    "no-underscore-dangle": ["error", { "allow": ["_tag"] }],
+
     // 新しいJSX変換を使うため、`React`を読み込む必要がない。
     "react/react-in-jsx-scope": "off",
     "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
@@ -36,6 +39,63 @@
       "files": ["apps/web/**"],
       "env": {
         "browser": true,
+      },
+    },
+    {
+      // 依存の向きを検査する(`DEC-SYS-005`)。
+      "files": [
+        "apps/api/src/routes/**",
+        "apps/api/src/features/*/application/**",
+        "apps/api/src/features/*/domain/**",
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["apps/api/src/routes/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+              },
+              {
+                "group": ["**/features/*/domain/**", "**/features/*/application/**", "**/features/*/adapters/**"],
+                "message": "業務領域は公開面(`features/{領域}`)から読む。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["apps/api/src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/features/**"],
+                "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
+              },
+            ],
+          },
+        ],
       },
     },
   ],
