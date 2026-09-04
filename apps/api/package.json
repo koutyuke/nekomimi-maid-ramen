@@ -20,6 +20,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",
     "drizzle-orm": "catalog:",
+    "effect": "catalog:",
     "elysia": "catalog:"
   },
   "devDependencies": {
