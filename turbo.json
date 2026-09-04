@@ -11,13 +11,17 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "lint": {},
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
     "lint:fix": {
       "cache": false
     },
     "//#format:run": {},
     "//#format:check:run": {},
-    "typecheck": {},
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
     "test": {}
   }
 }

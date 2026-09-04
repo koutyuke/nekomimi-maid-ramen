@@ -1,8 +1,5 @@
 {
   "extends": ["../../.oxlintrc.jsonc"],
-  "options": {
-    "typeAware": true,
-  },
   "rules": {
     // Effectのタグ付きエラーは`_tag`で種類を判別する。ライブラリが定める名前であり変更できない。
     "no-underscore-dangle": ["error", { "allow": ["_tag"] }],

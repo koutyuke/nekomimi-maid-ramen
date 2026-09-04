@@ -6,6 +6,9 @@
     "suspicious": "error",
     "perf": "warn",
   },
+  "options": {
+    "typeAware": true,
+  },
   "rules": {
     "eqeqeq": "error",
     "eslint/no-unused-vars": "error",

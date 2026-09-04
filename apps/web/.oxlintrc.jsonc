@@ -1,8 +1,5 @@
 {
   "extends": ["../../.oxlintrc.jsonc"],
-  "options": {
-    "typeAware": true,
-  },
   "plugins": ["react", "react-hooks", "jsx-a11y"],
   "env": {
     "browser": true,
