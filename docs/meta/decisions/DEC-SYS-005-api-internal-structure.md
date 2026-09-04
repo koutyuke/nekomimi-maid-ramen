@@ -70,7 +70,7 @@ apps/api/src/
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きは`.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。領域ごとのoverrideで他領域の`domain`、`application`、`adapters`、`layer.ts`の読み込みを禁止し、`features`から`core/adapters`を読めないようにする。
+この向きは`.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。
 
 ### 型定義
 
