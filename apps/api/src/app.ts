@@ -1,17 +1,17 @@
 import { openapi } from "@elysia/openapi";
 import { cors } from "@elysiajs/cors";
-import { JSONSchema, type ManagedRuntime, Schema } from "effect";
+import { Effect, JSONSchema, type ManagedRuntime, Schema } from "effect";
 import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 
 import { makeRunner } from "./core/adapters/elysia/runner";
-import { type MenuRouteServices, menuRoutes } from "./routes/menu/menu.route";
+import { menuRoutes } from "./routes/menu/menu.route";
 
-export type AppServices = MenuRouteServices;
+export type AppRequirements = Effect.Effect.Context<Parameters<Parameters<typeof menuRoutes>[0]>[0]>;
 
 export type AppDependencies = {
   origin: string;
-  runtime: ManagedRuntime.ManagedRuntime<AppServices, never>;
+  runtime: ManagedRuntime.ManagedRuntime<AppRequirements, never>;
   aot?: boolean;
 };
 
