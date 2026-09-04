@@ -31,7 +31,7 @@ evidence: []
 
 作業単位は`apps/api`と`apps/web`の2つとし、それぞれ`nekomimi-ramen-api`と`nekomimi-ramen-web`としてデプロイする。
 
-APIは経路定義(`src/app.ts`)とWorkerの入口(`src/index.ts`)に分ける。経路定義は`cloudflare:workers`を参照せず、実行基盤の値は引数で受け取る。画面はこの経路定義の型だけを読む。
+APIは経路定義(`src/app.ts`)とWorkerの入口(`src/index.ts`)に分ける。経路定義は`cloudflare:workers`を参照せず、実行基盤の値は引数で受け取る。画面はこの経路定義の型だけを読む。この分割より内側の構造は[`DEC-SYS-005`](DEC-SYS-005-api-internal-structure.md)で定める。
 
 依存の版はpnpmのcatalogで一箇所に固定する。公開から1日を経ていない版は取り込まない。
 
@@ -64,8 +64,6 @@ TypeScriptを6系に留めるのは、ElysiaJSが型推論を深く使うため�
 公開直後の版を取り込まないのは、供給網への攻撃が発覚するまでの猶予を作るためである。この方針により、実行環境であるworkerdも1日以上前の版になる。Workerの互換性日付は、その版が対応する範囲に収める。
 
 APIを経路定義と入口に分けるのは、画面が`@nekomimi/api`の型を読むときに`cloudflare:workers`まで要求されないようにするためである。分けない場合、画面側の型検査にWorkers固有の型定義が必要になる。
-
-MarkdownとTOMLを整形の対象から外すのは、文書の書式を[ドキュメント管理](../../documentation-management.md)が定めるためである。整形器が独自の規則で書き換えると、その規則と競合する。
 
 ## 影響
 
