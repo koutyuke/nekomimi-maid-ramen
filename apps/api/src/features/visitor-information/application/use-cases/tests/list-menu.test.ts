@@ -2,8 +2,7 @@ import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { stockFixture, stockRepositoryMock } from "../../../../inventory/testing";
-import { menuItemFixture } from "../../../testing/fixtures/menu-item.fixture";
-import { menuItemRepositoryMock } from "../../../testing/mocks/menu-item.repository.mock";
+import { menuItemFixture, menuItemRepositoryMock } from "../../../testing";
 import { listMenu } from "../list-menu";
 import type { Stock } from "../../../../inventory";
 import type { MenuItem } from "../../../domain/menu-item";
