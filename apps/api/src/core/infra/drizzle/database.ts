@@ -4,7 +4,6 @@ import { Context, Effect, Layer } from "effect";
 import { PersistenceError } from "../../domain/persistence-error";
 
 export type DatabaseService = {
-  // DEC-SYS-005
   readonly run: <A>(
     operation: string,
     query: (db: DrizzleD1Database) => Promise<A>,
