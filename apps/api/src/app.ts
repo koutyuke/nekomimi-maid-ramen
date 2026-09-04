@@ -3,12 +3,13 @@ import { cors } from "@elysiajs/cors";
 import { JSONSchema, Schema } from "effect";
 import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
-import type { Effect, ManagedRuntime } from "effect";
+import type { ManagedRuntime } from "effect";
 
 import { makeRunner } from "./core/adapters/elysia/runner";
 import { menuRoutes } from "./routes/menu/menu.route";
+import type { MenuRouteRequirements } from "./routes/menu/menu.route";
 
-export type AppRequirements = Effect.Effect.Context<Parameters<Parameters<typeof menuRoutes>[0]>[0]>;
+export type AppRequirements = MenuRouteRequirements;
 
 export type AppDependencies = {
   origin: string;
