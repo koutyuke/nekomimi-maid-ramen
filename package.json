@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "api": "pnpm --filter @nekomimi/api",
+    "web": "pnpm --filter @nekomimi/web",
     "build": "turbo build",
     "check": "pnpm run lint && pnpm run fmt:check && pnpm run typecheck && pnpm run test",
     "dev": "turbo dev",
