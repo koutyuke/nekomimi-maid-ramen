@@ -43,7 +43,6 @@ export const stocks = sqliteTable(
     quantity: integer("quantity").notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
-  // D1に対話型のトランザクションがないため、読み取った在庫を判断してから書き込めない。
-  // 在庫不足を制約違反として現し、バッチ全体を取り消す。
+  // DEC-SYS-005
   (table) => [check("stocks_quantity_non_negative", sql`${table.quantity} >= 0`)],
 );

@@ -3,8 +3,7 @@ import { Context, Effect, Layer } from "effect";
 import { PersistenceError } from "../../domain/persistence-error";
 
 export type DatabaseService = {
-  // D1には対話型のトランザクションがない。不可分に扱う書き込みは、この関数の内側で
-  // `db.batch`として組み立てる。
+  // DEC-SYS-005
   readonly run: <A>(
     operation: string,
     query: (db: DrizzleD1Database) => Promise<A>,
