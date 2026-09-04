@@ -1,5 +1,6 @@
 import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 import { Context, Effect, Layer } from "effect";
+
 import { PersistenceError } from "../../domain/persistence-error";
 
 export type DatabaseService = {
@@ -19,7 +20,7 @@ export const makeDatabaseService = (d1: D1Database): DatabaseService => {
     run: (operation, query) =>
       Effect.tryPromise({
         try: () => query(db),
-        catch: cause => new PersistenceError({ operation, cause }),
+        catch: (cause) => new PersistenceError({ operation, cause }),
       }),
   };
 };

@@ -1,6 +1,6 @@
 {
   "extends": ["../../.oxlintrc.jsonc"],
-  "plugins": ["react", "react-hooks", "jsx-a11y"],
+  "plugins": ["react", "jsx-a11y"],
   "env": {
     "browser": true,
   },

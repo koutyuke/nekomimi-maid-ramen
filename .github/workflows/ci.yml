@@ -32,7 +32,7 @@ jobs:
         run: pnpm run lint
 
       - name: Format
-        run: pnpm run format:check
+        run: pnpm run fmt:check
 
       - name: Typecheck
         run: pnpm run typecheck

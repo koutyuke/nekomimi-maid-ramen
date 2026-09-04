@@ -93,16 +93,16 @@ pnpm --filter @nekomimi/api db:migrate:local  # 手元の D1 へ適用する
 
 ```sh
 pnpm check       # lint、整形、型検査、試験をまとめて実行する
-pnpm lint        # turbo で各パッケージの oxlint を実行する
-pnpm format      # turbo のルートタスクで oxfmt を実行する
-pnpm format:check
+pnpm lint        # リポジトリ全体の oxlint を実行する
+pnpm fmt         # リポジトリ全体を oxfmt で整形する
+pnpm fmt:check
 pnpm typecheck
 pnpm test
 ```
 
 `no-floating-promises` などの型情報を使う検査を有効にしている。注文の保存と在庫の減算は一つのバッチとして実行するため、`await` の書き忘れがエラーを出さないまま在庫を壊す。型情報がなければこの誤りは見つからない。
 
-共通の検査設定はルートの `.oxlintrc.jsonc`、パッケージ固有の設定は `apps/*/.oxlintrc.jsonc` に置く。
+oxlintはルートから一度だけ実行し、対象ファイルに最も近い設定を使う。共通設定はルートの `.oxlintrc.jsonc`、パッケージ固有の設定は `apps/*/.oxlintrc.jsonc` に置く。oxfmtの設定はルートの `.oxfmtrc.jsonc` に置き、リポジトリ全体で同じ書式を使う。
 
 コミット時は整形だけを行い、プッシュ時に lint、型検査、試験が lefthook で走る。
 

@@ -2,7 +2,7 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "printWidth": 120,
   "sortImports": {
-    "internalPattern": ["@/", "~/", "src/"],
+    "internalPattern": ["@nekomimi/"],
     "newlinesBetween": false,
     "groups": [
       ["side_effect_style", "side_effect", "style"],
@@ -18,11 +18,5 @@
       "unknown",
     ],
   },
-  "ignorePatterns": [
-    "**/dist/**",
-    "**/.wrangler/**",
-    "**/worker-configuration.d.ts",
-    "**/routeTree.gen.ts",
-    "**/drizzle/**",
-  ],
+  "ignorePatterns": ["apps/api/worker-configuration.d.ts", "apps/api/drizzle/**", "apps/web/src/routeTree.gen.ts"],
 }

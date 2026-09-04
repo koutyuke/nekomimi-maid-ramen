@@ -1,8 +1,10 @@
 {
   "extends": ["../../.oxlintrc.jsonc"],
+  "plugins": [],
   "rules": {
     // Effectのタグ付きエラーは`_tag`で種類を判別する。ライブラリが定める名前であり変更できない。
     "no-underscore-dangle": ["error", { "allow": ["_tag"] }],
+    "oxc/no-map-spread": "off",
   },
   "ignorePatterns": ["dist/**", ".wrangler/**", "worker-configuration.d.ts", "drizzle/**"],
   // 依存の向きを検査する(`DEC-SYS-005`)。同じルールを持つoverrideは後のものが前のものを

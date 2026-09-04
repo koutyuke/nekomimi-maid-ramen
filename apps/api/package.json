@@ -14,8 +14,10 @@
     "db:migrate:remote": "wrangler d1 migrations apply nekomimi-ramen --remote",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --type-aware --fix",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "import", "promise", "unicorn"],
+  "plugins": ["oxc", "typescript", "unicorn", "import", "promise"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -13,8 +13,6 @@
     "eqeqeq": "error",
     "eslint/no-unused-vars": "error",
 
-    // 注文確定は、注文の保存と在庫の減算をひとつのバッチとして実行する。
-    // ここで待ち忘れると、エラーも出ないまま在庫だけが壊れる。型情報がないと検出できない。
     "typescript/no-floating-promises": "error",
     "typescript/no-misused-promises": "error",
     "typescript/await-thenable": "error",
