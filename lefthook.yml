@@ -3,7 +3,7 @@ pre-commit:
   piped: true
   commands:
     1_format:
-      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,json,jsonc}"
+      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,json,jsonc,md,toml}"
       run: oxfmt {staged_files}
       stage_fixed: true
     2_lint:

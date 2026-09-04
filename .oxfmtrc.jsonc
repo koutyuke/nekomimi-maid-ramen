@@ -1,6 +1,23 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "printWidth": 120,
+  "sortImports": {
+    "internalPattern": ["@/", "~/", "src/"],
+    "newlinesBetween": false,
+    "groups": [
+      ["side_effect_style", "side_effect", "style"],
+      { "newlinesBetween": true },
+      "value-builtin",
+      "type-builtin",
+      { "newlinesBetween": true },
+      "value-external",
+      "type-external",
+      { "newlinesBetween": true },
+      ["value-internal", "value-parent", "value-sibling", "value-index"],
+      ["type-internal", "type-parent", "type-sibling", "type-index"],
+      "unknown",
+    ],
+  },
   "ignorePatterns": [
     // 文書と要件は`docs/documentation-management.md`が書式を定める。整形器で書き換えない。
     "**/*.md",

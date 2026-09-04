@@ -33,9 +33,4 @@ requirements = [
   "REQ-SYS-008",
 ]
 
-blocking_questions = [
-  "Q-OPS-001",
-  "Q-OPS-002",
-  "Q-OPS-004",
-  "Q-SYS-005",
-]
+blocking_questions = ["Q-OPS-001", "Q-OPS-002", "Q-OPS-004", "Q-SYS-005"]

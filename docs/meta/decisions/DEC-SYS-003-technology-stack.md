@@ -20,21 +20,21 @@ Cloudflareへ登録した`nekomimi-ramen.com`の下で、2つのWorkerを別々�
 | ホスト                   | Worker | 配信する内容                                              |
 | ------------------------ | ------ | --------------------------------------------------------- |
 | `nekomimi-ramen.com`     | Web    | React、Viteでビルドした静的アセット                       |
-| `api.nekomimi-ramen.com` | API    | ElysiaJS、Cloudflare D1、Server-Sent Events、Google OAuth  |
+| `api.nekomimi-ramen.com` | API    | ElysiaJS、Cloudflare D1、Server-Sent Events、Google OAuth |
 
 いずれもCustom Domainとして割り当て、デプロイは別々に行う。
 
 2つのホストは別オリジンであるため、APIはCORSを設定する。両者は同一サイトであるため、セッションcookieは`Domain=nekomimi-ramen.com`を指定して共有し、`SameSite=Lax`のままでよい。画面からの要求は資格情報を含めて送る。
 
-| 層               | 採用するもの                                                     |
-| ---------------- | ---------------------------------------------------------------- |
-| 画面             | TypeScript、React、Vite                                          |
-| API              | ElysiaJS(`elysia/adapter/cloudflare-worker`のCloudflareAdapter)   |
-| 実行基盤         | Cloudflare Workers                                               |
-| データストア     | Cloudflare D1、Drizzle ORM                                       |
-| 型の共有         | Eden Treaty(`@elysiajs/eden`)                                    |
-| 調理画面への反映 | Server-Sent Events                                               |
-| 認証             | Google OAuth                                                     |
+| 層               | 採用するもの                                                    |
+| ---------------- | --------------------------------------------------------------- |
+| 画面             | TypeScript、React、Vite                                         |
+| API              | ElysiaJS(`elysia/adapter/cloudflare-worker`のCloudflareAdapter) |
+| 実行基盤         | Cloudflare Workers                                              |
+| データストア     | Cloudflare D1、Drizzle ORM                                      |
+| 型の共有         | Eden Treaty(`@elysiajs/eden`)                                   |
+| 調理画面への反映 | Server-Sent Events                                              |
+| 認証             | Google OAuth                                                    |
 
 両方のWorkerを一つのリポジトリで管理する。依存の向きは画面からAPIへの一方向に限り、APIは画面の実装を参照しない。APIはHTTPのインターフェースとして完結させる。
 
