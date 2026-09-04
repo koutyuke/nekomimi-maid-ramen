@@ -1,1 +1,5 @@
-export { stockRepositoryLayer as inventoryLayer } from "./adapters/repositories/stock.repository.live";
+import { Layer } from "effect";
+
+import { StockRepositoryLive } from "./adapters/repositories/stock.repository.live";
+
+export const InventoryLayer = Layer.mergeAll(StockRepositoryLive);
