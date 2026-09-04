@@ -1,9 +1,10 @@
 import { Effect, Schema } from "effect";
 import { Elysia } from "elysia";
 
-import { type EffectRunner, logAndDie } from "../../core/adapters/elysia/runner";
+import { logAndDie } from "../../core/adapters/elysia/runner";
 import { listMenu } from "../../features/visitor-information";
 import { MenuResponse, presentMenu } from "./menu.response";
+import type { EffectRunner } from "../../core/adapters/elysia/runner";
 
 export type MenuRouteRequirements = Effect.Effect.Context<ReturnType<typeof listMenu>>;
 

@@ -1,5 +1,6 @@
-import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
+import { drizzle } from "drizzle-orm/d1";
 import { Context, Effect, Layer } from "effect";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import { PersistenceError } from "../../domain/persistence-error";
 

@@ -3,14 +3,8 @@ import { Option } from "effect";
 import { MenuItemId } from "../../../../core/domain/ids";
 import { Price } from "../../../../core/domain/money";
 import { Allergen, AllergenId, AllergenName } from "../../domain/allergen";
-import {
-  type AllergenCheckState,
-  Description,
-  DisplayOrder,
-  ItemName,
-  type MenuCategory,
-  MenuItem,
-} from "../../domain/menu-item";
+import { Description, DisplayOrder, ItemName, MenuItem } from "../../domain/menu-item";
+import type { AllergenCheckState, MenuCategory } from "../../domain/menu-item";
 
 export const allergenFixture = (id: string, name: string): Allergen =>
   new Allergen({ id: AllergenId.make(id), name: AllergenName.make(name) });

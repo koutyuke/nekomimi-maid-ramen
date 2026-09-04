@@ -1,6 +1,7 @@
 import { Option, Schema } from "effect";
 
-import { AllergenCheckState, type MenuEntry, MenuCategory } from "../../features/visitor-information";
+import { AllergenCheckState, MenuCategory } from "../../features/visitor-information";
+import type { MenuEntry } from "../../features/visitor-information";
 
 export const MenuResponse = Schema.Struct({
   items: Schema.Array(

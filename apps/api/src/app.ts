@@ -1,8 +1,9 @@
 import { openapi } from "@elysia/openapi";
 import { cors } from "@elysiajs/cors";
-import { Effect, JSONSchema, type ManagedRuntime, Schema } from "effect";
+import { JSONSchema, Schema } from "effect";
 import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
+import type { Effect, ManagedRuntime } from "effect";
 
 import { makeRunner } from "./core/adapters/elysia/runner";
 import { menuRoutes } from "./routes/menu/menu.route";

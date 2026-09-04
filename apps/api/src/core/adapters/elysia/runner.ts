@@ -1,4 +1,5 @@
-import { Effect, type ManagedRuntime } from "effect";
+import { Effect } from "effect";
+import type { ManagedRuntime } from "effect";
 
 export type EffectRunner<R> = <A>(effect: Effect.Effect<A, never, R>) => Promise<A>;
 
