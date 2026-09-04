@@ -4,7 +4,7 @@ import { Effect, Layer, Schema } from "effect";
 import { PersistenceError } from "../../../../core/domain/persistence-error";
 import { Database } from "../../../../core/infra/drizzle/database";
 import { allergens, menuItemAllergens, menuItems } from "../../../../core/infra/drizzle/schema";
-import { MenuItemRepository, type MenuItemRepositoryService } from "../../application/ports/menu-item.repository";
+import { MenuItemRepository } from "../../application/ports/menu-item.repository";
 import { MenuItem } from "../../domain/menu-item";
 
 const decodeMenuItems = Schema.decodeUnknown(Schema.Array(MenuItem));
@@ -32,12 +32,12 @@ const groupRows = (rows: ReadonlyArray<{ menuItem: MenuItemRow; allergen: Allerg
   }));
 };
 
-export const menuItemRepositoryLayer = Layer.effect(
+export const MenuItemRepositoryLive = Layer.effect(
   MenuItemRepository,
   Effect.gen(function* () {
     const database = yield* Database;
 
-    const service: MenuItemRepositoryService = {
+    const service = {
       listInDisplayOrder: () =>
         database
           .run("商品の一覧取得", (db) =>

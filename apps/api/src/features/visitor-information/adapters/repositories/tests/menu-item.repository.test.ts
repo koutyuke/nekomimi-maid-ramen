@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { databaseLayer } from "../../../../../core/infra/drizzle/database";
 import { allergens, menuItemAllergens, menuItems } from "../../../../../core/infra/drizzle/schema";
 import { MenuItemRepository } from "../../../application/ports/menu-item.repository";
-import { menuItemRepositoryLayer } from "../menu-item.repository.live";
+import { MenuItemRepositoryLive } from "../menu-item.repository.live";
 import type { MenuCategory } from "../../../domain/menu-item";
 
 const db = drizzle(env.DB);
@@ -16,7 +16,7 @@ const listInDisplayOrder = () =>
     Effect.gen(function* () {
       const repository = yield* MenuItemRepository;
       return yield* repository.listInDisplayOrder();
-    }).pipe(Effect.provide(menuItemRepositoryLayer.pipe(Layer.provide(databaseLayer(env.DB))))),
+    }).pipe(Effect.provide(MenuItemRepositoryLive.pipe(Layer.provide(databaseLayer(env.DB))))),
   );
 
 const menuItemRow = (args: {
