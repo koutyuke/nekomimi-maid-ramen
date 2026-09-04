@@ -70,7 +70,7 @@ apps/api/src/
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きは`.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。
+この向きは`apps/api/.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。
 
 ### 型定義
 
@@ -126,4 +126,4 @@ Effectを使うのは、エラーと依存を関数の型に載せるためで�
 - 新しい表を追加する場所は`src/core/infra/drizzle/schema.ts`だけである。
 - テストでは`main`をテスト専用の入口へ差し替える。Elysiaの事前コンパイルはWorkerの起動時にしか行えず、本番の入口をテストランナー内で読み込むと拒否される。
 - `no-underscore-dangle`は`_tag`を許可する。Effectのタグ付きエラーはこの名前で種類を判別する。
-- 新しい業務領域を追加する手順は、`domain`、`application/ports`、`application/use-cases`、`adapters`、`layer.ts`を作り、`.oxlintrc.jsonc`の業務領域パターンへ領域を加え、`index.ts`の`Layer.mergeAll`へ加えることである。
+- 新しい業務領域を追加する手順は、`domain`、`application/ports`、`application/use-cases`、`adapters`、`layer.ts`を作り、`apps/api/.oxlintrc.jsonc`の業務領域パターンへ領域を加え、`index.ts`の`Layer.mergeAll`へ加えることである。

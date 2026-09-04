@@ -1,0 +1,117 @@
+{
+  "extends": ["../../.oxlintrc.jsonc"],
+  "options": {
+    "typeAware": true,
+  },
+  "rules": {
+    // Effectのタグ付きエラーは`_tag`で種類を判別する。ライブラリが定める名前であり変更できない。
+    "no-underscore-dangle": ["error", { "allow": ["_tag"] }],
+  },
+  "ignorePatterns": ["dist/**", ".wrangler/**", "worker-configuration.d.ts", "drizzle/**"],
+  // 依存の向きを検査する(`DEC-SYS-005`)。同じルールを持つoverrideは後のものが前のものを
+  // 置き換えるため、それぞれのoverrideに必要な条件をすべて書く。
+  "overrides": [
+    {
+      "files": ["src/routes/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+              },
+              {
+                "group": ["**/features/*/domain/**", "**/features/*/application/**", "**/features/*/adapters/**"],
+                "message": "業務領域は公開面(`features/{領域}`)から読む。",
+              },
+              {
+                "group": ["**/features/*/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/features/**"],
+                "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
+                ],
+                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+              },
+              {
+                "group": ["**/core/adapters/**"],
+                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+              },
+              {
+                "group": ["**/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/*/application/**", "src/features/*/domain/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+              },
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
+                ],
+                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+              },
+              {
+                "group": ["**/core/adapters/**"],
+                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+              },
+              {
+                "group": ["**/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+}
