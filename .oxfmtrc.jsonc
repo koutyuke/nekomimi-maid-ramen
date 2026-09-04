@@ -19,9 +19,6 @@
     ],
   },
   "ignorePatterns": [
-    // 文書と要件は`docs/documentation-management.md`が書式を定める。整形器で書き換えない。
-    "**/*.md",
-    "**/*.toml",
     "**/dist/**",
     "**/.wrangler/**",
     "**/worker-configuration.d.ts",
