@@ -15,16 +15,6 @@ export type AppDependencies = {
   aot?: boolean;
 };
 
-const apiInformation = "Hello! This is Nekomimi Maid Ramen!";
-
-const ApiInformationResponse = Schema.String.annotations({
-  description: "APIを識別するメッセージ",
-});
-
-const HealthResponse = Schema.Struct({
-  status: Schema.Literal("ok").annotations({ description: "APIの稼働状態" }),
-}).annotations({ description: "APIの稼働状態" });
-
 export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
   const run = makeRunner(runtime);
 
@@ -47,13 +37,17 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
         scalar: { version: "1.67.0" },
       }),
     )
-    .get("/", () => apiInformation, {
+    .get("/", () => "Hello! This is Nekomimi Maid Ramen!", {
       detail: {
-        operationId: "getApiInformation",
+        operationId: "hello",
         summary: "APIの案内を取得",
         tags: ["システム"],
       },
-      response: Schema.standardSchemaV1(ApiInformationResponse),
+      response: Schema.standardSchemaV1(
+        Schema.String.annotations({
+          description: "APIを識別するメッセージ",
+        }),
+      ),
     })
     .get("/health", () => ({ status: "ok" }) as const, {
       detail: {
@@ -61,7 +55,11 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
         summary: "APIの稼働状態を取得",
         tags: ["システム"],
       },
-      response: Schema.standardSchemaV1(HealthResponse),
+      response: Schema.standardSchemaV1(
+        Schema.Struct({
+          status: Schema.Literal("ok").annotations({ description: "APIの稼働状態" }),
+        }).annotations({ description: "APIの稼働状態" }),
+      ),
     })
     .use(menuRoutes(run));
 
