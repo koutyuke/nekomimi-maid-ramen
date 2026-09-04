@@ -1,8 +1,19 @@
-import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
+import path from "node:path";
+
+import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
 
-// 本番と同じworkerd上で実行する。D1の制約やバッチの挙動を、
-// SQLiteの代替実装ではなく実物で確認するため。
+const migrations = await readD1Migrations(path.join(import.meta.dirname, "drizzle"));
+
 export default defineConfig({
-  plugins: [cloudflareTest({ wrangler: { configPath: "./wrangler.jsonc" } })],
+  plugins: [
+    cloudflareTest({
+      wrangler: { configPath: "./wrangler.jsonc" },
+      main: "./tests/setup/worker-entry.ts",
+      miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
+    }),
+  ],
+  test: {
+    setupFiles: ["./tests/setup/apply-migrations.ts"],
+  },
 });

@@ -22,6 +22,6 @@
     },
   ],
   "vars": {
-    "WEB_ORIGIN": "https://nekomimi-ramen.com",
+    "ORIGIN": "https://nekomimi-ramen.com",
   },
 }

@@ -14,12 +14,18 @@
     "db:migrate:remote": "wrangler d1 migrations apply nekomimi-ramen --remote",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@elysia/openapi": "^1.4.16",
     "@elysiajs/cors": "^1.4.2",
     "drizzle-orm": "catalog:",
+    "effect": "catalog:",
     "elysia": "catalog:"
   },
   "devDependencies": {

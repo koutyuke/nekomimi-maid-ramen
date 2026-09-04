@@ -3,14 +3,10 @@ pre-commit:
   piped: true
   commands:
     1_format:
-      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,json,jsonc}"
+      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,json,jsonc,md,toml}"
       run: oxfmt {staged_files}
       stage_fixed: true
-    2_lint:
-      glob: "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}"
-      run: oxlint --fix {staged_files}
-      stage_fixed: true
-    3_nix:
+    2_nix:
       glob: "*.nix"
       run: nixfmt {staged_files}
       stage_fixed: true
@@ -18,6 +14,8 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
+    lint:
+      run: pnpm run lint
     typecheck:
       run: pnpm run typecheck
     test:

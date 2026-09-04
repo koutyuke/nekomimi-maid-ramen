@@ -47,14 +47,16 @@ flowchart LR
 
 2 つの Worker を別々のホストへ割り当て、**別々に配備する**。営業中に画面だけを直したいとき、API を巻き込んで Server-Sent Events の接続を切らないためである。
 
-| 作業単位   | 配備先                   | 主な構成                                       |
-| ---------- | ------------------------ | ---------------------------------------------- |
-| `apps/web` | `nekomimi-ramen.com`     | React ・ Vite ・ TanStack Router ・ Mantine    |
-| `apps/api` | `api.nekomimi-ramen.com` | ElysiaJS ・ Drizzle ORM ・ Cloudflare D1       |
+| 作業単位   | 配備先                   | 主な構成                                           |
+| ---------- | ------------------------ | -------------------------------------------------- |
+| `apps/web` | `nekomimi-ramen.com`     | React ・ Vite ・ TanStack Router ・ Mantine        |
+| `apps/api` | `api.nekomimi-ramen.com` | ElysiaJS ・ Effect ・ Drizzle ORM ・ Cloudflare D1 |
 
 画面は Eden Treaty で `apps/api` の型を読む。依存の向きは画面から API への一方向に限り、API は画面の実装を参照しない。
 
-判断の根拠は [`DEC-SYS-003` 実行基盤とデータストア](docs/meta/decisions/DEC-SYS-003-technology-stack.md)と[`DEC-SYS-004` 開発環境とツールチェーン](docs/meta/decisions/DEC-SYS-004-development-environment.md)にある。
+API の内部は**業務領域で縦割り**にする。`src/features/{領域}/` の下に `domain`、`application`、`adapters`、`infra` を置き、仕様([`docs/specs/`](docs/specs/))と同じ切り方で読めるようにしている。エラーと依存は Effect の型に載せ、扱い忘れた失敗が型検査で残るようにする。
+
+判断の根拠は [`DEC-SYS-003` 実行基盤とデータストア](docs/meta/decisions/DEC-SYS-003-technology-stack.md)、[`DEC-SYS-004` 開発環境とツールチェーン](docs/meta/decisions/DEC-SYS-004-development-environment.md)、[`DEC-SYS-005` API の内部構造とエラー処理](docs/meta/decisions/DEC-SYS-005-api-internal-structure.md)にある。
 
 ## 準備
 
@@ -76,32 +78,44 @@ pnpm --filter @nekomimi/api dev   # API だけ
 pnpm --filter @nekomimi/web sb    # 画面部品のカタログ
 ```
 
+API の起動後は、[`http://localhost:8787/openapi`](http://localhost:8787/openapi) で API リファレンス、[`http://localhost:8787/openapi/json`](http://localhost:8787/openapi/json) で OpenAPI 仕様を確認できる。
+
+初回と表定義を変えたときは、手元の D1 へ移行を当てる。
+
+```sh
+pnpm --filter @nekomimi/api db:generate       # 表定義から移行ファイルを作る
+pnpm --filter @nekomimi/api db:migrate:local  # 手元の D1 へ適用する
+```
+
 画面が呼び出す API の送信元は `VITE_API_ORIGIN` で指定する。未指定なら `wrangler dev` の待ち受け先(`http://localhost:8787`)を使う。
 
 ## 検査
 
 ```sh
-pnpm check       # 下の 4 つをまとめて実行する
-pnpm lint        # oxlint。型情報を使う検査を含む
-pnpm format      # oxfmt。--check を付けると書き換えずに判定する
+pnpm check       # lint、整形、型検査、試験をまとめて実行する
+pnpm lint        # リポジトリ全体の oxlint を実行する
+pnpm fmt         # リポジトリ全体を oxfmt で整形する
+pnpm fmt:check
 pnpm typecheck
 pnpm test
 ```
 
 `no-floating-promises` などの型情報を使う検査を有効にしている。注文の保存と在庫の減算は一つのバッチとして実行するため、`await` の書き忘れがエラーを出さないまま在庫を壊す。型情報がなければこの誤りは見つからない。
 
-コミット時に整形と静的検査、プッシュ時に型検査と試験が lefthook で走る。
+oxlintはルートから一度だけ実行し、対象ファイルに最も近い設定を使う。共通設定はルートの `.oxlintrc.jsonc`、パッケージ固有の設定は `apps/*/.oxlintrc.jsonc` に置く。oxfmtの設定はルートの `.oxfmtrc.jsonc` に置き、リポジトリ全体で同じ書式を使う。
+
+コミット時は整形だけを行い、プッシュ時に lint、型検査、試験が lefthook で走る。
 
 ## 配備
 
 `main` へ統合すると GitHub Actions が配備する。**変更された Worker だけ**が対象になる。
 
-| ワークフロー      | 契機                           | 内容                                       |
-| ----------------- | ------------------------------ | ------------------------------------------ |
-| `ci.yml`          | プルリクエスト ・ `main`       | 静的検査、整形、型検査、試験、ビルド       |
-| `deploy-api.yml`  | `main` の `apps/api/**`        | 型検査、試験、D1 の移行適用、配備          |
-| `deploy-web.yml`  | `main` の `apps/web/**`        | 型検査、試験、ビルド、配備                 |
-| `preview-web.yml` | プルリクエストの `apps/web/**` | プレビュー版の作成と Lighthouse 計測       |
+| ワークフロー      | 契機                           | 内容                                 |
+| ----------------- | ------------------------------ | ------------------------------------ |
+| `ci.yml`          | プルリクエスト ・ `main`       | 静的検査、整形、型検査、試験、ビルド |
+| `deploy-api.yml`  | `main` の `apps/api/**`        | 型検査、試験、D1 の移行適用、配備    |
+| `deploy-web.yml`  | `main` の `apps/web/**`        | 型検査、試験、ビルド、配備           |
+| `preview-web.yml` | プルリクエストの `apps/web/**` | プレビュー版の作成と Lighthouse 計測 |
 
 配備するジョブは Environment `production` に属する。出店当日だけ Settings → Environments → production で Required reviewers を有効にすると承認待ちへ切り替わる。ワークフローの変更は要らない。
 
@@ -130,10 +144,10 @@ Google Cloud 側でクライアントを作り、戻り先 URL を登録する�
 
 要件と仕様は [`docs/`](docs/README.md) にある。
 
-| 場所                                   | 役割                                             |
-| -------------------------------------- | ------------------------------------------------ |
-| [`docs/product/`](docs/product/)        | 目的、利用者、体験、用語                         |
-| [`docs/meta/`](docs/meta/)              | 要件、判断、未決事項、提供範囲                   |
-| [`docs/specs/`](docs/specs/)            | 業務領域ごとの振る舞いと受け入れ例               |
+| 場所                             | 役割                               |
+| -------------------------------- | ---------------------------------- |
+| [`docs/product/`](docs/product/) | 目的、利用者、体験、用語           |
+| [`docs/meta/`](docs/meta/)       | 要件、判断、未決事項、提供範囲     |
+| [`docs/specs/`](docs/specs/)     | 業務領域ごとの振る舞いと受け入れ例 |
 
 文書を更新する前に[ドキュメント管理](docs/documentation-management.md)を読む。ブランチを切る前とプルリクエストを作る前に[変更管理](docs/change-management.md)を読む。

@@ -4,6 +4,6 @@ import { defineConfig } from "drizzle-kit";
 // ここは移行ファイルの生成だけを担うため、接続情報を持たない。
 export default defineConfig({
   dialect: "sqlite",
-  schema: "./src/db/schema.ts",
+  schema: "./src/core/infra/drizzle/schema.ts",
   out: "./drizzle",
 });

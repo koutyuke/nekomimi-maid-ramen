@@ -1,8 +1,10 @@
-import type { Preview } from "@storybook/react-vite";
+import "@mantine/core/styles.css";
+
 import { MantineProvider } from "@mantine/core";
 import { createElement } from "react";
+import type { Preview } from "@storybook/react-vite";
+
 import { theme } from "../src/theme";
-import "@mantine/core/styles.css";
 
 // スタッフも来場者もスマートフォンの縦向きで使うため、既定の枠を合わせる。
 const preview: Preview = {

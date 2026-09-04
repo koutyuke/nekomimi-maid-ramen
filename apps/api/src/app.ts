@@ -1,24 +1,69 @@
+import { openapi } from "@elysia/openapi";
 import { cors } from "@elysiajs/cors";
+import { JSONSchema, Schema } from "effect";
 import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
+import type { ManagedRuntime } from "effect";
+
+import { makeRunner } from "./core/adapters/elysia/runner";
+import { menuRoutes } from "./routes/menu/menu.route";
+import type { MenuRouteRequirements } from "./routes/menu/menu.route";
+
+export type AppRequirements = MenuRouteRequirements;
 
 export type AppDependencies = {
-  /** 資格情報付きの要求を許可する送信元。画面を配信するホストを指す。 */
-  webOrigin: string;
-  /**
-   * Elysiaの事前コンパイルは`new Function`で処理を組み立てる。Cloudflare Workersが
-   * これを許すのはWorkerの起動時だけであり、起動後に組み立てると拒否される。
-   * 本番の入口は起動時に呼ぶため既定で有効にし、テストは起動後に組み立てるため無効にする。
-   */
+  origin: string;
+  runtime: ManagedRuntime.ManagedRuntime<AppRequirements, never>;
   aot?: boolean;
 };
 
-// 実行基盤の値は引数で受け取り、この階層からは`cloudflare:workers`を参照しない。
-// 画面はこのファイルの型だけを読むため、Workers固有の型が画面側へ漏れない。
-export const createApp = ({ webOrigin, aot = true }: AppDependencies) => {
+export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
+  const run = makeRunner(runtime);
+
   const app = new Elysia({ adapter: CloudflareAdapter, aot })
-    .use(cors({ origin: webOrigin, credentials: true }))
-    .get("/health", () => ({ status: "ok" }) as const);
+    .use(cors({ origin, credentials: true }))
+    .use(
+      openapi({
+        documentation: {
+          info: {
+            title: "Nekomimi Maid Ramen API",
+            description: "ねこみみメイドラーメンが提供する API",
+            version: "0.0.0",
+          },
+          tags: [
+            { name: "システム", description: "API 自体の情報と稼働状態" },
+            { name: "メニュー", description: "来店者へ提供するメニュー情報" },
+          ],
+        },
+        mapJsonSchema: { effect: JSONSchema.make },
+        scalar: { version: "1.67.0" },
+      }),
+    )
+    .get("/", () => "Hello! This is Nekomimi Maid Ramen!", {
+      detail: {
+        operationId: "hello",
+        summary: "APIの案内を取得",
+        tags: ["システム"],
+      },
+      response: Schema.standardSchemaV1(
+        Schema.String.annotations({
+          description: "APIを識別するメッセージ",
+        }),
+      ),
+    })
+    .get("/health", () => ({ status: "ok" }) as const, {
+      detail: {
+        operationId: "getHealth",
+        summary: "APIの稼働状態を取得",
+        tags: ["システム"],
+      },
+      response: Schema.standardSchemaV1(
+        Schema.Struct({
+          status: Schema.Literal("ok").annotations({ description: "APIの稼働状態" }),
+        }).annotations({ description: "APIの稼働状態" }),
+      ),
+    })
+    .use(menuRoutes(run));
 
   return aot ? app.compile() : app;
 };
