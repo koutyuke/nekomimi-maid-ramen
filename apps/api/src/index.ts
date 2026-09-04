@@ -9,6 +9,6 @@ import { VisitorInformationLayer } from "./features/visitor-information/layer";
 const AppLayer = Layer.mergeAll(InventoryLayer, VisitorInformationLayer).pipe(Layer.provide(databaseLayer(env.DB)));
 
 export default createApp({
-  origin: env.WEB_ORIGIN,
+  origin: env.ORIGIN,
   runtime: ManagedRuntime.make(AppLayer),
 });
