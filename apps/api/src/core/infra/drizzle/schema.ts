@@ -6,7 +6,7 @@ export const menuItems = sqliteTable("menu_items", {
   name: text("name").notNull(),
   description: text("description"),
   price: integer("price").notNull(),
-  category: text("category", { enum: ["ramen", "gyoza", "bottled-drink"] }).notNull(),
+  category: text("category", { enum: ["main", "side", "drink"] }).notNull(),
   displayOrder: integer("display_order").notNull(),
   allergenCheckState: text("allergen_check_state", { enum: ["unchecked", "checked"] }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),

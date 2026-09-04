@@ -23,7 +23,7 @@ const menuItemRow = (args: {
   name: string;
   price: number;
   displayOrder: number;
-  category: "ramen" | "gyoza" | "bottled-drink";
+  category: "main" | "side" | "drink";
 }) => ({
   ...args,
   description: null,
@@ -41,7 +41,7 @@ describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
   it("複数の品目を持つ商品を1件にまとめる", async () => {
     await db
       .insert(menuItems)
-      .values(menuItemRow({ id: "item-gyoza", name: "餃子", price: 400, displayOrder: 2, category: "gyoza" }));
+      .values(menuItemRow({ id: "item-gyoza", name: "餃子", price: 400, displayOrder: 2, category: "side" }));
     await db.insert(allergens).values([
       { id: "allergen-wheat", name: "小麦" },
       { id: "allergen-egg", name: "卵" },
@@ -61,8 +61,8 @@ describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
     await db
       .insert(menuItems)
       .values([
-        menuItemRow({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1, category: "ramen" }),
-        menuItemRow({ id: "item-cola", name: "コーラ", price: 300, displayOrder: 3, category: "bottled-drink" }),
+        menuItemRow({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1, category: "main" }),
+        menuItemRow({ id: "item-cola", name: "コーラ", price: 300, displayOrder: 3, category: "drink" }),
       ]);
 
     const items = await listInDisplayOrder();
@@ -75,8 +75,8 @@ describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
     await db
       .insert(menuItems)
       .values([
-        menuItemRow({ id: "item-cola", name: "コーラ", price: 300, displayOrder: 3, category: "bottled-drink" }),
-        menuItemRow({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1, category: "ramen" }),
+        menuItemRow({ id: "item-cola", name: "コーラ", price: 300, displayOrder: 3, category: "drink" }),
+        menuItemRow({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1, category: "main" }),
       ]);
 
     const items = await listInDisplayOrder();

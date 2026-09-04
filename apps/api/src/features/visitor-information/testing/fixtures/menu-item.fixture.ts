@@ -30,7 +30,7 @@ export const menuItemFixture = (args: {
     name: ItemName.make(args.name),
     description: args.description === undefined ? Option.none() : Option.some(Description.make(args.description)),
     price: Price.make(args.price),
-    category: args.category ?? "ramen",
+    category: args.category ?? "main",
     displayOrder: DisplayOrder.make(args.displayOrder),
     allergenCheckState: args.allergenCheckState ?? "unchecked",
     containedAllergens: args.containedAllergens ?? [],

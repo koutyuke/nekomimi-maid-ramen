@@ -13,7 +13,7 @@ export type Description = Schema.Schema.Type<typeof Description>;
 export const DisplayOrder = Schema.Int.pipe(Schema.positive(), Schema.brand("DisplayOrder"));
 export type DisplayOrder = Schema.Schema.Type<typeof DisplayOrder>;
 
-export const MenuCategory = Schema.Literal("ramen", "gyoza", "bottled-drink");
+export const MenuCategory = Schema.Literal("main", "side", "drink");
 export type MenuCategory = Schema.Schema.Type<typeof MenuCategory>;
 
 export const AllergenCheckState = Schema.Literal("unchecked", "checked");

@@ -14,7 +14,7 @@ const gyoza = menuItemFixture({
   name: "餃子",
   price: 400,
   displayOrder: 2,
-  category: "gyoza",
+  category: "side",
 });
 
 const run = (menuItems: ReadonlyArray<MenuItem>, stocks: ReadonlyArray<Stock>) =>
