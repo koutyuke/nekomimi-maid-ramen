@@ -7,6 +7,7 @@ import { databaseLayer } from "../../../../../core/infra/drizzle/database";
 import { allergens, menuItemAllergens, menuItems } from "../../../../../core/infra/drizzle/schema";
 import { MenuItemRepository } from "../../../application/ports/menu-item.repository";
 import { menuItemRepositoryLayer } from "../menu-item.repository.live";
+import type { MenuCategory } from "../../../domain/menu-item";
 
 const db = drizzle(env.DB);
 
@@ -23,7 +24,7 @@ const menuItemRow = (args: {
   name: string;
   price: number;
   displayOrder: number;
-  category: "main" | "side" | "drink";
+  category: MenuCategory;
 }) => ({
   ...args,
   description: null,
