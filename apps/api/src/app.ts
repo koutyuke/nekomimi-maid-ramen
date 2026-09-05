@@ -7,9 +7,11 @@ import type { ManagedRuntime } from "effect";
 
 import { makeRunner } from "./core/adapters/elysia/runner";
 import { menuRoutes } from "./routes/menu/menu.route";
+import { orderRoutes } from "./routes/orders/orders.route";
 import type { MenuRouteRequirements } from "./routes/menu/menu.route";
+import type { OrderRouteRequirements } from "./routes/orders/orders.route";
 
-export type AppRequirements = MenuRouteRequirements;
+export type AppRequirements = MenuRouteRequirements | OrderRouteRequirements;
 
 export type AppDependencies = {
   origin: string;
@@ -21,6 +23,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
   const run = makeRunner(runtime);
 
   const app = new Elysia({ adapter: CloudflareAdapter, aot })
+    // Plugins
     .use(cors({ origin, credentials: true }))
     .use(
       openapi({
@@ -33,12 +36,15 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
           tags: [
             { name: "システム", description: "API 自体の情報と稼働状態" },
             { name: "メニュー", description: "来店者へ提供するメニュー情報" },
+            { name: "注文", description: "会計担当者が確定する注文" },
           ],
         },
         mapJsonSchema: { effect: JSONSchema.make },
         scalar: { version: "1.67.0" },
       }),
     )
+
+    // Handlers
     .get("/", () => "Hello! This is Nekomimi Maid Ramen!", {
       detail: {
         operationId: "hello",
@@ -63,7 +69,10 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
         }).annotations({ description: "APIの稼働状態" }),
       ),
     })
-    .use(menuRoutes(run));
+
+    // Routes
+    .use(menuRoutes(run))
+    .use(orderRoutes(run));
 
   return aot ? app.compile() : app;
 };

@@ -24,7 +24,7 @@ priority = "must"
 status = "draft"
 specs = ["SPEC-INV-002", "SPEC-SAL-005"]
 depends_on = ["REQ-INV-001"]
-sources = []
+sources = ["DEC-SAL-001"]
 
 [[requirements]]
 id = "REQ-INV-003"
@@ -36,4 +36,4 @@ priority = "must"
 status = "draft"
 specs = ["SPEC-INV-003", "SPEC-SAL-005", "SPEC-SYS-002"]
 depends_on = ["REQ-INV-002"]
-sources = []
+sources = ["DEC-SAL-001"]
