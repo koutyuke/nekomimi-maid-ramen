@@ -3,12 +3,12 @@ import { drizzle } from "drizzle-orm/d1";
 import { Layer, ManagedRuntime } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { createApp } from "../src/app";
-import { databaseLayer } from "../src/core/infra/drizzle/database";
-import { menuItems, orderLines, orders, stocks } from "../src/core/infra/drizzle/schema";
-import { InventoryLayer } from "../src/features/inventory/layer";
-import { SalesLayer } from "../src/features/sales/layer";
-import { VisitorInformationLayer } from "../src/features/visitor-information/layer";
+import { createApp } from "../../app";
+import { databaseLayer } from "../../core/infra/drizzle/database";
+import { menuItems, orderLines, orders, stocks } from "../../core/infra/drizzle/schema";
+import { InventoryLayer } from "../../features/inventory/layer";
+import { SalesLayer } from "../../features/sales/layer";
+import { VisitorInformationLayer } from "../../features/visitor-information/layer";
 
 const db = drizzle(env.DB);
 

@@ -9,11 +9,11 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
-      main: "./tests/setup/worker-entry.ts",
+      main: "./testing/setup/worker-entry.ts",
       miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
     }),
   ],
   test: {
-    setupFiles: ["./tests/setup/apply-migrations.ts"],
+    setupFiles: ["./testing/setup/apply-migrations.ts"],
   },
 });

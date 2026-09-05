@@ -16,26 +16,32 @@ evidence: []
 APIの内部を業務領域で縦割りにし、領域の中を層で分ける。エラー処理、型定義、依存の解決はEffect(`effect`、3.22系)で行う。
 
 ```
-apps/api/src/
-├── core/            複数領域が共有するもの
-│   ├── domain/      共有する識別子、金額、保存先の失敗を表す型
-│   ├── infra/       D1とDrizzleの実体、全表の定義
-│   └── adapters/    Effectをルートハンドラへ繋ぐ処理
-├── features/        業務領域ごと(inventory、visitor-information、…)
-│   └── {領域}/
-│       ├── domain/       概念ごとに1ファイル(stock.ts、menu-item.ts、…)
-│       ├── application/  ports(依存の宣言)、use-cases(業務処理)
-│       ├── adapters/     repositories(保存先の実装)
-│       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
-│       ├── index.ts      この領域の公開面
-│       └── layer.ts      この領域の実装を組み立てる
-├── routes/
-│   └── {経路}/
-│       ├── {経路}.route.ts     経路の定義
-│       ├── {経路}.response.ts  応答の形と組み立て
-│       └── tests/
-├── app.ts           経路の合成。画面が読む型の正本
-└── index.ts         Workerの入口。実装の解決はここだけで行う
+apps/api/
+├── src/
+│   ├── core/            複数領域が共有するもの
+│   │   ├── domain/      共有する識別子、金額、保存先の失敗を表す型
+│   │   ├── infra/       D1とDrizzleの実体、全表の定義
+│   │   └── adapters/    Effectをルートハンドラへ繋ぐ処理
+│   ├── features/        業務領域ごと(inventory、visitor-information、…)
+│   │   └── {領域}/
+│   │       ├── domain/       概念ごとに1ファイル(stock.ts、menu-item.ts、…)
+│   │       ├── application/  ports(依存の宣言)、use-cases(業務処理)
+│   │       ├── adapters/     repositories(保存先の実装)
+│   │       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
+│   │       ├── index.ts      この領域の公開面
+│   │       └── layer.ts      この領域の実装を組み立てる
+│   ├── routes/
+│   │   └── {経路}/
+│   │       ├── {経路}.route.ts     経路の定義
+│   │       ├── {経路}.response.ts  応答の形と組み立て
+│   │       └── tests/
+│   ├── tests/
+│   │   └── integration/     複数領域と実際の保存先を通す統合テスト
+│   ├── app.ts           経路の合成。画面が読む型の正本
+│   └── index.ts         Workerの入口。実装の解決はここだけで行う
+└── testing/
+    ├── env.d.ts         テスト実行時だけ使う型宣言
+    └── setup/           テスト環境の入口と初期化
 ```
 
 領域の名前は[ドキュメント管理](../../documentation-management.md)の業務領域に合わせる。
@@ -54,9 +60,13 @@ apps/api/src/
 
 領域の外から読めるのは`features/{領域}/index.ts`だけである。ここへ載せるのはポート、ドメインの型と判定関数、ユースケースである。
 
-`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。`layer.ts`を読むのは`src/index.ts`だけである。
+`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
 
 テスト用の`fixtures`と`mocks`は`features/{領域}/testing/index.ts`を入口とする。
+
+### テストの配置
+
+一つの概念、層、経路に閉じるテストは対象の隣の`tests/`へ置く。複数の業務領域と実際の保存先を組み合わせるテストは`apps/api/src/tests/integration/`へ置き、必要な`layer.ts`をテスト用の保存先と組み立てる。Workerの入口を含む公開境界全体を外側から検証するテストは`apps/api/src/tests/e2e/`へ置く。テストランナーの入口と初期化は`apps/api/testing/setup/`へ置き、テスト実行時の型宣言は`apps/api/testing/env.d.ts`へ置く。
 
 ### 応答の形
 
@@ -70,7 +80,7 @@ apps/api/src/
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きは`apps/api/.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。
+この向きは`apps/api/.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
 ### 型定義
 

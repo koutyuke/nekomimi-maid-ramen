@@ -11,6 +11,25 @@
   // 置き換えるため、それぞれのoverrideに必要な条件をすべて書く。
   "overrides": [
     {
+      // テスト用コードは本番コードから参照させない。既存の領域境界overrideがこの規則を
+      // 置き換えるため、後段の本番コード用overrideにも同じ禁止条件を含める。
+      "files": ["src/**"],
+      "excludeFiles": ["src/**/tests/**", "src/**/testing/**", "src/**/*.test.ts", "src/**/*.spec.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
       "files": ["src/routes/**"],
       "rules": {
         "no-restricted-imports": [
@@ -106,6 +125,148 @@
               {
                 "group": ["**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/routes/**"],
+      "excludeFiles": [
+        "src/routes/**/tests/**",
+        "src/routes/**/testing/**",
+        "src/routes/**/*.test.ts",
+        "src/routes/**/*.spec.ts",
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+              },
+              {
+                "group": ["**/features/*/domain/**", "**/features/*/application/**", "**/features/*/adapters/**"],
+                "message": "業務領域は公開面(`features/{領域}`)から読む。",
+              },
+              {
+                "group": ["**/features/*/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/core/**"],
+      "excludeFiles": [
+        "src/core/**/tests/**",
+        "src/core/**/testing/**",
+        "src/core/**/*.test.ts",
+        "src/core/**/*.spec.ts",
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/features/**"],
+                "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/**"],
+      "excludeFiles": [
+        "src/features/**/tests/**",
+        "src/features/**/testing/**",
+        "src/features/**/*.test.ts",
+        "src/features/**/*.spec.ts",
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
+                ],
+                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+              },
+              {
+                "group": ["**/core/adapters/**"],
+                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+              },
+              {
+                "group": ["**/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/*/application/**", "src/features/*/domain/**"],
+      "excludeFiles": [
+        "src/features/**/tests/**",
+        "src/features/**/testing/**",
+        "src/features/**/*.test.ts",
+        "src/features/**/*.spec.ts",
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+              },
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
+                ],
+                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+              },
+              {
+                "group": ["**/core/adapters/**"],
+                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+              },
+              {
+                "group": ["**/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
               },
             ],
           },
