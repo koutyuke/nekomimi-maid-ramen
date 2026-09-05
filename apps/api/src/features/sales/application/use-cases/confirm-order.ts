@@ -66,17 +66,18 @@ export const confirmOrder = (
       { concurrency: 2 },
     );
 
+    // 未知の商品が購入対象に入っていないかの確認
+    // 販売可能かどうかの突合確認
     const priceByMenuItemId = new Map<MenuItemId, Price>(menuItems.map((menuItem) => [menuItem.id, menuItem.price]));
     const unknownMenuItemIds = validatedInput.lines.flatMap((line) =>
       priceByMenuItemId.has(line.menuItemId) ? [] : [line.menuItemId],
     );
-
     if (unknownMenuItemIds.length > 0) {
       return yield* new UnknownMenuItem({ menuItemIds: unknownMenuItemIds });
     }
 
+    // 不足している商品がないかの確認
     const shortages = shortagesFor(stocks, validatedInput.lines);
-
     if (shortages.length > 0) {
       return yield* new OutOfStock({ shortages });
     }
