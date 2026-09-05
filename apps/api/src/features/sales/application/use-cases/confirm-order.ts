@@ -7,7 +7,7 @@ import { MenuItemRepository } from "../../../visitor-information";
 import {
   businessDateAt,
   ConfirmationRequestId,
-  InvalidOrderCommand,
+  InvalidOrderInput,
   LineQuantity,
   OrderLine,
   totalAmountOf,
@@ -17,27 +17,27 @@ import { OrderRepository } from "../ports/order.repository";
 import type { Price } from "../../../../core/domain/money";
 import type { Order, OrderDraft } from "../../domain/order";
 
-const OrderLineCommand = Schema.Struct({ menuItemId: MenuItemId, quantity: LineQuantity });
+const OrderLineInputSchema = Schema.Struct({ menuItemId: MenuItemId, quantity: LineQuantity });
 
-const ConfirmOrderCommand = Schema.Struct({
+const ConfirmOrderInputSchema = Schema.Struct({
   requestId: ConfirmationRequestId,
-  lines: Schema.Array(OrderLineCommand).pipe(
+  lines: Schema.Array(OrderLineInputSchema).pipe(
     Schema.minItems(1),
     Schema.filter((lines) => new Set(lines.map((line) => line.menuItemId)).size === lines.length, {
       message: () => "同じ商品を複数の明細へ分けられない",
     }),
   ),
 });
-type ConfirmOrderCommand = Schema.Schema.Type<typeof ConfirmOrderCommand>;
+type ValidatedConfirmOrderInput = Schema.Schema.Type<typeof ConfirmOrderInputSchema>;
 
 export type ConfirmOrderInput = {
   readonly requestId: string;
   readonly lines: ReadonlyArray<{ readonly menuItemId: string; readonly quantity: number }>;
 };
 
-const decodeCommand = (input: ConfirmOrderInput) =>
-  Schema.decodeUnknown(ConfirmOrderCommand)(input).pipe(
-    Effect.mapError((cause) => new InvalidOrderCommand({ reason: ParseResult.TreeFormatter.formatErrorSync(cause) })),
+const decodeInput = (input: ConfirmOrderInput) =>
+  Schema.decodeUnknown(ConfirmOrderInputSchema)(input).pipe(
+    Effect.mapError((cause) => new InvalidOrderInput({ reason: ParseResult.TreeFormatter.formatErrorSync(cause) })),
   );
 
 const newOrderId = Effect.sync(() => OrderId.make(crypto.randomUUID()));
@@ -46,7 +46,7 @@ export const confirmOrder = (
   input: ConfirmOrderInput,
 ): Effect.Effect<
   Order,
-  InvalidOrderCommand | OutOfStock | PersistenceError | UnknownMenuItem,
+  InvalidOrderInput | OutOfStock | PersistenceError | UnknownMenuItem,
   MenuItemRepository | OrderRepository | StockRepository
 > =>
   Effect.gen(function* () {
@@ -54,8 +54,8 @@ export const confirmOrder = (
     const stockRepository = yield* StockRepository;
     const orderRepository = yield* OrderRepository;
 
-    const command = yield* decodeCommand(input);
-    const alreadyConfirmed = yield* orderRepository.findByRequestId(command.requestId);
+    const validatedInput = yield* decodeInput(input);
+    const alreadyConfirmed = yield* orderRepository.findByRequestId(validatedInput.requestId);
 
     if (Option.isSome(alreadyConfirmed)) {
       return alreadyConfirmed.value;
@@ -67,7 +67,7 @@ export const confirmOrder = (
     );
 
     const priceByMenuItemId = new Map<MenuItemId, Price>(menuItems.map((menuItem) => [menuItem.id, menuItem.price]));
-    const unknownMenuItemIds = command.lines.flatMap((line) =>
+    const unknownMenuItemIds = validatedInput.lines.flatMap((line) =>
       priceByMenuItemId.has(line.menuItemId) ? [] : [line.menuItemId],
     );
 
@@ -75,13 +75,13 @@ export const confirmOrder = (
       return yield* new UnknownMenuItem({ menuItemIds: unknownMenuItemIds });
     }
 
-    const shortages = shortagesFor(stocks, command.lines);
+    const shortages = shortagesFor(stocks, validatedInput.lines);
 
     if (shortages.length > 0) {
       return yield* new OutOfStock({ shortages });
     }
 
-    const lines = command.lines.flatMap((line) => {
+    const lines = validatedInput.lines.flatMap((line) => {
       const unitPrice = priceByMenuItemId.get(line.menuItemId);
 
       return unitPrice === undefined ? [] : [new OrderLine({ ...line, unitPrice })];
@@ -91,7 +91,7 @@ export const confirmOrder = (
     const draft: OrderDraft = {
       id: yield* newOrderId,
       businessDate: businessDateAt(confirmedAt),
-      requestId: command.requestId,
+      requestId: validatedInput.requestId,
       lines,
       totalAmount: totalAmountOf(lines),
       cookingState: "unstarted",
@@ -99,8 +99,8 @@ export const confirmOrder = (
     };
 
     return yield* orderRepository.confirm(draft).pipe(
-      Effect.catchTag("DuplicateConfirmation", () => reloadConfirmed(command.requestId)),
-      Effect.catchTag("ConfirmationLostStockRace", () => reportShortagesAfterRace(command)),
+      Effect.catchTag("DuplicateConfirmation", () => reloadConfirmed(validatedInput.requestId)),
+      Effect.catchTag("ConfirmationLostStockRace", () => reportShortagesAfterRace(validatedInput)),
     );
   });
 
@@ -117,11 +117,11 @@ const reloadConfirmed = (requestId: ConfirmationRequestId): Effect.Effect<Order,
   });
 
 const reportShortagesAfterRace = (
-  command: ConfirmOrderCommand,
+  input: ValidatedConfirmOrderInput,
 ): Effect.Effect<never, OutOfStock | PersistenceError, StockRepository> =>
   Effect.gen(function* () {
     const stockRepository = yield* StockRepository;
     const stocks = yield* stockRepository.listAll();
 
-    return yield* new OutOfStock({ shortages: shortagesFor(stocks, command.lines) });
+    return yield* new OutOfStock({ shortages: shortagesFor(stocks, input.lines) });
   });

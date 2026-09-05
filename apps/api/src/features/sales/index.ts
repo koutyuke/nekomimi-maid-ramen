@@ -4,7 +4,7 @@ export {
   BusinessDate,
   ConfirmationRequestId,
   CookingState,
-  InvalidOrderCommand,
+  InvalidOrderInput,
   LineQuantity,
   Order,
   OrderLine,

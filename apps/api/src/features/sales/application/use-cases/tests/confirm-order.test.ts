@@ -35,11 +35,11 @@ const environment = (options: {
     orderRepositoryMock(options.orders),
   );
 
-const confirm = (layers: ReturnType<typeof environment>, command: ConfirmOrderInput) =>
-  Effect.runPromise(confirmOrder(command).pipe(Effect.provide(layers)));
+const confirm = (layers: ReturnType<typeof environment>, input: ConfirmOrderInput) =>
+  Effect.runPromise(confirmOrder(input).pipe(Effect.provide(layers)));
 
-const confirmFailure = (layers: ReturnType<typeof environment>, command: ConfirmOrderInput) =>
-  Effect.runPromise(Effect.flip(confirmOrder(command).pipe(Effect.provide(layers))));
+const confirmFailure = (layers: ReturnType<typeof environment>, input: ConfirmOrderInput) =>
+  Effect.runPromise(Effect.flip(confirmOrder(input).pipe(Effect.provide(layers))));
 
 describe("SPEC-SAL-005 注文の確定", () => {
   it("販売可能な注文候補から注文を1件作り、注文番号を発行する", async () => {

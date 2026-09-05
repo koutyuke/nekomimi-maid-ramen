@@ -41,7 +41,7 @@ const confirmOrderOutcome = (input: ConfirmOrderInput) =>
     Effect.catchTag("UnknownMenuItem", (error) =>
       Effect.succeed({ status: 422, body: presentUnknownMenuItem(error.menuItemIds) } as const),
     ),
-    Effect.catchTag("InvalidOrderCommand", (error) =>
+    Effect.catchTag("InvalidOrderInput", (error) =>
       Effect.succeed({ status: 422, body: { code: "invalid_order", reason: error.reason } } as const),
     ),
   );

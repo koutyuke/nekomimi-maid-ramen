@@ -82,7 +82,7 @@ export type OrderDraft = {
 /**
  * 確定要求が入力として成立していないことを表す業務エラー。
  */
-export class InvalidOrderCommand extends Data.TaggedError("InvalidOrderCommand")<{
+export class InvalidOrderInput extends Data.TaggedError("InvalidOrderInput")<{
   readonly reason: string;
 }> {}
 
