@@ -151,3 +151,5 @@ Google Cloud 側でクライアントを作り、戻り先 URL を登録する�
 | [`docs/specs/`](docs/specs/)     | 業務領域ごとの振る舞いと受け入れ例 |
 
 文書を更新する前に[ドキュメント管理](docs/documentation-management.md)を読む。ブランチを切る前とプルリクエストを作る前に[変更管理](docs/change-management.md)を読む。
+
+不具合や作業を登録する場合は、[Issue の起票](docs/issue-management.md)を読む。
