@@ -1,0 +1,111 @@
+[
+  {
+    "name": "T-Epic",
+    "color": "1d76db",
+    "description": "type: epic - 複数のIssueを束ねる大項目"
+  },
+  {
+    "name": "T-Feature",
+    "color": "1d76db",
+    "description": "type: feature - 新機能の追加"
+  },
+  {
+    "name": "T-Enhancement",
+    "color": "1d76db",
+    "description": "type: enhancement - 既存機能の改善"
+  },
+  {
+    "name": "T-Bug",
+    "color": "b60205",
+    "description": "type: bug - 不具合の報告・修正"
+  },
+  {
+    "name": "T-Refactor",
+    "color": "1d76db",
+    "description": "type: refactor - 挙動を変えない構造改善"
+  },
+  {
+    "name": "T-Test",
+    "color": "1d76db",
+    "description": "type: test - テストの追加・改善"
+  },
+  {
+    "name": "T-Documentation",
+    "color": "1d76db",
+    "description": "type: documentation - 文書の作成・更新"
+  },
+  {
+    "name": "T-Chore",
+    "color": "1d76db",
+    "description": "type: chore - 依存更新、設定、雑務"
+  },
+
+  {
+    "name": "A-API",
+    "color": "0e8a16",
+    "description": "area: api - apps/api"
+  },
+  {
+    "name": "A-Web",
+    "color": "0e8a16",
+    "description": "area: web - apps/web"
+  },
+  {
+    "name": "A-Docs",
+    "color": "0e8a16",
+    "description": "area: docs - docs 配下の文書"
+  },
+  {
+    "name": "A-Infra",
+    "color": "0e8a16",
+    "description": "area: infra - CI、Nix、Turbo、リンターなどの開発基盤"
+  },
+
+  {
+    "name": "P-Critical",
+    "color": "c2185b",
+    "description": "priority: critical - 最優先・即時対応"
+  },
+  {
+    "name": "P-High",
+    "color": "e91e63",
+    "description": "priority: high - 高優先"
+  },
+  {
+    "name": "P-Medium",
+    "color": "f06292",
+    "description": "priority: medium - 中優先"
+  },
+  {
+    "name": "P-Low",
+    "color": "f8bbd0",
+    "description": "priority: low - 低優先"
+  },
+
+  {
+    "name": "X-Blocked",
+    "color": "d93f0b",
+    "description": "status: blocked - 他の作業や外部要因で着手できない"
+  },
+  {
+    "name": "X-NeedsDecision",
+    "color": "fbca04",
+    "description": "status: needs decision - 未決事項 Q-* の解決待ち"
+  },
+
+  {
+    "name": "duplicate",
+    "color": "cfd3d7",
+    "description": "既存のIssueまたはPull Requestと重複している"
+  },
+  {
+    "name": "invalid",
+    "color": "e4e669",
+    "description": "内容が誤っている、または対象外である"
+  },
+  {
+    "name": "wontfix",
+    "color": "ffffff",
+    "description": "対応しないと判断した"
+  }
+]
