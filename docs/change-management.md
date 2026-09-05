@@ -2,6 +2,8 @@
 
 この文書は、変更をどの単位で提案し、どのように承認するかを定める。決定者と承認の成立条件は[`DEC-SYS-001`](meta/decisions/DEC-SYS-001-requirement-approval.md)で定める。
 
+不具合や作業を登録する場合は、[Issue の起票](issue-management.md)に従う。
+
 ## ブランチとプルリクエストの単位
 
 | 変更の種類     | 単位                                                                              |

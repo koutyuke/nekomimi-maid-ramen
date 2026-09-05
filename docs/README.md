@@ -23,3 +23,4 @@
 - 実装・検証する人は、要件の`specs`に記載された`SPEC-*`を対象領域の[`specs/`](specs/sales.md)から確認する。
 - 文書を更新する人とAgentは、先に[ドキュメント管理](documentation-management.md)を読む。
 - 変更を提案する人とAgentは、[変更管理](change-management.md)を読む。
+- 不具合や作業を登録する人は、[Issue の起票](issue-management.md)を読む。
