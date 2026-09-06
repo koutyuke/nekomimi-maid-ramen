@@ -12,7 +12,7 @@ import {
   totalAmountOf,
   UnknownMenuItem,
 } from "../../domain/order";
-import { OrderConfirmationCommit } from "../ports/outbound/order-confirmation-commit";
+import { OrderConfirmationCommand } from "../ports/outbound/order-confirmation.command";
 import { OrderPricing } from "../ports/outbound/order-pricing";
 import { OrderStockAvailability } from "../ports/outbound/order-stock-availability";
 import { OrderRepository } from "../ports/outbound/order.repository";
@@ -49,13 +49,13 @@ export const confirmOrder = (
 ): Effect.Effect<
   Order,
   InvalidOrderInput | OutOfStock | PersistenceError | UnknownMenuItem,
-  OrderConfirmationCommit | OrderPricing | OrderRepository | OrderStockAvailability
+  OrderConfirmationCommand | OrderPricing | OrderRepository | OrderStockAvailability
 > =>
   Effect.gen(function* () {
     const orderPricing = yield* OrderPricing;
     const stockAvailability = yield* OrderStockAvailability;
     const orderRepository = yield* OrderRepository;
-    const orderConfirmationCommit = yield* OrderConfirmationCommit;
+    const orderConfirmationCommand = yield* OrderConfirmationCommand;
 
     const validatedInput = yield* decodeInput(input);
     const alreadyConfirmed = yield* orderRepository.findByRequestId(validatedInput.requestId);
@@ -101,7 +101,7 @@ export const confirmOrder = (
       confirmedAt,
     };
 
-    return yield* orderConfirmationCommit.commit(draft).pipe(
+    return yield* orderConfirmationCommand.execute(draft).pipe(
       Effect.catchTag("DuplicateConfirmation", () => reloadConfirmed(validatedInput.requestId)),
       Effect.catchTag("ConfirmationLostStockRace", () => reportShortagesAfterRace(validatedInput)),
     );

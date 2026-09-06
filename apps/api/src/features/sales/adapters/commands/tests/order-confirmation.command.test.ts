@@ -4,18 +4,18 @@ import { drizzle } from "drizzle-orm/d1";
 import { Effect, Layer } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { OrderId } from "../../../core/domain/ids";
-import { Amount } from "../../../core/domain/money";
-import { databaseLayer } from "../../../core/infra/drizzle/database";
-import { menuItems, orderLines, orders, stocks } from "../../../core/infra/drizzle/schema";
-import { OrderConfirmationCommit } from "../../../features/sales/public";
-import { BusinessDate, ConfirmationRequestId } from "../../../features/sales/public";
-import { orderLineFixture } from "../../../features/sales/testing";
-import { OrderConfirmationCommitLive } from "../order-confirmation.commit.live";
-import type { OrderDraft } from "../../../features/sales/public";
+import { OrderId } from "../../../../../core/domain/ids";
+import { Amount } from "../../../../../core/domain/money";
+import { databaseLayer } from "../../../../../core/infra/drizzle/database";
+import { menuItems, orderLines, orders, stocks } from "../../../../../core/infra/drizzle/schema";
+import { OrderConfirmationCommand } from "../../../application/ports/outbound/order-confirmation.command";
+import { BusinessDate, ConfirmationRequestId } from "../../../domain/order";
+import { orderLineFixture } from "../../../testing";
+import { OrderConfirmationCommandLive } from "../order-confirmation.command.live";
+import type { OrderDraft } from "../../../domain/order";
 
 const db = drizzle(env.DB);
-const live = OrderConfirmationCommitLive.pipe(Layer.provide(databaseLayer(env.DB)));
+const live = OrderConfirmationCommandLive.pipe(Layer.provide(databaseLayer(env.DB)));
 const businessDate = BusinessDate.make("2026-11-01");
 
 const draftOf = (args: {
@@ -32,12 +32,12 @@ const draftOf = (args: {
   confirmedAt: new Date("2026-11-01T02:00:00.000Z"),
 });
 
-const commit = (draft: OrderDraft) =>
+const execute = (draft: OrderDraft) =>
   Effect.runPromiseExit(
     Effect.gen(function* () {
-      const confirmation = yield* OrderConfirmationCommit;
+      const confirmation = yield* OrderConfirmationCommand;
 
-      return yield* confirmation.commit(draft);
+      return yield* confirmation.execute(draft);
     }).pipe(Effect.provide(live)),
   );
 
@@ -81,14 +81,14 @@ beforeEach(async () => {
 
 describe("SPEC-INV-003 注文確定の原子性", () => {
   it("注文と明細を保存し、営業日ごとに1から始まる注文番号を発行する", async () => {
-    const first = await commit(
+    const first = await execute(
       draftOf({
         id: "order-1",
         requestId: "request-1",
         lines: [orderLineFixture("item-ramen", 1, 500)],
       }),
     );
-    const second = await commit(
+    const second = await execute(
       draftOf({
         id: "order-2",
         requestId: "request-2",
@@ -103,7 +103,7 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
   });
 
   it("確定時の価格を明細へ残す", async () => {
-    await commit(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 2, 480)] }));
+    await execute(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 2, 480)] }));
     await db.update(menuItems).set({ price: 900 }).where(eq(menuItems.id, "item-ramen"));
 
     const stored = await db.select().from(orderLines).where(eq(orderLines.orderId, "order-1")).all();
@@ -112,7 +112,7 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
   });
 
   it("在庫制約に失敗すると注文と明細も保存しない", async () => {
-    const exit = await commit(
+    const exit = await execute(
       draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 5, 500)] }),
     );
 
@@ -127,7 +127,7 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
   it("複数商品のうち一つでも不足すれば全体を取り消す", async () => {
     await db.update(stocks).set({ quantity: 0 }).where(eq(stocks.menuItemId, "item-gyoza"));
 
-    await commit(
+    await execute(
       draftOf({
         id: "order-1",
         requestId: "request-1",
@@ -141,7 +141,7 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
   });
 
   it("確定した数量だけ在庫を減らす", async () => {
-    await commit(
+    await execute(
       draftOf({
         id: "order-1",
         requestId: "request-1",
@@ -154,9 +154,9 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
   });
 
   it("失敗した確定は注文番号の欠番を作らない", async () => {
-    await commit(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 1, 500)] }));
-    await commit(draftOf({ id: "order-x", requestId: "request-x", lines: [orderLineFixture("item-ramen", 9, 500)] }));
-    await commit(draftOf({ id: "order-2", requestId: "request-2", lines: [orderLineFixture("item-ramen", 1, 500)] }));
+    await execute(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 1, 500)] }));
+    await execute(draftOf({ id: "order-x", requestId: "request-x", lines: [orderLineFixture("item-ramen", 9, 500)] }));
+    await execute(draftOf({ id: "order-2", requestId: "request-2", lines: [orderLineFixture("item-ramen", 1, 500)] }));
 
     const stored = await db.select({ orderNumber: orders.orderNumber }).from(orders).orderBy(orders.orderNumber).all();
 
@@ -166,8 +166,8 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
 
 describe("SPEC-SAL-005 注文確定の冪等性と競合", () => {
   it("同じ要求識別子を二度確定しても注文と在庫を二重に変更しない", async () => {
-    await commit(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 1, 500)] }));
-    const resent = await commit(
+    await execute(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 1, 500)] }));
+    const resent = await execute(
       draftOf({ id: "order-2", requestId: "request-1", lines: [orderLineFixture("item-ramen", 1, 500)] }),
     );
 
@@ -180,7 +180,7 @@ describe("SPEC-SAL-005 注文確定の冪等性と競合", () => {
 
   it("同時確定の合計が在庫数を超えない", async () => {
     const attempts = Array.from({ length: 6 }, (_, index) =>
-      commit(
+      execute(
         draftOf({
           id: `order-${index}`,
           requestId: `request-${index}`,
@@ -198,7 +198,7 @@ describe("SPEC-SAL-005 注文確定の冪等性と競合", () => {
 
   it("同じ営業日の注文番号を重複させない", async () => {
     const attempts = Array.from({ length: 3 }, (_, index) =>
-      commit(
+      execute(
         draftOf({
           id: `order-${index}`,
           requestId: `request-${index}`,

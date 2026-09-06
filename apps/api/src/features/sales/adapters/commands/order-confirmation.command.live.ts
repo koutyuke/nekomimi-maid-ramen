@@ -1,16 +1,12 @@
 import { eq, sql } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 
-import { PersistenceError } from "../../core/domain/persistence-error";
-import { Database } from "../../core/infra/drizzle/database";
-import { orderLines, orders, stocks } from "../../core/infra/drizzle/schema";
-import {
-  ConfirmationLostStockRace,
-  DuplicateConfirmation,
-  Order,
-  OrderConfirmationCommit,
-} from "../../features/sales/public";
-import type { ConfirmationRequestId, OrderDraft } from "../../features/sales/public";
+import { PersistenceError } from "../../../../core/domain/persistence-error";
+import { Database } from "../../../../core/infra/drizzle/database";
+import { orderLines, orders, stocks } from "../../../../core/infra/drizzle/schema";
+import { OrderConfirmationCommand } from "../../application/ports/outbound/order-confirmation.command";
+import { ConfirmationLostStockRace, DuplicateConfirmation, Order } from "../../domain/order";
+import type { ConfirmationRequestId, OrderDraft } from "../../domain/order";
 
 const decodeOrder = Schema.decodeUnknown(Order);
 const CONFIRM_OPERATION = "注文の確定";
@@ -32,17 +28,17 @@ const classifyConfirmFailure = (error: PersistenceError, requestId: Confirmation
 const nextOrderNumber = (businessDate: string) =>
   sql<number>`(select coalesce(max(${orders.orderNumber}), 0) + 1 from ${orders} where ${orders.businessDate} = ${businessDate})`;
 
-export const OrderConfirmationCommitLive = Layer.effect(
-  OrderConfirmationCommit,
+export const OrderConfirmationCommandLive = Layer.effect(
+  OrderConfirmationCommand,
   Effect.gen(function* () {
     const database = yield* Database;
 
-    return OrderConfirmationCommit.of({
-      commit: (draft: OrderDraft) =>
+    return OrderConfirmationCommand.of({
+      execute: (draft: OrderDraft) =>
         database
           .run(CONFIRM_OPERATION, (db) =>
+            // 注文、明細、在庫を一つのバッチへ入れ、途中の失敗で片方だけ成立しないようにする。
             db.batch([
-              // 注文、明細、在庫を一つのバッチへ入れ、途中の失敗で片方だけ成立しないようにする。
               db
                 .insert(orders)
                 .values({

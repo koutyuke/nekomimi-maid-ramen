@@ -1,6 +1,6 @@
 import { Effect, Layer, Option } from "effect";
 
-import { OrderConfirmationCommit } from "../../application/ports/outbound/order-confirmation-commit";
+import { OrderConfirmationCommand } from "../../application/ports/outbound/order-confirmation.command";
 import { OrderRepository } from "../../application/ports/outbound/order.repository";
 import { Order, OrderNumber } from "../../domain/order";
 import type { PersistenceError } from "../../../../core/domain/persistence-error";
@@ -29,8 +29,8 @@ export const orderRepositoryMock = (options: OrderRepositoryMockOptions = {}) =>
     findByRequestId: (requestId) =>
       Effect.sync(() => Option.fromNullable(confirmed.find((order) => order.requestId === requestId))),
   });
-  const confirmation = Layer.succeed(OrderConfirmationCommit, {
-    commit: (draft) => {
+  const confirmation = Layer.succeed(OrderConfirmationCommand, {
+    execute: (draft) => {
       attempts += 1;
 
       return (options.confirm ?? defaultConfirm)(draft, attempts);
@@ -43,5 +43,5 @@ export const orderRepositoryMock = (options: OrderRepositoryMockOptions = {}) =>
 export const failingOrderRepositoryMock = (error: PersistenceError) =>
   Layer.mergeAll(
     Layer.succeed(OrderRepository, { findByRequestId: () => Effect.fail(error) }),
-    Layer.succeed(OrderConfirmationCommit, { commit: () => Effect.fail(error) }),
+    Layer.succeed(OrderConfirmationCommand, { execute: () => Effect.fail(error) }),
   );

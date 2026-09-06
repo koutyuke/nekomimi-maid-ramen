@@ -34,10 +34,6 @@
                 "group": ["**/features/*/layer", "**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
               },
-              {
-                "group": ["**/integrations/**"],
-                "message": "領域の公開APIから実装を組み立てる。統合実装はルートで解決する。",
-              },
             ],
           },
         ],
@@ -76,10 +72,6 @@
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
               },
               {
-                "group": ["**/integrations/**"],
-                "message": "領域の公開APIから実装を組み立てる。統合実装はルートで解決する。",
-              },
-              {
                 "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
                 "message": "本番コードからテスト用のコードを読まない。",
               },
@@ -102,10 +94,6 @@
               {
                 "group": ["**/features/**"],
                 "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
-              },
-              {
-                "group": ["**/integrations/**"],
-                "message": "`core`は領域間の統合実装を読まない。",
               },
               {
                 "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
@@ -143,10 +131,6 @@
                 "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
               },
               {
-                "group": ["**/integrations/**"],
-                "message": "領域から統合実装を直接読まない。接続は`layer.ts`とルートで解決する。",
-              },
-              {
                 "group": ["**/features/*/layer", "**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
               },
@@ -176,10 +160,6 @@
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
                 ],
                 "message": "アプリケーションとドメインは他の業務領域を読まない。領域間の接続はアダプターで行う。",
-              },
-              {
-                "group": ["**/integrations/**"],
-                "message": "アプリケーションとドメインは統合実装を読まない。",
               },
               {
                 "group": ["**/*.live", "**/infra/**"],
@@ -233,10 +213,6 @@
                 "message": "他の業務領域は公開面(`features/{領域}/public`)または`features/{領域}/testing`から読む。",
               },
               {
-                "group": ["**/integrations/**"],
-                "message": "領域のアダプターから統合実装を直接読まない。",
-              },
-              {
                 "group": ["**/core/adapters/**"],
                 "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
               },
@@ -272,7 +248,7 @@
                 "message": "公開面は自領域の契約だけを公開し、他領域や内部実装を読まない。",
               },
               {
-                "group": ["**/*.live", "**/infra/**", "**/layer", "**/integrations/**"],
+                "group": ["**/*.live", "**/infra/**", "**/layer"],
                 "message": "公開面へ実装の組み立てを漏らさない。",
               },
               {
@@ -308,8 +284,8 @@
                 "message": "layerは自領域の実装を組み立て、他領域は公開面から読む。",
               },
               {
-                "group": ["**/features/*/layer", "**/layer", "**/integrations/**"],
-                "message": "layerから他のlayerや統合実装を読まない。",
+                "group": ["**/features/*/layer", "**/layer"],
+                "message": "layerから他のlayerを読まない。",
               },
               {
                 "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
@@ -346,32 +322,6 @@
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
                 ],
                 "message": "テスト用コードも他領域の公開面またはtesting入口だけを読む。",
-              },
-              {
-                "group": ["**/integrations/**"],
-                "message": "featureのテストから統合実装を直接読まない。",
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      "files": ["src/integrations/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": [
-                  "**/features/*/domain/**",
-                  "**/features/*/application/**",
-                  "**/features/*/adapters/**",
-                  "**/features/*/layer",
-                  "**/features/*/index",
-                ],
-                "message": "統合実装は業務領域の公開面(`features/{領域}/public`)から読む。",
               },
             ],
           },

@@ -9,16 +9,13 @@ import { menuItems, orderLines, orders, stocks } from "../../core/infra/drizzle/
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
-import { OrderConfirmationCommitLive } from "../../integrations/order-confirmation/order-confirmation.commit.live";
 
 const db = drizzle(env.DB);
 
 const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(InventoryLayer));
 const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
-const SalesAndIntegrationLayer = Layer.mergeAll(SalesLayer, OrderConfirmationCommitLive).pipe(
-  Layer.provide(InventoryAndVisitorLayer),
-);
-const AppLayer = Layer.mergeAll(InventoryAndVisitorLayer, SalesAndIntegrationLayer).pipe(
+const SalesWithInventoryLayer = SalesLayer.pipe(Layer.provide(InventoryAndVisitorLayer));
+const AppLayer = Layer.mergeAll(InventoryAndVisitorLayer, SalesWithInventoryLayer).pipe(
   Layer.provide(databaseLayer(env.DB)),
 );
 
