@@ -7,28 +7,7 @@
     "oxc/no-map-spread": "off",
   },
   "ignorePatterns": ["dist/**", ".wrangler/**", "worker-configuration.d.ts", "drizzle/**"],
-  // 依存の向きを検査する(`DEC-SYS-005`)。同じルールを持つoverrideは後のものが前のものを
-  // 置き換えるため、それぞれのoverrideに必要な条件をすべて書く。
   "overrides": [
-    {
-      // テスト用コードは本番コードから参照させない。既存の領域境界overrideがこの規則を
-      // 置き換えるため、後段の本番コード用overrideにも同じ禁止条件を含める。
-      "files": ["src/**"],
-      "excludeFiles": ["src/**/tests/**", "src/**/testing/**", "src/**/*.test.ts", "src/**/*.spec.ts"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
-                "message": "本番コードからテスト用のコードを読まない。",
-              },
-            ],
-          },
-        ],
-      },
-    },
     {
       "files": ["src/routes/**"],
       "rules": {
@@ -41,57 +20,23 @@
                 "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
               },
               {
-                "group": ["**/features/*/domain/**", "**/features/*/application/**", "**/features/*/adapters/**"],
-                "message": "業務領域は公開面(`features/{領域}`)から読む。",
-              },
-              {
-                "group": ["**/features/*/layer"],
-                "message": "`layer`を読むのは`src/index.ts`だけである。",
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      "files": ["src/core/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": ["**/features/**"],
-                "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      "files": ["src/features/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
                 "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
-                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public.ts",
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
                 ],
-                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+                "message": "業務領域は公開面(`features/{領域}/public`)から読む。",
               },
               {
-                "group": ["**/core/adapters/**"],
-                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
-              },
-              {
-                "group": ["**/layer"],
+                "group": ["**/features/*/layer", "**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+              {
+                "group": ["**/integrations/**"],
+                "message": "領域の公開APIから実装を組み立てる。統合実装はルートで解決する。",
               },
             ],
           },
@@ -99,39 +44,8 @@
       },
     },
     {
-      "files": ["src/features/*/application/**", "src/features/*/domain/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": ["**/*.live", "**/infra/**"],
-                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
-              },
-              {
-                "group": [
-                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
-                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
-                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
-                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
-                ],
-                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
-              },
-              {
-                "group": ["**/core/adapters/**"],
-                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
-              },
-              {
-                "group": ["**/layer"],
-                "message": "`layer`を読むのは`src/index.ts`だけである。",
-              },
-            ],
-          },
-        ],
-      },
-    },
-    {
+      // 経路のテストだけは`features/{領域}/testing`を入口として使える。実装側では
+      // `regex`でディレクトリ入口も禁止し、内部のmockを直接参照する抜け道を残さない。
       "files": ["src/routes/**"],
       "excludeFiles": [
         "src/routes/**/tests/**",
@@ -149,15 +63,28 @@
                 "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
               },
               {
-                "group": ["**/features/*/domain/**", "**/features/*/application/**", "**/features/*/adapters/**"],
-                "message": "業務領域は公開面(`features/{領域}`)から読む。",
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public.ts",
+                ],
+                "message": "業務領域は公開面(`features/{領域}/public`)から読む。",
               },
               {
-                "group": ["**/features/*/layer"],
+                "group": ["**/features/*/layer", "**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
               },
               {
+                "group": ["**/integrations/**"],
+                "message": "領域の公開APIから実装を組み立てる。統合実装はルートで解決する。",
+              },
+              {
                 "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
                 "message": "本番コードからテスト用のコードを読まない。",
               },
             ],
@@ -167,12 +94,6 @@
     },
     {
       "files": ["src/core/**"],
-      "excludeFiles": [
-        "src/core/**/tests/**",
-        "src/core/**/testing/**",
-        "src/core/**/*.test.ts",
-        "src/core/**/*.spec.ts",
-      ],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -183,7 +104,15 @@
                 "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
               },
               {
+                "group": ["**/integrations/**"],
+                "message": "`core`は領域間の統合実装を読まない。",
+              },
+              {
                 "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
                 "message": "本番コードからテスト用のコードを読まない。",
               },
             ],
@@ -193,12 +122,6 @@
     },
     {
       "files": ["src/features/**"],
-      "excludeFiles": [
-        "src/features/**/tests/**",
-        "src/features/**/testing/**",
-        "src/features/**/*.test.ts",
-        "src/features/**/*.spec.ts",
-      ],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -206,23 +129,33 @@
             "patterns": [
               {
                 "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
-                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public.ts",
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
                 ],
-                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+                "message": "他の業務領域は公開面(`features/{領域}/public`)または`features/{領域}/testing`から読む。",
               },
               {
                 "group": ["**/core/adapters/**"],
                 "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
               },
               {
-                "group": ["**/layer"],
+                "group": ["**/integrations/**"],
+                "message": "領域から統合実装を直接読まない。接続は`layer.ts`とルートで解決する。",
+              },
+              {
+                "group": ["**/features/*/layer", "**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
               },
               {
                 "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
                 "message": "本番コードからテスト用のコードを読まない。",
               },
             ],
@@ -232,7 +165,167 @@
     },
     {
       "files": ["src/features/*/application/**", "src/features/*/domain/**"],
-      "excludeFiles": [
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                ],
+                "message": "アプリケーションとドメインは他の業務領域を読まない。領域間の接続はアダプターで行う。",
+              },
+              {
+                "group": ["**/integrations/**"],
+                "message": "アプリケーションとドメインは統合実装を読まない。",
+              },
+              {
+                "group": ["**/*.live", "**/infra/**"],
+                "message": "実装ではなくポートを読む。実装の組み立ては`layer.ts`で行う。",
+              },
+              {
+                "group": ["**/core/adapters/**"],
+                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+              },
+              {
+                "group": ["**/features/*/layer", "**/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/**/adapters/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "../../inventory/testing", "message": "本番コードからテスト用の入口を読まない。" },
+              { "name": "../../sales/testing", "message": "本番コードからテスト用の入口を読まない。" },
+              { "name": "../../visitor-information/testing", "message": "本番コードからテスト用の入口を読まない。" },
+              { "name": "../../../inventory/testing", "message": "本番コードからテスト用の入口を読まない。" },
+              { "name": "../../../sales/testing", "message": "本番コードからテスト用の入口を読まない。" },
+              { "name": "../../../visitor-information/testing", "message": "本番コードからテスト用の入口を読まない。" },
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public.ts",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
+                ],
+                "message": "他の業務領域は公開面(`features/{領域}/public`)または`features/{領域}/testing`から読む。",
+              },
+              {
+                "group": ["**/integrations/**"],
+                "message": "領域のアダプターから統合実装を直接読まない。",
+              },
+              {
+                "group": ["**/core/adapters/**"],
+                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+              },
+              {
+                "group": ["**/features/*/layer", "**/layer"],
+                "message": "`layer`を読むのは`src/index.ts`だけである。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
+                "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/*/public.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                ],
+                "message": "公開面は自領域の契約だけを公開し、他領域や内部実装を読まない。",
+              },
+              {
+                "group": ["**/*.live", "**/infra/**", "**/layer", "**/integrations/**"],
+                "message": "公開面へ実装の組み立てを漏らさない。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "公開面からテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
+                "message": "公開面からテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/*/layer.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
+                  "!./adapters/**",
+                  "!./application/**",
+                  "!./domain/**",
+                  "!./public",
+                  "!./public.ts",
+                ],
+                "message": "layerは自領域の実装を組み立て、他領域は公開面から読む。",
+              },
+              {
+                "group": ["**/features/*/layer", "**/layer", "**/integrations/**"],
+                "message": "layerから他のlayerや統合実装を読まない。",
+              },
+              {
+                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
+                "message": "layerからテスト用のコードを読まない。",
+              },
+              {
+                "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
+                "message": "layerからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": [
         "src/features/**/tests/**",
         "src/features/**/testing/**",
         "src/features/**/*.test.ts",
@@ -244,29 +337,41 @@
           {
             "patterns": [
               {
-                "group": ["**/*.live", "**/infra/**"],
-                "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
-              },
-              {
                 "group": [
+                  "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
-                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public",
+                  "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/public.ts",
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing",
                   "!**/{inventory,visitor-information,sales,kitchen,handoff,operations}/testing/index",
                 ],
-                "message": "他の業務領域は公開面(`features/{領域}`)または`features/{領域}/testing`から読む。",
+                "message": "テスト用コードも他領域の公開面またはtesting入口だけを読む。",
               },
               {
-                "group": ["**/core/adapters/**"],
-                "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+                "group": ["**/integrations/**"],
+                "message": "featureのテストから統合実装を直接読まない。",
               },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/integrations/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
               {
-                "group": ["**/layer"],
-                "message": "`layer`を読むのは`src/index.ts`だけである。",
-              },
-              {
-                "group": ["**/tests", "**/tests/**", "**/testing", "**/testing/**"],
-                "message": "本番コードからテスト用のコードを読まない。",
+                "group": [
+                  "**/features/*/domain/**",
+                  "**/features/*/application/**",
+                  "**/features/*/adapters/**",
+                  "**/features/*/layer",
+                  "**/features/*/index",
+                ],
+                "message": "統合実装は業務領域の公開面(`features/{領域}/public`)から読む。",
               },
             ],
           },

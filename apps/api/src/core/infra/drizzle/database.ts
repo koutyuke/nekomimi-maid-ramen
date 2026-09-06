@@ -4,6 +4,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import { PersistenceError } from "../../domain/persistence-error";
 
+// TODO: rename other → DatabaseServiceMethods?
 export type DatabaseService = {
   readonly run: <A>(
     operation: string,
@@ -11,6 +12,7 @@ export type DatabaseService = {
   ) => Effect.Effect<A, PersistenceError>;
 };
 
+// TODO: rename DatabaseService
 export class Database extends Context.Tag("Database")<Database, DatabaseService>() {}
 
 export const makeDatabaseService = (d1: D1Database): DatabaseService => {
@@ -25,4 +27,5 @@ export const makeDatabaseService = (d1: D1Database): DatabaseService => {
   };
 };
 
+// TODO: rename to DatabaseLive? createDatabaseLive?
 export const databaseLayer = (d1: D1Database) => Layer.sync(Database, () => makeDatabaseService(d1));

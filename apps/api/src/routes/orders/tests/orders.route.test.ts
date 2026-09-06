@@ -3,11 +3,20 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../../app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
-import { stockFixture, stockRepositoryMock } from "../../../features/inventory/testing";
-import { failingOrderRepositoryMock, orderRepositoryMock } from "../../../features/sales/testing";
-import { menuItemFixture, menuItemRepositoryMock } from "../../../features/visitor-information/testing";
+import { stockFixture } from "../../../features/inventory/testing";
+import {
+  failingOrderRepositoryMock,
+  orderPricingMock,
+  orderRepositoryMock,
+  orderStockAvailabilityMock,
+} from "../../../features/sales/testing";
+import {
+  menuItemAvailabilityMock,
+  menuItemCatalogMock,
+  menuItemFixture,
+} from "../../../features/visitor-information/testing";
 import type { AppRequirements } from "../../../app";
-import type { Stock } from "../../../features/inventory";
+import type { Stock } from "../../../features/inventory/testing";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 
@@ -15,7 +24,15 @@ const appWith = (layers: Layer.Layer<AppRequirements>) =>
   createApp({ origin: "https://nekomimi-ramen.com", runtime: ManagedRuntime.make(layers), aot: false });
 
 const sellingApp = (stocks: ReadonlyArray<Stock>) =>
-  appWith(Layer.mergeAll(menuItemRepositoryMock([ramen]), stockRepositoryMock(stocks), orderRepositoryMock()));
+  appWith(
+    Layer.mergeAll(
+      orderPricingMock([ramen]),
+      orderStockAvailabilityMock(stocks),
+      orderRepositoryMock(),
+      menuItemAvailabilityMock([]),
+      menuItemCatalogMock([]),
+    ),
+  );
 
 const confirm = (app: ReturnType<typeof appWith>, body: unknown) =>
   app.handle(
@@ -99,11 +116,13 @@ describe("SPEC-OPS-002 保存先が失敗したときの注文確定応答", () 
   it("失敗を500として返し、内部の情報を応答へ出さない", async () => {
     const app = appWith(
       Layer.mergeAll(
-        menuItemRepositoryMock([ramen]),
-        stockRepositoryMock([stockFixture("item-ramen", 3)]),
+        orderPricingMock([ramen]),
+        orderStockAvailabilityMock([stockFixture("item-ramen", 3)]),
         failingOrderRepositoryMock(
           new PersistenceError({ operation: "注文の確定", cause: new Error("D1_CONNECTION_LOST") }),
         ),
+        menuItemAvailabilityMock([]),
+        menuItemCatalogMock([]),
       ),
     );
 

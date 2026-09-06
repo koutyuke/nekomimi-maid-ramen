@@ -2,15 +2,22 @@ import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { MenuItemId } from "../../../../../core/domain/ids";
-import { stockFixture, stockRepositoryMock } from "../../../../inventory/testing";
-import { menuItemFixture, menuItemRepositoryMock } from "../../../../visitor-information/testing";
+import { stockFixture } from "../../../../inventory/testing";
+import { menuItemFixture } from "../../../../visitor-information/testing";
 import {
   ConfirmationLostStockRace,
   ConfirmationRequestId,
   DuplicateConfirmation,
   LineQuantity,
 } from "../../../domain/order";
-import { orderFixture, orderLineFixture, orderRepositoryMock } from "../../../testing";
+import {
+  orderFixture,
+  orderLineFixture,
+  orderPricingMock,
+  orderRepositoryMock,
+  orderStockAvailabilityMock,
+  orderStockAvailabilitySequenceMock,
+} from "../../../testing";
 import { confirmOrder } from "../confirm-order";
 import type { OrderRepositoryMockOptions } from "../../../testing";
 import type { ConfirmOrderInput } from "../confirm-order";
@@ -27,11 +34,14 @@ const line = (menuItemId: string, quantity: number) => ({
 
 const environment = (options: {
   readonly stocks: ReadonlyArray<ReturnType<typeof stockFixture>>;
+  readonly stockSnapshots?: ReadonlyArray<ReadonlyArray<ReturnType<typeof stockFixture>>>;
   readonly orders?: OrderRepositoryMockOptions;
 }) =>
   Layer.mergeAll(
-    menuItemRepositoryMock([ramen, gyoza]),
-    stockRepositoryMock(options.stocks),
+    orderPricingMock([ramen, gyoza]),
+    options.stockSnapshots === undefined
+      ? orderStockAvailabilityMock(options.stocks)
+      : orderStockAvailabilitySequenceMock(options.stockSnapshots),
     orderRepositoryMock(options.orders),
   );
 
@@ -137,12 +147,16 @@ describe("SPEC-INV-003 確定が保存先で競合した場合", () => {
     const error = await confirmFailure(
       environment({
         stocks: [stockFixture("item-ramen", 3)],
+        stockSnapshots: [[stockFixture("item-ramen", 3)], [stockFixture("item-ramen", 0)]],
         orders: { confirm: () => Effect.fail(new ConfirmationLostStockRace({ requestId })) },
       }),
       { requestId, lines: [line("item-ramen", 1)] },
     );
 
     expect(error._tag).toBe("OutOfStock");
+    expect(error._tag === "OutOfStock" ? error.shortages : null).toEqual([
+      { menuItemId: "item-ramen", requested: 1, available: 0 },
+    ]);
   });
 
   it("保存先が重複と判定したら既存の注文を返す", async () => {

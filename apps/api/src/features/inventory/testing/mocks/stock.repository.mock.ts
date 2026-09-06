@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 
-import { StockRepository } from "../../application/ports/stock.repository";
+import { StockRepository } from "../../application/ports/outbound/stock.repository";
 import type { PersistenceError } from "../../../../core/domain/persistence-error";
 import type { Stock } from "../../domain/stock";
 

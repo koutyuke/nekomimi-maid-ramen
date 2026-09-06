@@ -93,6 +93,19 @@ export class UnknownMenuItem extends Data.TaggedError("UnknownMenuItem")<{
   readonly menuItemIds: ReadonlyArray<MenuItemId>;
 }> {}
 
+export type OrderStockShortage = {
+  readonly menuItemId: MenuItemId;
+  readonly requested: number;
+  readonly available: number;
+};
+
+/**
+ * 在庫不足のため注文を確定できないことを表す業務エラー。
+ */
+export class OutOfStock extends Data.TaggedError("OutOfStock")<{
+  readonly shortages: ReadonlyArray<OrderStockShortage>;
+}> {}
+
 /**
  * 同じ要求識別子の注文がすでに確定していることを表すエラー。
  */

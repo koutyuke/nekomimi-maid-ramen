@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { databaseLayer } from "../../../../../core/infra/drizzle/database";
 import { allergens, menuItemAllergens, menuItems } from "../../../../../core/infra/drizzle/schema";
-import { MenuItemRepository } from "../../../application/ports/menu-item.repository";
+import { MenuItemRepository } from "../../../application/ports/outbound/menu-item.repository";
 import { MenuItemRepositoryLive } from "../menu-item.repository.live";
 import type { MenuCategory } from "../../../domain/menu-item";
 

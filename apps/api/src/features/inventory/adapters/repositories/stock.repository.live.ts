@@ -3,7 +3,7 @@ import { Effect, Layer, Schema } from "effect";
 import { PersistenceError } from "../../../../core/domain/persistence-error";
 import { Database } from "../../../../core/infra/drizzle/database";
 import { stocks } from "../../../../core/infra/drizzle/schema";
-import { StockRepository } from "../../application/ports/stock.repository";
+import { StockRepository } from "../../application/ports/outbound/stock.repository";
 import { Stock } from "../../domain/stock";
 
 const decodeStocks = Schema.decodeUnknown(Schema.Array(Stock));

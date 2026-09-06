@@ -2,18 +2,20 @@ import { Clock, Effect, Option, ParseResult, Schema } from "effect";
 
 import { MenuItemId, OrderId } from "../../../../core/domain/ids";
 import { PersistenceError } from "../../../../core/domain/persistence-error";
-import { OutOfStock, shortagesFor, StockRepository } from "../../../inventory";
-import { MenuItemRepository } from "../../../visitor-information";
 import {
   businessDateAt,
   ConfirmationRequestId,
   InvalidOrderInput,
   LineQuantity,
   OrderLine,
+  OutOfStock,
   totalAmountOf,
   UnknownMenuItem,
 } from "../../domain/order";
-import { OrderRepository } from "../ports/order.repository";
+import { OrderConfirmationCommit } from "../ports/outbound/order-confirmation-commit";
+import { OrderPricing } from "../ports/outbound/order-pricing";
+import { OrderStockAvailability } from "../ports/outbound/order-stock-availability";
+import { OrderRepository } from "../ports/outbound/order.repository";
 import type { Price } from "../../../../core/domain/money";
 import type { Order, OrderDraft } from "../../domain/order";
 
@@ -47,12 +49,13 @@ export const confirmOrder = (
 ): Effect.Effect<
   Order,
   InvalidOrderInput | OutOfStock | PersistenceError | UnknownMenuItem,
-  MenuItemRepository | OrderRepository | StockRepository
+  OrderConfirmationCommit | OrderPricing | OrderRepository | OrderStockAvailability
 > =>
   Effect.gen(function* () {
-    const menuItemRepository = yield* MenuItemRepository;
-    const stockRepository = yield* StockRepository;
+    const orderPricing = yield* OrderPricing;
+    const stockAvailability = yield* OrderStockAvailability;
     const orderRepository = yield* OrderRepository;
+    const orderConfirmationCommit = yield* OrderConfirmationCommit;
 
     const validatedInput = yield* decodeInput(input);
     const alreadyConfirmed = yield* orderRepository.findByRequestId(validatedInput.requestId);
@@ -61,14 +64,15 @@ export const confirmOrder = (
       return alreadyConfirmed.value;
     }
 
-    const [menuItems, stocks] = yield* Effect.all(
-      [menuItemRepository.listInDisplayOrder(), stockRepository.listAll()],
+    const [prices, shortages] = yield* Effect.all(
+      [
+        orderPricing.findPrices(validatedInput.lines.map((line) => line.menuItemId)),
+        stockAvailability.findShortages(validatedInput.lines),
+      ],
       { concurrency: 2 },
     );
 
-    // 未知の商品が購入対象に入っていないかの確認
-    // 販売可能かどうかの突合確認
-    const priceByMenuItemId = new Map<MenuItemId, Price>(menuItems.map((menuItem) => [menuItem.id, menuItem.price]));
+    const priceByMenuItemId = new Map<MenuItemId, Price>(prices.map((price) => [price.menuItemId, price.price]));
     const unknownMenuItemIds = validatedInput.lines.flatMap((line) =>
       priceByMenuItemId.has(line.menuItemId) ? [] : [line.menuItemId],
     );
@@ -76,8 +80,6 @@ export const confirmOrder = (
       return yield* new UnknownMenuItem({ menuItemIds: unknownMenuItemIds });
     }
 
-    // 不足している商品がないかの確認
-    const shortages = shortagesFor(stocks, validatedInput.lines);
     if (shortages.length > 0) {
       return yield* new OutOfStock({ shortages });
     }
@@ -99,7 +101,7 @@ export const confirmOrder = (
       confirmedAt,
     };
 
-    return yield* orderRepository.confirm(draft).pipe(
+    return yield* orderConfirmationCommit.commit(draft).pipe(
       Effect.catchTag("DuplicateConfirmation", () => reloadConfirmed(validatedInput.requestId)),
       Effect.catchTag("ConfirmationLostStockRace", () => reportShortagesAfterRace(validatedInput)),
     );
@@ -119,10 +121,10 @@ const reloadConfirmed = (requestId: ConfirmationRequestId): Effect.Effect<Order,
 
 const reportShortagesAfterRace = (
   input: ValidatedConfirmOrderInput,
-): Effect.Effect<never, OutOfStock | PersistenceError, StockRepository> =>
+): Effect.Effect<never, OutOfStock | PersistenceError, OrderStockAvailability> =>
   Effect.gen(function* () {
-    const stockRepository = yield* StockRepository;
-    const stocks = yield* stockRepository.listAll();
+    const stockAvailability = yield* OrderStockAvailability;
+    const shortages = yield* stockAvailability.findShortages(input.lines);
 
-    return yield* new OutOfStock({ shortages: shortagesFor(stocks, input.lines) });
+    return yield* new OutOfStock({ shortages });
   });

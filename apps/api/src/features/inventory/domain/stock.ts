@@ -1,4 +1,4 @@
-import { Data, Schema } from "effect";
+import { Schema } from "effect";
 
 import { MenuItemId } from "../../../core/domain/ids";
 
@@ -43,13 +43,6 @@ export type StockShortage = {
   readonly requested: number;
   readonly available: number;
 };
-
-/**
- * 在庫不足で注文を確定できないことを表す業務エラー。
- */
-export class OutOfStock extends Data.TaggedError("OutOfStock")<{
-  readonly shortages: ReadonlyArray<StockShortage>;
-}> {}
 
 /**
  * 在庫と要求を突き合わせ、不足した商品だけの内訳を返す関数。

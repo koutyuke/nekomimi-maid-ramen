@@ -1,9 +1,9 @@
 import { Schema } from "effect";
 
-import { CookingState } from "../../features/sales";
+import { CookingState } from "../../features/sales/public";
 import type { MenuItemId } from "../../core/domain/ids";
-import type { StockShortage } from "../../features/inventory";
-import type { Order } from "../../features/sales";
+import type { OrderStockShortage } from "../../features/sales/public";
+import type { Order } from "../../features/sales/public";
 
 export const ConfirmedOrderResponse = Schema.Struct({
   orderId: Schema.String.annotations({ description: "注文の識別子" }),
@@ -65,7 +65,7 @@ export const presentConfirmedOrder = (order: Order): ConfirmedOrderResponse => (
   })),
 });
 
-export const presentOutOfStock = (shortages: ReadonlyArray<StockShortage>): OutOfStockResponse => ({
+export const presentOutOfStock = (shortages: ReadonlyArray<OrderStockShortage>): OutOfStockResponse => ({
   code: "out_of_stock",
   shortages: shortages.map((shortage) => ({
     menuItemId: shortage.menuItemId,

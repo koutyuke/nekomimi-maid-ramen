@@ -9,14 +9,22 @@ import { menuItems, orderLines, orders, stocks } from "../../core/infra/drizzle/
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
+import { OrderConfirmationCommitLive } from "../../integrations/order-confirmation/order-confirmation.commit.live";
 
 const db = drizzle(env.DB);
 
+const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(InventoryLayer));
+const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
+const SalesAndIntegrationLayer = Layer.mergeAll(SalesLayer, OrderConfirmationCommitLive).pipe(
+  Layer.provide(InventoryAndVisitorLayer),
+);
+const AppLayer = Layer.mergeAll(InventoryAndVisitorLayer, SalesAndIntegrationLayer).pipe(
+  Layer.provide(databaseLayer(env.DB)),
+);
+
 const app = createApp({
   origin: "https://nekomimi-ramen.com",
-  runtime: ManagedRuntime.make(
-    Layer.mergeAll(InventoryLayer, SalesLayer, VisitorInformationLayer).pipe(Layer.provide(databaseLayer(env.DB))),
-  ),
+  runtime: ManagedRuntime.make(AppLayer),
   aot: false,
 });
 
@@ -28,6 +36,8 @@ const confirm = (body: unknown) =>
       body: JSON.stringify(body),
     }),
   );
+
+const listMenu = () => app.handle(new Request("https://api.nekomimi-ramen.com/menu"));
 
 const storedOrders = () => db.select().from(orders).all();
 const stockOf = async (menuItemId: string) =>
@@ -93,5 +103,44 @@ describe("SPEC-SAL-005 実際のD1を通した注文確定", () => {
     expect(responses.filter((response) => response.status === 201)).toHaveLength(3);
     expect(await storedOrders()).toHaveLength(3);
     expect(await stockOf("item-ramen")).toBe(0);
+  });
+});
+
+describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () => {
+  it("在庫ありだけを販売可能とし、在庫0と在庫記録なしは販売不可にする", async () => {
+    await db.insert(menuItems).values([
+      {
+        id: "item-zero-stock",
+        name: "餃子",
+        description: null,
+        price: 400,
+        category: "side",
+        displayOrder: 2,
+        allergenCheckState: "unchecked",
+        updatedAt: new Date(),
+      },
+      {
+        id: "item-missing-stock",
+        name: "お茶",
+        description: null,
+        price: 200,
+        category: "drink",
+        displayOrder: 3,
+        allergenCheckState: "unchecked",
+        updatedAt: new Date(),
+      },
+    ]);
+    await db.insert(stocks).values({ menuItemId: "item-zero-stock", quantity: 0, updatedAt: new Date() });
+
+    const response = await listMenu();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      items: [
+        { id: "item-ramen", sellable: true },
+        { id: "item-zero-stock", sellable: false },
+        { id: "item-missing-stock", sellable: false },
+      ],
+    });
   });
 });

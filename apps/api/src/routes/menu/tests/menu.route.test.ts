@@ -3,19 +3,21 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../../app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
-import { failingStockRepositoryMock } from "../../../features/inventory/testing";
-import { orderRepositoryMock } from "../../../features/sales/testing";
-import { menuItemRepositoryMock } from "../../../features/visitor-information/testing";
+import { orderPricingMock, orderRepositoryMock, orderStockAvailabilityMock } from "../../../features/sales/testing";
+import { failingMenuItemAvailabilityMock, menuItemCatalogMock } from "../../../features/visitor-information/testing";
 
 describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () => {
   it("失敗を500として返し、内部の情報を応答へ出さない", async () => {
+    const failingAvailability = failingMenuItemAvailabilityMock(
+      new PersistenceError({ operation: "在庫の一覧取得", cause: new Error("D1_CONNECTION_LOST") }),
+    );
     const runtime = ManagedRuntime.make(
       Layer.mergeAll(
-        menuItemRepositoryMock([]),
+        menuItemCatalogMock([]),
+        failingAvailability,
+        orderPricingMock([]),
+        orderStockAvailabilityMock([]),
         orderRepositoryMock(),
-        failingStockRepositoryMock(
-          new PersistenceError({ operation: "在庫の一覧取得", cause: new Error("D1_CONNECTION_LOST") }),
-        ),
       ),
     );
     const app = createApp({ origin: "https://nekomimi-ramen.com", runtime, aot: false });

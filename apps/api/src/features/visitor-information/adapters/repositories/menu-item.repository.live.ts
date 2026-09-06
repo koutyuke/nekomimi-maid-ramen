@@ -4,7 +4,7 @@ import { Effect, Layer, Schema } from "effect";
 import { PersistenceError } from "../../../../core/domain/persistence-error";
 import { Database } from "../../../../core/infra/drizzle/database";
 import { allergens, menuItemAllergens, menuItems } from "../../../../core/infra/drizzle/schema";
-import { MenuItemRepository } from "../../application/ports/menu-item.repository";
+import { MenuItemRepository } from "../../application/ports/outbound/menu-item.repository";
 import { MenuItem } from "../../domain/menu-item";
 
 const decodeMenuItems = Schema.decodeUnknown(Schema.Array(MenuItem));

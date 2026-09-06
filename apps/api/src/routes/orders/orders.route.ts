@@ -2,7 +2,7 @@ import { Effect, Schema } from "effect";
 import { Elysia } from "elysia";
 
 import { logAndDie } from "../../core/adapters/elysia/runner";
-import { confirmOrder } from "../../features/sales";
+import { confirmOrder } from "../../features/sales/public";
 import {
   ConfirmedOrderResponse,
   OutOfStockResponse,
