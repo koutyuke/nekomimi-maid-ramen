@@ -217,6 +217,10 @@
                 "message": "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
               },
               {
+                "group": ["**/infra/**"],
+                "message": "アダプターは外部技術へ依存しない。保存先を使う実装は`infra`へ置く。",
+              },
+              {
                 "group": ["**/features/*/layer", "**/layer"],
                 "message": "`layer`を読むのは`src/index.ts`だけである。",
               },
@@ -227,6 +231,26 @@
               {
                 "regex": "(?:^|/)(?:tests|testing)(?:/|$)",
                 "message": "本番コードからテスト用のコードを読まない。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      "files": ["src/features/**/infra/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/adapters/**"],
+                "message": "保存先の実装からアダプターを読まない。",
+              },
+              {
+                "group": ["**/application/**", "!**/application/ports/outbound/**"],
+                "message": "保存先の実装はApplicationのoutboundポートだけを読む。",
               },
             ],
           },
@@ -278,6 +302,7 @@
                   "!./adapters/**",
                   "!./application/**",
                   "!./domain/**",
+                  "!./infra/**",
                   "!./public",
                   "!./public.ts",
                 ],

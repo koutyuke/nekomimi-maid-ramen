@@ -16,7 +16,7 @@ evidence: []
 
 注文の保存、注文明細の保存、在庫の減算を、D1のひとつのバッチとして実行する。バッチはひとつのトランザクションとして扱われ、いずれかの文が失敗すると全体が取り消される。
 
-この保存操作は販売領域内部の`OrderConfirmationCommand`ポートへ切り出す。D1の複数の表を一括更新する実装は、ユースケース単位の状態変更を担うコマンドアダプターとして`apps/api/src/features/sales/adapters/commands/order-confirmation.command.live.ts`に置き、注文確定のユースケースから保存形式を分離する。
+この保存操作は販売領域内部の`OrderConfirmationCommand`ポートへ切り出す。D1の複数の表を一括更新する具象実装は、ユースケース単位の状態変更を担う保存先の実装として`apps/api/src/features/sales/infra/commands/order-confirmation.command.live.ts`に置き、注文確定のユースケースから保存形式を分離する。
 
 ### 注文番号の採番
 
@@ -57,7 +57,7 @@ D1に対話型のトランザクションがないため、読み取った値を
 ## 影響
 
 - `orders`と`order_lines`を`src/core/infra/drizzle/schema.ts`へ追加した。`orders`は営業日と注文番号の組、および要求識別子に一意制約を持つ。
-- 注文確定のD1バッチは`apps/api/src/features/sales/adapters/commands/order-confirmation.command.live.ts`で`OrderConfirmationCommand`を実装する。販売領域のユースケースはこの契約だけを使い、注文リポジトリは確定済み注文の再読み出しを担当する。
+- 注文確定のD1バッチは`apps/api/src/features/sales/infra/commands/order-confirmation.command.live.ts`で`OrderConfirmationCommand`を実装する。販売領域のユースケースはこの契約だけを使い、注文リポジトリは確定済み注文の再読み出しを担当する。
 - 注文の確定要求には要求識別子が必須である。画面は確定操作ごとに識別子を生成し、再送では同じ識別子を使う。
 - 制約の名前`stocks_quantity_non_negative`と`orders.request_id`は、失敗の判別に使うため変更できない。変更する場合は判別側も同時に変える。
 - 在庫不足で確定できなかった場合、応答は不足商品、要求数、残数を含む。
