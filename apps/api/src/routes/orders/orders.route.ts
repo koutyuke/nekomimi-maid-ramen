@@ -1,7 +1,7 @@
 import { Effect, Schema } from "effect";
 import { Elysia } from "elysia";
 
-import { logAndDie } from "../../core/adapters/elysia/runner";
+import { logAndDie } from "../../core/adapters/elysia";
 import { confirmOrder } from "../../features/sales/public";
 import {
   ConfirmedOrderResponse,
@@ -11,7 +11,7 @@ import {
   presentUnknownMenuItem,
   RejectedOrderResponse,
 } from "./orders.response";
-import type { EffectRunner } from "../../core/adapters/elysia/runner";
+import type { EffectRunner } from "../../core/adapters/elysia";
 
 export type OrderRouteRequirements = Effect.Effect.Context<ReturnType<typeof confirmOrder>>;
 

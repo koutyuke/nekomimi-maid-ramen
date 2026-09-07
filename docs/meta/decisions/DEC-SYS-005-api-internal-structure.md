@@ -52,15 +52,26 @@ apps/api/
 
 領域の名前は[ドキュメント管理](../../documentation-management.md)の業務領域に合わせる。
 
+### coreの公開入口
+
+`core/adapters`と`core/infra`は、`core/{layer}/{module}/index.ts`をモジュールごとの唯一の公開入口とする。`core`全体や層全体をまとめる`index.ts`は作らない。モジュール外からはディレクトリを指定して読み込み、内部ファイルへの直接参照は`no-restricted-imports`で禁止する。同じモジュール内の実装とテストは内部ファイルを直接参照してよい。公開入口は既存の層間の依存制限を緩めない。
+
+- `core/adapters/elysia`は`logAndDie`、`makeRunner`、`EffectRunner`を公開する。
+- `core/infra/drizzle`は`Database`、`makeDatabaseLive`を公開する。
+
+`core/domain`は`index.ts`を作らず、`ids`、`money`、`persistence-error`のように概念ごとのファイルを直接参照する。これらはそれぞれが公開するドメインの定義であり、インポート先に概念名を残す。
+
 ### 表定義
 
-すべての表を`core/infra/drizzle/schema.ts`に置く。業務領域ごとに分けない。
+すべての表を`core/infra/drizzle/schema.ts`に置く。業務領域ごとに分けない。マイグレーション生成設定はこのファイルを参照する。
+
+DBモジュールの外では`core/infra/drizzle`から読み込み、テーブルは`Database.tables.orders`のように参照する。`Database.tables`は接続に依存しない静的な定義であり、注入した`database.run`がDB操作を実行する。テーブルをローカル変数へ取り出す必要がある場合は、`ordersTable`のように`Table`を付け、テーブルであることを名前に残す。
 
 ### ファイルの切り方
 
 `domain`のファイルは種類ではなく概念で切る。エンティティ、そのエンティティだけが使うバリューオブジェクト、業務判定の関数を同じファイルへ入れる。バリューオブジェクトを独立したファイルへ出すのは、同じ領域の2つ以上のエンティティが使うときだけである。2つ以上の領域が使うものは`core/domain`へ置く。
 
-領域の内側にバレルを作らない。
+業務領域の内側にバレルを作らない。
 
 `infra/commands`には、ユースケースを単位として状態を変更する保存先の実装を置く。一つの原子的な操作で複数の表を更新する実装も、その操作を所有する領域へ置く。ファイル名は`{操作}.command.live.ts`とする。ここでいうコマンドは保存先を操作する`outbound`ポートであり、入力CommandとそのHandlerに相当するユースケースは`application`へ置く。`infra/repositories`には、集約またはエンティティを単位とする汎用的な永続化を置き、ファイル名は`{対象}.repository.live.ts`とする。`adapters`には、他領域が公開するポートを自領域の出力ポートへ適合させる実装を置く。
 

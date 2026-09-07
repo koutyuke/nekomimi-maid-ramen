@@ -5,7 +5,7 @@ import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import type { ManagedRuntime } from "effect";
 
-import { makeRunner } from "./core/adapters/elysia/runner";
+import { makeRunner } from "./core/adapters/elysia";
 import { menuRoutes } from "./routes/menu/menu.route";
 import { orderRoutes } from "./routes/orders/orders.route";
 import type { MenuRouteRequirements } from "./routes/menu/menu.route";

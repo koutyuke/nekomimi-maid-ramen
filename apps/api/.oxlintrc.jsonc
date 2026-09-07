@@ -7,8 +7,12 @@
       {
         "patterns": [
           {
-            "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-            "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+            "group": [
+              "**/core/{adapters,infra}/*/**",
+              "!**/core/{adapters,infra}/*/index",
+              "!**/core/{adapters,infra}/*/index.ts",
+            ],
+            "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
           },
         ],
       },
@@ -27,8 +31,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": ["**/*.live", "**/infra/**"],
@@ -70,8 +78,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": ["**/*.live", "**/infra/**"],
@@ -111,8 +123,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/{adapters,infra}/*/**",
+                  "!**/{adapters,infra}/*/index",
+                  "!**/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": ["**/features/**"],
@@ -139,8 +155,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": [
@@ -182,8 +202,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": [
@@ -233,8 +257,12 @@
             ],
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": [
@@ -280,8 +308,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": ["**/adapters/**"],
@@ -304,8 +336,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": [
@@ -339,8 +375,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": [
@@ -385,8 +425,12 @@
           {
             "patterns": [
               {
-                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
-                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+                "group": [
+                  "**/core/{adapters,infra}/*/**",
+                  "!**/core/{adapters,infra}/*/index",
+                  "!**/core/{adapters,infra}/*/index.ts",
+                ],
+                "message": "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
               },
               {
                 "group": [
