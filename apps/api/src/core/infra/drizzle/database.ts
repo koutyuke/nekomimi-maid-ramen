@@ -3,6 +3,7 @@ import { Context, Effect, Layer } from "effect";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import { PersistenceError } from "../../domain/persistence-error";
+import * as tables from "./schema";
 
 export class Database extends Context.Tag("Database")<
   Database,
@@ -12,7 +13,9 @@ export class Database extends Context.Tag("Database")<
       operation: (db: DrizzleD1Database) => Promise<A>,
     ) => Effect.Effect<A, PersistenceError>;
   }
->() {}
+>() {
+  static readonly tables = tables;
+}
 
 export const makeDatabaseLive = (d1: D1Database) =>
   Layer.sync(Database, () => {

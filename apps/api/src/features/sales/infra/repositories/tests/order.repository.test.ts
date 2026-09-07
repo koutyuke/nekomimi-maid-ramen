@@ -3,8 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Effect, Layer, Option } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { makeDatabaseLive } from "../../../../../core/infra/drizzle/database";
-import { menuItems, orderLines, orders, stocks } from "../../../../../core/infra/drizzle/schema";
+import { Database, makeDatabaseLive } from "../../../../../core/infra/drizzle";
 import { OrderRepository } from "../../../application/ports/outbound/order.repository";
 import { ConfirmationRequestId } from "../../../domain/order";
 import { OrderRepositoryLive } from "../order.repository.live";
@@ -24,7 +23,7 @@ const findByRequestId = (requestId: string) =>
 const insertConfirmedOrder = async () => {
   const confirmedAt = new Date("2026-11-01T02:00:00.000Z");
 
-  await db.insert(orders).values({
+  await db.insert(Database.tables.orders).values({
     id: "order-1",
     businessDate: "2026-11-01",
     orderNumber: 1,
@@ -34,18 +33,18 @@ const insertConfirmedOrder = async () => {
     confirmedAt,
     updatedAt: confirmedAt,
   });
-  await db.insert(orderLines).values([
+  await db.insert(Database.tables.orderLines).values([
     { orderId: "order-1", menuItemId: "item-ramen", quantity: 1, unitPrice: 500 },
     { orderId: "order-1", menuItemId: "item-gyoza", quantity: 2, unitPrice: 400 },
   ]);
 };
 
 beforeEach(async () => {
-  await db.delete(orderLines);
-  await db.delete(orders);
-  await db.delete(stocks);
-  await db.delete(menuItems);
-  await db.insert(menuItems).values([
+  await db.delete(Database.tables.orderLines);
+  await db.delete(Database.tables.orders);
+  await db.delete(Database.tables.stocks);
+  await db.delete(Database.tables.menuItems);
+  await db.insert(Database.tables.menuItems).values([
     {
       id: "item-ramen",
       name: "ラーメン",

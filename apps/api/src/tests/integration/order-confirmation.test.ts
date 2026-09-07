@@ -4,8 +4,7 @@ import { Layer, ManagedRuntime } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../app";
-import { makeDatabaseLive } from "../../core/infra/drizzle/database";
-import { menuItems, orderLines, orders, stocks } from "../../core/infra/drizzle/schema";
+import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
@@ -36,16 +35,16 @@ const confirm = (body: unknown) =>
 
 const listMenu = () => app.handle(new Request("https://api.nekomimi-ramen.com/menu"));
 
-const storedOrders = () => db.select().from(orders).all();
+const storedOrders = () => db.select().from(Database.tables.orders).all();
 const stockOf = async (menuItemId: string) =>
-  (await db.select().from(stocks).all()).find((row) => row.menuItemId === menuItemId)?.quantity;
+  (await db.select().from(Database.tables.stocks).all()).find((row) => row.menuItemId === menuItemId)?.quantity;
 
 beforeEach(async () => {
-  await db.delete(orderLines);
-  await db.delete(orders);
-  await db.delete(stocks);
-  await db.delete(menuItems);
-  await db.insert(menuItems).values({
+  await db.delete(Database.tables.orderLines);
+  await db.delete(Database.tables.orders);
+  await db.delete(Database.tables.stocks);
+  await db.delete(Database.tables.menuItems);
+  await db.insert(Database.tables.menuItems).values({
     id: "item-ramen",
     name: "ラーメン",
     description: null,
@@ -55,7 +54,7 @@ beforeEach(async () => {
     allergenCheckState: "unchecked",
     updatedAt: new Date(),
   });
-  await db.insert(stocks).values({ menuItemId: "item-ramen", quantity: 3, updatedAt: new Date() });
+  await db.insert(Database.tables.stocks).values({ menuItemId: "item-ramen", quantity: 3, updatedAt: new Date() });
 });
 
 describe("SPEC-SAL-005 実際のD1を通した注文確定", () => {
@@ -105,7 +104,7 @@ describe("SPEC-SAL-005 実際のD1を通した注文確定", () => {
 
 describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () => {
   it("在庫ありだけを販売可能とし、在庫0と在庫記録なしは販売不可にする", async () => {
-    await db.insert(menuItems).values([
+    await db.insert(Database.tables.menuItems).values([
       {
         id: "item-zero-stock",
         name: "餃子",
@@ -127,7 +126,9 @@ describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () =
         updatedAt: new Date(),
       },
     ]);
-    await db.insert(stocks).values({ menuItemId: "item-zero-stock", quantity: 0, updatedAt: new Date() });
+    await db
+      .insert(Database.tables.stocks)
+      .values({ menuItemId: "item-zero-stock", quantity: 0, updatedAt: new Date() });
 
     const response = await listMenu();
 

@@ -2,6 +2,17 @@
   "extends": ["../../.oxlintrc.jsonc"],
   "plugins": [],
   "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+            "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+          },
+        ],
+      },
+    ],
     // Effectのタグ付きエラーは`_tag`で種類を判別する。ライブラリが定める名前であり変更できない。
     "no-underscore-dangle": ["error", { "allow": ["_tag"] }],
     "oxc/no-map-spread": "off",
@@ -15,6 +26,10 @@
           "error",
           {
             "patterns": [
+              {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
               {
                 "group": ["**/*.live", "**/infra/**"],
                 "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
@@ -55,6 +70,10 @@
           {
             "patterns": [
               {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
+              {
                 "group": ["**/*.live", "**/infra/**"],
                 "message": "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
               },
@@ -92,6 +111,10 @@
           {
             "patterns": [
               {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
+              {
                 "group": ["**/features/**"],
                 "message": "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
               },
@@ -115,6 +138,10 @@
           "error",
           {
             "patterns": [
+              {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
               {
                 "group": [
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
@@ -154,6 +181,10 @@
           "error",
           {
             "patterns": [
+              {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
               {
                 "group": [
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
@@ -202,6 +233,10 @@
             ],
             "patterns": [
               {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
+              {
                 "group": [
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}/**",
@@ -245,6 +280,10 @@
           {
             "patterns": [
               {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
+              {
                 "group": ["**/adapters/**"],
                 "message": "保存先の実装からアダプターを読まない。",
               },
@@ -264,6 +303,10 @@
           "error",
           {
             "patterns": [
+              {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
               {
                 "group": [
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
@@ -295,6 +338,10 @@
           "error",
           {
             "patterns": [
+              {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
               {
                 "group": [
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",
@@ -337,6 +384,10 @@
           "error",
           {
             "patterns": [
+              {
+                "group": ["**/drizzle/**", "!**/drizzle/index", "!**/drizzle/index.ts"],
+                "message": "DBモジュールの外からは`core/infra/drizzle`の公開入口を読む。テーブルは`Database.tables`から参照する。",
+              },
               {
                 "group": [
                   "**/{inventory,visitor-information,sales,kitchen,handoff,operations}",

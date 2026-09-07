@@ -2,8 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
-import { Database } from "../../../../core/infra/drizzle/database";
-import { orderLines, orders, stocks } from "../../../../core/infra/drizzle/schema";
+import { Database } from "../../../../core/infra/drizzle";
 import { OrderConfirmationCommand } from "../../application/ports/outbound/order-confirmation.command";
 import { ConfirmationLostStockRace, DuplicateConfirmation, Order } from "../../domain/order";
 import type { ConfirmationRequestId, OrderDraft } from "../../domain/order";
@@ -26,7 +25,7 @@ const classifyConfirmFailure = (error: PersistenceError, requestId: Confirmation
 };
 
 const nextOrderNumber = (businessDate: string) =>
-  sql<number>`(select coalesce(max(${orders.orderNumber}), 0) + 1 from ${orders} where ${orders.businessDate} = ${businessDate})`;
+  sql<number>`(select coalesce(max(${Database.tables.orders.orderNumber}), 0) + 1 from ${Database.tables.orders} where ${Database.tables.orders.businessDate} = ${businessDate})`;
 
 export const OrderConfirmationCommandLive = Layer.effect(
   OrderConfirmationCommand,
@@ -40,7 +39,7 @@ export const OrderConfirmationCommandLive = Layer.effect(
             // 注文、明細、在庫を一つのバッチへ入れ、途中の失敗で片方だけ成立しないようにする。
             db.batch([
               db
-                .insert(orders)
+                .insert(Database.tables.orders)
                 .values({
                   id: draft.id,
                   businessDate: draft.businessDate,
@@ -51,8 +50,8 @@ export const OrderConfirmationCommandLive = Layer.effect(
                   confirmedAt: draft.confirmedAt,
                   updatedAt: draft.confirmedAt,
                 })
-                .returning({ orderNumber: orders.orderNumber }),
-              db.insert(orderLines).values(
+                .returning({ orderNumber: Database.tables.orders.orderNumber }),
+              db.insert(Database.tables.orderLines).values(
                 draft.lines.map((line) => ({
                   orderId: draft.id,
                   menuItemId: line.menuItemId,
@@ -62,9 +61,12 @@ export const OrderConfirmationCommandLive = Layer.effect(
               ),
               ...draft.lines.map((line) =>
                 db
-                  .update(stocks)
-                  .set({ quantity: sql`${stocks.quantity} - ${line.quantity}`, updatedAt: draft.confirmedAt })
-                  .where(eq(stocks.menuItemId, line.menuItemId)),
+                  .update(Database.tables.stocks)
+                  .set({
+                    quantity: sql`${Database.tables.stocks.quantity} - ${line.quantity}`,
+                    updatedAt: draft.confirmedAt,
+                  })
+                  .where(eq(Database.tables.stocks.menuItemId, line.menuItemId)),
               ),
             ]),
           )

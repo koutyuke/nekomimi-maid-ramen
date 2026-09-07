@@ -6,8 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { OrderId } from "../../../../../core/domain/ids";
 import { Amount } from "../../../../../core/domain/money";
-import { makeDatabaseLive } from "../../../../../core/infra/drizzle/database";
-import { menuItems, orderLines, orders, stocks } from "../../../../../core/infra/drizzle/schema";
+import { Database, makeDatabaseLive } from "../../../../../core/infra/drizzle";
 import { OrderConfirmationCommand } from "../../../application/ports/outbound/order-confirmation.command";
 import { BusinessDate, ConfirmationRequestId } from "../../../domain/order";
 import { orderLineFixture } from "../../../testing";
@@ -42,16 +41,17 @@ const execute = (draft: OrderDraft) =>
   );
 
 const stockOf = async (menuItemId: string) =>
-  (await db.select().from(stocks).where(eq(stocks.menuItemId, menuItemId)).get())?.quantity;
-const countOrders = async () => (await db.select().from(orders).all()).length;
-const countOrderLines = async () => (await db.select().from(orderLines).all()).length;
+  (await db.select().from(Database.tables.stocks).where(eq(Database.tables.stocks.menuItemId, menuItemId)).get())
+    ?.quantity;
+const countOrders = async () => (await db.select().from(Database.tables.orders).all()).length;
+const countOrderLines = async () => (await db.select().from(Database.tables.orderLines).all()).length;
 
 beforeEach(async () => {
-  await db.delete(orderLines);
-  await db.delete(orders);
-  await db.delete(stocks);
-  await db.delete(menuItems);
-  await db.insert(menuItems).values([
+  await db.delete(Database.tables.orderLines);
+  await db.delete(Database.tables.orders);
+  await db.delete(Database.tables.stocks);
+  await db.delete(Database.tables.menuItems);
+  await db.insert(Database.tables.menuItems).values([
     {
       id: "item-ramen",
       name: "ラーメン",
@@ -73,7 +73,7 @@ beforeEach(async () => {
       updatedAt: new Date(),
     },
   ]);
-  await db.insert(stocks).values([
+  await db.insert(Database.tables.stocks).values([
     { menuItemId: "item-ramen", quantity: 3, updatedAt: new Date() },
     { menuItemId: "item-gyoza", quantity: 3, updatedAt: new Date() },
   ]);
@@ -104,9 +104,16 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
 
   it("確定時の価格を明細へ残す", async () => {
     await execute(draftOf({ id: "order-1", requestId: "request-1", lines: [orderLineFixture("item-ramen", 2, 480)] }));
-    await db.update(menuItems).set({ price: 900 }).where(eq(menuItems.id, "item-ramen"));
+    await db
+      .update(Database.tables.menuItems)
+      .set({ price: 900 })
+      .where(eq(Database.tables.menuItems.id, "item-ramen"));
 
-    const stored = await db.select().from(orderLines).where(eq(orderLines.orderId, "order-1")).all();
+    const stored = await db
+      .select()
+      .from(Database.tables.orderLines)
+      .where(eq(Database.tables.orderLines.orderId, "order-1"))
+      .all();
 
     expect(stored[0]?.unitPrice).toBe(480);
   });
@@ -125,7 +132,10 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
   });
 
   it("複数商品のうち一つでも不足すれば全体を取り消す", async () => {
-    await db.update(stocks).set({ quantity: 0 }).where(eq(stocks.menuItemId, "item-gyoza"));
+    await db
+      .update(Database.tables.stocks)
+      .set({ quantity: 0 })
+      .where(eq(Database.tables.stocks.menuItemId, "item-gyoza"));
 
     await execute(
       draftOf({
@@ -158,7 +168,11 @@ describe("SPEC-INV-003 注文確定の原子性", () => {
     await execute(draftOf({ id: "order-x", requestId: "request-x", lines: [orderLineFixture("item-ramen", 9, 500)] }));
     await execute(draftOf({ id: "order-2", requestId: "request-2", lines: [orderLineFixture("item-ramen", 1, 500)] }));
 
-    const stored = await db.select({ orderNumber: orders.orderNumber }).from(orders).orderBy(orders.orderNumber).all();
+    const stored = await db
+      .select({ orderNumber: Database.tables.orders.orderNumber })
+      .from(Database.tables.orders)
+      .orderBy(Database.tables.orders.orderNumber)
+      .all();
 
     expect(stored.map((row) => row.orderNumber)).toEqual([1, 2]);
   });
@@ -209,7 +223,10 @@ describe("SPEC-SAL-005 注文確定の冪等性と競合", () => {
 
     await Promise.all(attempts);
 
-    const stored = await db.select({ orderNumber: orders.orderNumber }).from(orders).all();
+    const stored = await db
+      .select({ orderNumber: Database.tables.orders.orderNumber })
+      .from(Database.tables.orders)
+      .all();
 
     expect(new Set(stored.map((row) => row.orderNumber)).size).toBe(3);
   });

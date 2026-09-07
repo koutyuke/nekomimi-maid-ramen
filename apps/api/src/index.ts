@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { Layer, ManagedRuntime } from "effect";
 
 import { createApp } from "./app";
-import { makeDatabaseLive } from "./core/infra/drizzle/database";
+import { makeDatabaseLive } from "./core/infra/drizzle";
 import { InventoryLayer } from "./features/inventory/layer";
 import { SalesLayer } from "./features/sales/layer";
 import { VisitorInformationLayer } from "./features/visitor-information/layer";

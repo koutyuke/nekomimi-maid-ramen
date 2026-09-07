@@ -2,16 +2,15 @@ import { eq } from "drizzle-orm";
 import { Effect, Layer, Option, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
-import { Database } from "../../../../core/infra/drizzle/database";
-import { orderLines, orders } from "../../../../core/infra/drizzle/schema";
+import { Database } from "../../../../core/infra/drizzle";
 import { OrderRepository } from "../../application/ports/outbound/order.repository";
 import { Order } from "../../domain/order";
 import type { ConfirmationRequestId } from "../../domain/order";
 
 const decodeOrder = Schema.decodeUnknown(Order);
 
-type OrderRow = typeof orders.$inferSelect;
-type OrderLineRow = typeof orderLines.$inferSelect;
+type OrderRow = typeof Database.tables.orders.$inferSelect;
+type OrderLineRow = typeof Database.tables.orderLines.$inferSelect;
 
 const buildOrder = (rows: ReadonlyArray<{ order: OrderRow; line: OrderLineRow | null }>) => {
   const [first] = rows;
@@ -36,10 +35,10 @@ export const OrderRepositoryLive = Layer.effect(
         database
           .run("注文の読み出し", (db) =>
             db
-              .select({ order: orders, line: orderLines })
-              .from(orders)
-              .leftJoin(orderLines, eq(orderLines.orderId, orders.id))
-              .where(eq(orders.requestId, requestId))
+              .select({ order: Database.tables.orders, line: Database.tables.orderLines })
+              .from(Database.tables.orders)
+              .leftJoin(Database.tables.orderLines, eq(Database.tables.orderLines.orderId, Database.tables.orders.id))
+              .where(eq(Database.tables.orders.requestId, requestId))
               .all(),
           )
           .pipe(
