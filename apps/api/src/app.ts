@@ -48,7 +48,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
     .get("/", () => "Hello! This is Nekomimi Maid Ramen!", {
       detail: {
         operationId: "hello",
-        summary: "APIの案内を取得",
+        summary: "Hello World",
         tags: ["システム"],
       },
       response: Schema.standardSchemaV1(
