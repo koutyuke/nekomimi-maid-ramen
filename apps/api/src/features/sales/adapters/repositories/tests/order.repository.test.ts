@@ -3,14 +3,14 @@ import { drizzle } from "drizzle-orm/d1";
 import { Effect, Layer, Option } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { databaseLayer } from "../../../../../core/infra/drizzle/database";
+import { makeDatabaseExecutorLive } from "../../../../../core/infra/drizzle/database.executor";
 import { menuItems, orderLines, orders, stocks } from "../../../../../core/infra/drizzle/schema";
 import { OrderRepository } from "../../../application/ports/outbound/order.repository";
 import { ConfirmationRequestId } from "../../../domain/order";
 import { OrderRepositoryLive } from "../order.repository.live";
 
 const db = drizzle(env.DB);
-const live = OrderRepositoryLive.pipe(Layer.provide(databaseLayer(env.DB)));
+const live = OrderRepositoryLive.pipe(Layer.provide(makeDatabaseExecutorLive(env.DB)));
 
 const findByRequestId = (requestId: string) =>
   Effect.runPromise(

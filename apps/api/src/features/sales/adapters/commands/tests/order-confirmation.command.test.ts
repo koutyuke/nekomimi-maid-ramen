@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { OrderId } from "../../../../../core/domain/ids";
 import { Amount } from "../../../../../core/domain/money";
-import { databaseLayer } from "../../../../../core/infra/drizzle/database";
+import { makeDatabaseExecutorLive } from "../../../../../core/infra/drizzle/database.executor";
 import { menuItems, orderLines, orders, stocks } from "../../../../../core/infra/drizzle/schema";
 import { OrderConfirmationCommand } from "../../../application/ports/outbound/order-confirmation.command";
 import { BusinessDate, ConfirmationRequestId } from "../../../domain/order";
@@ -15,7 +15,7 @@ import { OrderConfirmationCommandLive } from "../order-confirmation.command.live
 import type { OrderDraft } from "../../../domain/order";
 
 const db = drizzle(env.DB);
-const live = OrderConfirmationCommandLive.pipe(Layer.provide(databaseLayer(env.DB)));
+const live = OrderConfirmationCommandLive.pipe(Layer.provide(makeDatabaseExecutorLive(env.DB)));
 const businessDate = BusinessDate.make("2026-11-01");
 
 const draftOf = (args: {

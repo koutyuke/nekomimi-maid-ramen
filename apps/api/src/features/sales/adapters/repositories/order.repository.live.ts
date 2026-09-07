@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { Effect, Layer, Option, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
-import { Database } from "../../../../core/infra/drizzle/database";
+import { DatabaseExecutor } from "../../../../core/infra/drizzle/database.executor";
 import { orderLines, orders } from "../../../../core/infra/drizzle/schema";
 import { OrderRepository } from "../../application/ports/outbound/order.repository";
 import { Order } from "../../domain/order";
@@ -29,12 +29,12 @@ const buildOrder = (rows: ReadonlyArray<{ order: OrderRow; line: OrderLineRow | 
 export const OrderRepositoryLive = Layer.effect(
   OrderRepository,
   Effect.gen(function* () {
-    const database = yield* Database;
+    const database = yield* DatabaseExecutor;
 
     const service = {
       findByRequestId: (requestId: ConfirmationRequestId) =>
         database
-          .run("注文の読み出し", (db) =>
+          .execute("注文の読み出し", (db) =>
             db
               .select({ order: orders, line: orderLines })
               .from(orders)

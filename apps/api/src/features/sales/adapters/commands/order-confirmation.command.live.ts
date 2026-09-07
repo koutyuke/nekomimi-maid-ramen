@@ -2,7 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
-import { Database } from "../../../../core/infra/drizzle/database";
+import { DatabaseExecutor } from "../../../../core/infra/drizzle/database.executor";
 import { orderLines, orders, stocks } from "../../../../core/infra/drizzle/schema";
 import { OrderConfirmationCommand } from "../../application/ports/outbound/order-confirmation.command";
 import { ConfirmationLostStockRace, DuplicateConfirmation, Order } from "../../domain/order";
@@ -31,12 +31,12 @@ const nextOrderNumber = (businessDate: string) =>
 export const OrderConfirmationCommandLive = Layer.effect(
   OrderConfirmationCommand,
   Effect.gen(function* () {
-    const database = yield* Database;
+    const database = yield* DatabaseExecutor;
 
     return OrderConfirmationCommand.of({
       execute: (draft: OrderDraft) =>
         database
-          .run(CONFIRM_OPERATION, (db) =>
+          .execute(CONFIRM_OPERATION, (db) =>
             // 注文、明細、在庫を一つのバッチへ入れ、途中の失敗で片方だけ成立しないようにする。
             db.batch([
               db

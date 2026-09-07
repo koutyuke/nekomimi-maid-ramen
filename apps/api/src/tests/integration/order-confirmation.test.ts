@@ -4,7 +4,7 @@ import { Layer, ManagedRuntime } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../app";
-import { databaseLayer } from "../../core/infra/drizzle/database";
+import { makeDatabaseExecutorLive } from "../../core/infra/drizzle/database.executor";
 import { menuItems, orderLines, orders, stocks } from "../../core/infra/drizzle/schema";
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
@@ -16,7 +16,7 @@ const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(Inv
 const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
 const SalesWithInventoryLayer = SalesLayer.pipe(Layer.provide(InventoryAndVisitorLayer));
 const AppLayer = Layer.mergeAll(InventoryAndVisitorLayer, SalesWithInventoryLayer).pipe(
-  Layer.provide(databaseLayer(env.DB)),
+  Layer.provide(makeDatabaseExecutorLive(env.DB)),
 );
 
 const app = createApp({

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
-import { Database } from "../../../../core/infra/drizzle/database";
+import { DatabaseExecutor } from "../../../../core/infra/drizzle/database.executor";
 import { allergens, menuItemAllergens, menuItems } from "../../../../core/infra/drizzle/schema";
 import { MenuItemRepository } from "../../application/ports/outbound/menu-item.repository";
 import { MenuItem } from "../../domain/menu-item";
@@ -35,12 +35,12 @@ const groupRows = (rows: ReadonlyArray<{ menuItem: MenuItemRow; allergen: Allerg
 export const MenuItemRepositoryLive = Layer.effect(
   MenuItemRepository,
   Effect.gen(function* () {
-    const database = yield* Database;
+    const database = yield* DatabaseExecutor;
 
     const service = {
       listInDisplayOrder: () =>
         database
-          .run("商品の一覧取得", (db) =>
+          .execute("商品の一覧取得", (db) =>
             db
               .select({ menuItem: menuItems, allergen: allergens })
               .from(menuItems)
