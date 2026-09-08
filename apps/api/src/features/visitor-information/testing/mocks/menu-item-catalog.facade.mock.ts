@@ -1,10 +1,10 @@
 import { Effect, Layer } from "effect";
 
-import { MenuItemCatalog } from "../../application/ports/inbound/menu-item-catalog";
+import { MenuItemCatalogFacade } from "../../application/ports/inbound/menu-item-catalog.facade";
 import type { MenuItem } from "../../domain/menu-item";
 
-export const menuItemCatalogMock = (menuItems: ReadonlyArray<MenuItem>) =>
-  Layer.succeed(MenuItemCatalog, {
+export const menuItemCatalogFacadeMock = (menuItems: ReadonlyArray<MenuItem>) =>
+  Layer.succeed(MenuItemCatalogFacade, {
     listInDisplayOrder: () => Effect.succeed(menuItems),
     findPrices: (menuItemIds) => {
       const requestedIds = new Set(menuItemIds);

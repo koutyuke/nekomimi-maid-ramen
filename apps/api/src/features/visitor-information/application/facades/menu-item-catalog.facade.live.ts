@@ -1,14 +1,14 @@
 import { Effect, Layer } from "effect";
 
-import { MenuItemCatalog } from "../ports/inbound/menu-item-catalog";
+import { MenuItemCatalogFacade } from "../ports/inbound/menu-item-catalog.facade";
 import { MenuItemRepository } from "../ports/outbound/menu-item.repository";
 
-export const MenuItemCatalogLive = Layer.effect(
-  MenuItemCatalog,
+export const MenuItemCatalogFacadeLive = Layer.effect(
+  MenuItemCatalogFacade,
   Effect.gen(function* () {
     const repository = yield* MenuItemRepository;
 
-    return MenuItemCatalog.of({
+    return MenuItemCatalogFacade.of({
       listInDisplayOrder: () => repository.listInDisplayOrder(),
       findPrices: (menuItemIds) => {
         const requestedIds = new Set(menuItemIds);

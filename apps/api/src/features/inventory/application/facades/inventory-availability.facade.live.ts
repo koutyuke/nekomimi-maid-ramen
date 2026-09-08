@@ -1,15 +1,15 @@
 import { Effect, Layer } from "effect";
 
 import { shortagesFor } from "../../domain/stock";
-import { InventoryAvailability } from "../ports/inbound/inventory-availability";
+import { InventoryAvailabilityFacade } from "../ports/inbound/inventory-availability.facade";
 import { StockRepository } from "../ports/outbound/stock.repository";
 
-export const InventoryAvailabilityLive = Layer.effect(
-  InventoryAvailability,
+export const InventoryAvailabilityFacadeLive = Layer.effect(
+  InventoryAvailabilityFacade,
   Effect.gen(function* () {
     const repository = yield* StockRepository;
 
-    return InventoryAvailability.of({
+    return InventoryAvailabilityFacade.of({
       findShortages: (demands) => repository.listAll().pipe(Effect.map((stocks) => shortagesFor(stocks, demands))),
     });
   }),

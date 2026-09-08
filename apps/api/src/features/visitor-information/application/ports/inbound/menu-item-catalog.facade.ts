@@ -12,11 +12,11 @@ export type MenuItemPrice = {
 };
 
 /**
- * 商品情報を所有する領域が、外部へ提供する読み取りサービス。
- * 内部の`MenuItemRepository`や保存形式はこの契約に含めない。
+ * 商品情報を所有する領域が、外部へ提供する読み取りFacade。
+ * 内部の`MenuItemRepository`や保存形式はこのFacadeに含めない。
  */
-export class MenuItemCatalog extends Context.Tag("MenuItemCatalog")<
-  MenuItemCatalog,
+export class MenuItemCatalogFacade extends Context.Tag("MenuItemCatalogFacade")<
+  MenuItemCatalogFacade,
   {
     readonly listInDisplayOrder: () => Effect.Effect<ReadonlyArray<MenuItem>, PersistenceError>;
     readonly findPrices: (

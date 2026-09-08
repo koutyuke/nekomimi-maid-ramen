@@ -6,13 +6,13 @@ import { PersistenceError } from "../../../core/domain/persistence-error";
 import { stockFixture } from "../../../features/inventory/testing";
 import {
   failingOrderRepositoryMock,
-  orderPricingMock,
+  orderPricingGatewayMock,
   orderRepositoryMock,
-  orderStockAvailabilityMock,
+  orderStockAvailabilityGatewayMock,
 } from "../../../features/sales/testing";
 import {
-  menuItemAvailabilityMock,
-  menuItemCatalogMock,
+  menuItemAvailabilityGatewayMock,
+  menuItemCatalogFacadeMock,
   menuItemFixture,
 } from "../../../features/visitor-information/testing";
 import type { AppRequirements } from "../../../app";
@@ -26,11 +26,11 @@ const appWith = (layers: Layer.Layer<AppRequirements>) =>
 const sellingApp = (stocks: ReadonlyArray<Stock>) =>
   appWith(
     Layer.mergeAll(
-      orderPricingMock([ramen]),
-      orderStockAvailabilityMock(stocks),
+      orderPricingGatewayMock([ramen]),
+      orderStockAvailabilityGatewayMock(stocks),
       orderRepositoryMock(),
-      menuItemAvailabilityMock([]),
-      menuItemCatalogMock([]),
+      menuItemAvailabilityGatewayMock([]),
+      menuItemCatalogFacadeMock([]),
     ),
   );
 
@@ -116,13 +116,13 @@ describe("SPEC-OPS-002 保存先が失敗したときの注文確定応答", () 
   it("失敗を500として返し、内部の情報を応答へ出さない", async () => {
     const app = appWith(
       Layer.mergeAll(
-        orderPricingMock([ramen]),
-        orderStockAvailabilityMock([stockFixture("item-ramen", 3)]),
+        orderPricingGatewayMock([ramen]),
+        orderStockAvailabilityGatewayMock([stockFixture("item-ramen", 3)]),
         failingOrderRepositoryMock(
           new PersistenceError({ operation: "注文の確定", cause: new Error("D1_CONNECTION_LOST") }),
         ),
-        menuItemAvailabilityMock([]),
-        menuItemCatalogMock([]),
+        menuItemAvailabilityGatewayMock([]),
+        menuItemCatalogFacadeMock([]),
       ),
     );
 

@@ -29,9 +29,9 @@ apps/api/
 │   │       │   ├── ports/
 │   │       │   │   ├── inbound/   領域が外部へ提供する契約
 │   │       │   │   └── outbound/  領域が外部へ要求する契約
-│   │       │   ├── services/      inboundポートの実装
+│   │       │   ├── facades/       inboundポートの実装
 │   │       │   └── use-cases/     業務処理
-│   │       ├── adapters/     他領域との接続
+│   │       ├── adapters/     接続先の領域ごとに置く他領域との接続
 │   │       ├── infra/        保存先を使うcommands、repositories
 │   │       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
 │   │       ├── public.ts     この領域の公開面
@@ -75,11 +75,17 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 `infra/commands`には、ユースケースを単位として状態を変更する保存先の実装を置く。一つの原子的な操作で複数の表を更新する実装も、その操作を所有する領域へ置く。ファイル名は`{操作}.command.live.ts`とする。ここでいうコマンドは保存先を操作する`outbound`ポートであり、入力CommandとそのHandlerに相当するユースケースは`application`へ置く。`infra/repositories`には、集約またはエンティティを単位とする汎用的な永続化を置き、ファイル名は`{対象}.repository.live.ts`とする。`adapters`には、他領域が公開するポートを自領域の出力ポートへ適合させる実装を置く。
 
+### ポートと実装の命名
+
+ポートを表す`Context.Tag`には、業務上の対象に役割を示すサフィックスを付ける。領域が外部へ提供する`inbound`ポートは`Facade`、別領域や外部サービスへ要求する`outbound`ポートは`Gateway`、集約またはエンティティ単位の永続化は`Repository`、ユースケース単位の原子的な永続化は`Command`とする。ユースケースは動詞から始まる関数名とし、役割のサフィックスを付けない。
+
+ポートのファイル名は`{対象}.{役割}.ts`、具象実装はポート名とファイル名へ`Live`を付けて`{対象}.{役割}.live.ts`とする。他領域と接続するGatewayの実装は`adapters/{接続先領域}/`へ置く。`adapters`と`Gateway`が実装の役割を表すため、`adapters/gateways/`や実装名への`Adapter`の追加は行わない。
+
 ### 領域の公開面
 
 領域の外から読めるのは`features/{領域}/public.ts`だけである。ここへ載せるのは、他領域のアダプターや経路が必要とする`inbound`ポート、HTTPの境界で使うユースケースと型、業務エラーである。コマンドやリポジトリなど永続化の詳細や領域内の接続に使う`outbound`ポートは公開面へ載せない。
 
-たとえば在庫領域は`InventoryAvailability`とその要求・不足のDTOを公開し、`StockRepository`、`Stock`、`isSellable`は領域内に閉じる。来場者向け情報領域は`MenuItemCatalog`を公開し、`MenuItemRepository`とメニュー表示専用の`MenuItemAvailability`は領域内に閉じる。販売領域は注文確定のユースケースとHTTP境界で必要な型を公開し、`OrderConfirmationCommand`、`OrderRepository`、`OrderPricing`、`OrderStockAvailability`は領域内に閉じる。
+たとえば在庫領域は`InventoryAvailabilityFacade`とその要求・不足のDTOを公開し、`StockRepository`、`Stock`、`isSellable`は領域内に閉じる。来場者向け情報領域は`MenuItemCatalogFacade`を公開し、`MenuItemRepository`とメニュー表示専用の`MenuItemAvailabilityGateway`は領域内に閉じる。販売領域は注文確定のユースケースとHTTP境界で必要な型を公開し、`OrderConfirmationCommand`、`OrderRepository`、`OrderPricingGateway`、`OrderStockAvailabilityGateway`は領域内に閉じる。
 
 `layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
 
@@ -95,7 +101,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ### 依存の向き
 
-`core`は`features`を読まない。`domain`は自領域の`domain`と`core/domain`を参照する。`application`は自領域の`application/ports`、`application/services`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には領域が外部へ提供する契約を置き、`application/ports/outbound`には領域が外部の保存先や別領域へ要求する契約を置く。`adapters`は自領域の`outbound`ポートとドメイン、および相手領域の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自領域の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
+`core`は`features`を読まない。`domain`は自領域の`domain`と`core/domain`を参照する。`application`は自領域の`application/ports`、`application/facades`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には領域が外部へ提供する契約を置き、`application/ports/outbound`には領域が外部の保存先や別領域へ要求する契約を置く。`adapters`は自領域の`outbound`ポートとドメイン、および相手領域の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自領域の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
 
 `public.ts`は自領域の契約と型を公開し、内部のコマンドやリポジトリなど永続化の詳細、`layer.ts`、テスト用コードを参照しない。`layer.ts`は自領域の`adapters`、`infra`、`application`、`domain`、`public.ts`を組み立て、他領域の`layer.ts`を参照しない。複数の表を一つの操作として更新する実装は、その操作を所有する領域の`infra/commands`へ置き、自領域の内部ポートとドメイン、および`core/infra`を参照する。`routes`は領域の`public.ts`、`core/domain`、`core/adapters`を参照し、テストファイルでは`testing/index.ts`を利用できる。
 
@@ -135,7 +141,7 @@ TypeScriptの`enum`は使わない。`tsconfig.base.json`の`erasableSyntaxOnly`
 
 ## 理由
 
-Effectを使うのは、エラーと依存を関数の型に載せるためである。注文確定は在庫不足、在庫の記録なし、保存先の失敗が同時に起こりうる。返り値が`Promise<Order>`であれば、どの失敗を扱い忘れているかを型から読めない。`Effect<Order, OutOfStock | PersistenceError, OrderConfirmationCommand | OrderPricing | OrderRepository | OrderStockAvailability>`であれば、扱っていない失敗と依存が型検査で残る。
+Effectを使うのは、エラーと依存を関数の型に載せるためである。注文確定は在庫不足、在庫の記録なし、保存先の失敗が同時に起こりうる。返り値が`Promise<Order>`であれば、どの失敗を扱い忘れているかを型から読めない。`Effect<Order, OutOfStock | PersistenceError, OrderConfirmationCommand | OrderPricingGateway | OrderRepository | OrderStockAvailabilityGateway>`であれば、扱っていない失敗と依存が型検査で残る。ポートの役割を名前へ含めることで、この依存型と利用箇所だけから、領域の公開入口、他領域への要求、永続化を区別できる。
 
 安定版の3.22系を使う。4.0系は`Schema`が書き直されており、この文書の時点でリリース候補である。出店日までの期間で、未安定の版へ追随する余地はない。
 

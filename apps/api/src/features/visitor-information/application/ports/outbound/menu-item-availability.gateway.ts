@@ -10,11 +10,11 @@ export type MenuItemSellability = {
 };
 
 /**
- * メニュー表示が必要とする販売可否の問い合わせ契約。
- * 実装は領域間接続側で在庫サービスへ変換する。
+ * メニュー表示が在庫領域へ販売可否を要求するGateway。
+ * 実装は領域間接続側で在庫領域のFacadeへ変換する。
  */
-export class MenuItemAvailability extends Context.Tag("MenuItemAvailability")<
-  MenuItemAvailability,
+export class MenuItemAvailabilityGateway extends Context.Tag("MenuItemAvailabilityGateway")<
+  MenuItemAvailabilityGateway,
   {
     readonly listSellability: (
       menuItemIds: ReadonlyArray<MenuItemId>,

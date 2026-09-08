@@ -11,10 +11,10 @@ export type OrderPrice = {
 };
 
 /**
- * 注文確定が必要とする価格参照の契約。商品情報の保存方法を販売へ漏らさない。
+ * 注文確定が商品情報領域へ価格参照を要求するGateway。商品情報の保存方法を販売へ漏らさない。
  */
-export class OrderPricing extends Context.Tag("OrderPricing")<
-  OrderPricing,
+export class OrderPricingGateway extends Context.Tag("OrderPricingGateway")<
+  OrderPricingGateway,
   {
     readonly findPrices: (
       menuItemIds: ReadonlyArray<MenuItemId>,

@@ -3,20 +3,27 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../../app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
-import { orderPricingMock, orderRepositoryMock, orderStockAvailabilityMock } from "../../../features/sales/testing";
-import { failingMenuItemAvailabilityMock, menuItemCatalogMock } from "../../../features/visitor-information/testing";
+import {
+  orderPricingGatewayMock,
+  orderRepositoryMock,
+  orderStockAvailabilityGatewayMock,
+} from "../../../features/sales/testing";
+import {
+  failingMenuItemAvailabilityGatewayMock,
+  menuItemCatalogFacadeMock,
+} from "../../../features/visitor-information/testing";
 
 describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () => {
   it("失敗を500として返し、内部の情報を応答へ出さない", async () => {
-    const failingAvailability = failingMenuItemAvailabilityMock(
+    const failingAvailability = failingMenuItemAvailabilityGatewayMock(
       new PersistenceError({ operation: "在庫の一覧取得", cause: new Error("D1_CONNECTION_LOST") }),
     );
     const runtime = ManagedRuntime.make(
       Layer.mergeAll(
-        menuItemCatalogMock([]),
+        menuItemCatalogFacadeMock([]),
         failingAvailability,
-        orderPricingMock([]),
-        orderStockAvailabilityMock([]),
+        orderPricingGatewayMock([]),
+        orderStockAvailabilityGatewayMock([]),
         orderRepositoryMock(),
       ),
     );

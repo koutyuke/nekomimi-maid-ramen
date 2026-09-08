@@ -13,10 +13,10 @@ import {
 import {
   orderFixture,
   orderLineFixture,
-  orderPricingMock,
+  orderPricingGatewayMock,
   orderRepositoryMock,
-  orderStockAvailabilityMock,
-  orderStockAvailabilitySequenceMock,
+  orderStockAvailabilityGatewayMock,
+  orderStockAvailabilityGatewaySequenceMock,
 } from "../../../testing";
 import { confirmOrder } from "../confirm-order";
 import type { OrderRepositoryMockOptions } from "../../../testing";
@@ -38,10 +38,10 @@ const environment = (options: {
   readonly orders?: OrderRepositoryMockOptions;
 }) =>
   Layer.mergeAll(
-    orderPricingMock([ramen, gyoza]),
+    orderPricingGatewayMock([ramen, gyoza]),
     options.stockSnapshots === undefined
-      ? orderStockAvailabilityMock(options.stocks)
-      : orderStockAvailabilitySequenceMock(options.stockSnapshots),
+      ? orderStockAvailabilityGatewayMock(options.stocks)
+      : orderStockAvailabilityGatewaySequenceMock(options.stockSnapshots),
     orderRepositoryMock(options.orders),
   );
 

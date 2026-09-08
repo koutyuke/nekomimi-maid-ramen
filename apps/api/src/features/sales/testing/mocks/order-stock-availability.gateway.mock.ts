@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 
-import { OrderStockAvailability } from "../../application/ports/outbound/order-stock-availability";
+import { OrderStockAvailabilityGateway } from "../../application/ports/outbound/order-stock-availability.gateway";
 import type { MenuItemId } from "../../../../core/domain/ids";
 
 type StockSnapshot = ReadonlyArray<{ readonly menuItemId: MenuItemId; readonly quantity: number }>;
@@ -17,15 +17,15 @@ const findShortages = (stocks: StockSnapshot, demands: ReadonlyArray<{ menuItemI
   });
 };
 
-export const orderStockAvailabilityMock = (stocks: StockSnapshot) =>
-  Layer.succeed(OrderStockAvailability, {
+export const orderStockAvailabilityGatewayMock = (stocks: StockSnapshot) =>
+  Layer.succeed(OrderStockAvailabilityGateway, {
     findShortages: (demands) => Effect.succeed(findShortages(stocks, demands)),
   });
 
-export const orderStockAvailabilitySequenceMock = (snapshots: ReadonlyArray<StockSnapshot>) => {
+export const orderStockAvailabilityGatewaySequenceMock = (snapshots: ReadonlyArray<StockSnapshot>) => {
   let attempt = 0;
 
-  return Layer.succeed(OrderStockAvailability, {
+  return Layer.succeed(OrderStockAvailabilityGateway, {
     findShortages: (demands) => {
       const stocks = snapshots[Math.min(attempt++, snapshots.length - 1)] ?? [];
 

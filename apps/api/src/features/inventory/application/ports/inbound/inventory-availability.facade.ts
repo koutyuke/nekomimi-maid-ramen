@@ -16,10 +16,10 @@ export type InventoryShortage = {
 };
 
 /**
- * 在庫の現在値を、在庫を所有する領域の外へ持ち出さずに問い合わせる公開サービス。
+ * 在庫領域が外部へ提供するFacade。在庫の現在値を領域の外へ持ち出さずに問い合わせる。
  */
-export class InventoryAvailability extends Context.Tag("InventoryAvailability")<
-  InventoryAvailability,
+export class InventoryAvailabilityFacade extends Context.Tag("InventoryAvailabilityFacade")<
+  InventoryAvailabilityFacade,
   {
     readonly findShortages: (
       demands: ReadonlyArray<InventoryDemand>,

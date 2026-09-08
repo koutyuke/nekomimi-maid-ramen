@@ -11,10 +11,10 @@ export type OrderStockDemand = {
 };
 
 /**
- * 注文確定が必要とする在庫確認の契約。販売側の入力とエラー形を所有する。
+ * 注文確定が在庫領域へ在庫確認を要求するGateway。販売側の入力とエラー形を所有する。
  */
-export class OrderStockAvailability extends Context.Tag("OrderStockAvailability")<
-  OrderStockAvailability,
+export class OrderStockAvailabilityGateway extends Context.Tag("OrderStockAvailabilityGateway")<
+  OrderStockAvailabilityGateway,
   {
     readonly findShortages: (
       demands: ReadonlyArray<OrderStockDemand>,

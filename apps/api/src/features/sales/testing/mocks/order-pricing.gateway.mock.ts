@@ -1,11 +1,11 @@
 import { Effect, Layer } from "effect";
 
-import { OrderPricing } from "../../application/ports/outbound/order-pricing";
+import { OrderPricingGateway } from "../../application/ports/outbound/order-pricing.gateway";
 import type { MenuItemId } from "../../../../core/domain/ids";
 import type { Price } from "../../../../core/domain/money";
 
-export const orderPricingMock = (menuItems: ReadonlyArray<{ readonly id: MenuItemId; readonly price: Price }>) =>
-  Layer.succeed(OrderPricing, {
+export const orderPricingGatewayMock = (menuItems: ReadonlyArray<{ readonly id: MenuItemId; readonly price: Price }>) =>
+  Layer.succeed(OrderPricingGateway, {
     findPrices: (menuItemIds) => {
       const requestedIds = new Set(menuItemIds);
 

@@ -13,8 +13,8 @@ import {
   UnknownMenuItem,
 } from "../../domain/order";
 import { OrderConfirmationCommand } from "../ports/outbound/order-confirmation.command";
-import { OrderPricing } from "../ports/outbound/order-pricing";
-import { OrderStockAvailability } from "../ports/outbound/order-stock-availability";
+import { OrderPricingGateway } from "../ports/outbound/order-pricing.gateway";
+import { OrderStockAvailabilityGateway } from "../ports/outbound/order-stock-availability.gateway";
 import { OrderRepository } from "../ports/outbound/order.repository";
 import type { Price } from "../../../../core/domain/money";
 import type { Order, OrderDraft } from "../../domain/order";
@@ -49,11 +49,11 @@ export const confirmOrder = (
 ): Effect.Effect<
   Order,
   InvalidOrderInput | OutOfStock | PersistenceError | UnknownMenuItem,
-  OrderConfirmationCommand | OrderPricing | OrderRepository | OrderStockAvailability
+  OrderConfirmationCommand | OrderPricingGateway | OrderRepository | OrderStockAvailabilityGateway
 > =>
   Effect.gen(function* () {
-    const orderPricing = yield* OrderPricing;
-    const stockAvailability = yield* OrderStockAvailability;
+    const pricingGateway = yield* OrderPricingGateway;
+    const stockAvailabilityGateway = yield* OrderStockAvailabilityGateway;
     const orderRepository = yield* OrderRepository;
     const orderConfirmationCommand = yield* OrderConfirmationCommand;
 
@@ -66,8 +66,8 @@ export const confirmOrder = (
 
     const [prices, shortages] = yield* Effect.all(
       [
-        orderPricing.findPrices(validatedInput.lines.map((line) => line.menuItemId)),
-        stockAvailability.findShortages(validatedInput.lines),
+        pricingGateway.findPrices(validatedInput.lines.map((line) => line.menuItemId)),
+        stockAvailabilityGateway.findShortages(validatedInput.lines),
       ],
       { concurrency: 2 },
     );
@@ -121,10 +121,10 @@ const reloadConfirmed = (requestId: ConfirmationRequestId): Effect.Effect<Order,
 
 const reportShortagesAfterRace = (
   input: ValidatedConfirmOrderInput,
-): Effect.Effect<never, OutOfStock | PersistenceError, OrderStockAvailability> =>
+): Effect.Effect<never, OutOfStock | PersistenceError, OrderStockAvailabilityGateway> =>
   Effect.gen(function* () {
-    const stockAvailability = yield* OrderStockAvailability;
-    const shortages = yield* stockAvailability.findShortages(input.lines);
+    const stockAvailabilityGateway = yield* OrderStockAvailabilityGateway;
+    const shortages = yield* stockAvailabilityGateway.findShortages(input.lines);
 
     return yield* new OutOfStock({ shortages });
   });

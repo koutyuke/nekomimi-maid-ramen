@@ -1,10 +1,10 @@
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { menuItemAvailabilityMock, menuItemCatalogMock, menuItemFixture } from "../../../testing";
+import { menuItemAvailabilityGatewayMock, menuItemCatalogFacadeMock, menuItemFixture } from "../../../testing";
 import { listMenu } from "../list-menu";
 import type { MenuItem } from "../../../domain/menu-item";
-import type { MenuItemSellability } from "../../ports/outbound/menu-item-availability";
+import type { MenuItemSellability } from "../../ports/outbound/menu-item-availability.gateway";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 const gyoza = menuItemFixture({
@@ -18,7 +18,9 @@ const gyoza = menuItemFixture({
 const run = (menuItems: ReadonlyArray<MenuItem>, sellability: ReadonlyArray<MenuItemSellability>) =>
   Effect.runPromise(
     listMenu().pipe(
-      Effect.provide(Layer.mergeAll(menuItemCatalogMock(menuItems), menuItemAvailabilityMock(sellability))),
+      Effect.provide(
+        Layer.mergeAll(menuItemCatalogFacadeMock(menuItems), menuItemAvailabilityGatewayMock(sellability)),
+      ),
     ),
   );
 
