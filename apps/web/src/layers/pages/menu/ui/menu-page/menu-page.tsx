@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { menuQueryOptions } from "../../../../entities/menu";
+import { menuQueries } from "../../../../entities/menu";
 import { MenuPageUI } from "./menu-page.ui";
 
 export const MenuPage = () => {
-  const { data, isPending, isError, refetch } = useQuery(menuQueryOptions());
+  const { data, isPending, isError, refetch } = useQuery(menuQueries.list());
 
   return (
     <MenuPageUI

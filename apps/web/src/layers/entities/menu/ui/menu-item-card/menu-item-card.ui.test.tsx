@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { render } from "../../../../../test/render";
-import { menuItemFixture } from "../../testing";
+import { render } from "../../../../../testing/render";
+import { menuItemFixture } from "../../testing/menu.fixtures";
 import { MenuItemCardUI } from "./menu-item-card.ui";
 
 describe("SPEC-VIS-004 商品に含まれる特定原材料を表示する", () => {

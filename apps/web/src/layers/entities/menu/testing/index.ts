@@ -1,1 +1,1 @@
-export { menuFixture, menuItemFixture } from "./menu.fixtures";
+export { menuFixture } from "./menu.fixtures";

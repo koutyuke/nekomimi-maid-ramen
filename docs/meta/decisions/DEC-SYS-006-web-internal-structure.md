@@ -33,15 +33,15 @@ apps/web/
 │   │   ├── features/       利用者の操作を伴う機能
 │   │   ├── entities/       業務領域ごとのスライス
 │   │   │   └── {領域}/
-│   │   │       ├── model/    画面が扱う型、Query定義、atom
-│   │   │       ├── api/      APIの呼び出し
+│   │   │       ├── api/      APIの呼び出しとQuery定義
+│   │   │       ├── model/    画面が扱う型、atom
 │   │   │       ├── lib/      型に対する純粋な導出
 │   │   │       ├── ui/{部品}/  この領域の表示部品(Presenter)
 │   │   │       ├── testing/  fixtures。入口は`testing/index.ts`
 │   │   │       └── index.ts  スライスの公開入口
 │   │   └── shared/         領域に属さない基盤(Edenのクライアントなど)
 │   ├── routes/             TanStack Routerのファイル経路
-│   ├── test/               試験の描画補助と初期化
+│   ├── testing/            試験の描画補助と初期化
 │   └── main.tsx            ブラウザの入口
 └── .storybook/
 ```
@@ -52,7 +52,9 @@ apps/web/
 
 `entities`、`features`、`widgets`、`pages`のスライスは`{層}/{スライス}/index.ts`を唯一の公開入口とする。他のスライスからは`entities/menu`のようにスライスを指定して読み込み、内部ファイルへ直接参照しない。層全体をまとめる`index.ts`は作らない。
 
-`shared`は基盤ごとに`shared/{基盤}/index.ts`を入口とする。`app`は`main.tsx`だけが読む。
+`index.ts`へ載せるのは、スライスの外から実際に読むものだけである。外から読まないものは載せず、必要になった時点で追加する。スライスの中では、部品もfixtureも内部のファイルを相対パスで直接読む。
+
+`shared`は基盤ごとに`shared/{基盤}/index.ts`を入口とする。`app`は`main.tsx`が`app/providers`を読み、試験の描画補助とStorybookが`app/styles`を読む。
 
 fixtureは`{層}/{スライス}/testing/index.ts`を入口とし、StorybookとテストからPresenterへ渡す状態をここで作る。本番コードは`testing`を読まない。
 
@@ -79,13 +81,36 @@ Presenterは自分より上位の層と、他のスライスのContainerを読�
 
 ### 状態の置き場
 
-| 状態                             | 置き場                             |
-| -------------------------------- | ---------------------------------- |
-| APIから取得する状態              | `entities/{領域}/model`のQuery定義 |
-| 画面をまたいで保持する入力・選択 | `entities/{領域}/model`のatom      |
-| 表示に閉じた状態                 | Presenterの`useState`              |
+| 状態                             | 置き場                           |
+| -------------------------------- | -------------------------------- |
+| APIから取得する状態              | `entities/{領域}/api`のQuery定義 |
+| 画面をまたいで保持する入力・選択 | `entities/{領域}/model`のatom    |
+| 表示に閉じた状態                 | Presenterの`useState`            |
 
-Query定義は`queryOptions`で書き、`useQuery`とキャッシュ操作の双方から同じ定義を使う。`QueryClient`は`app/store`に置き、`app/providers`が渡す。
+`QueryClient`は`app/store`に置き、`app/providers`が渡す。
+
+### Query定義
+
+Query定義は、そのデータを所有する業務領域の`entities/{領域}/api/{領域}.query.ts`へ置く。このファイルは、複数のQueryへ前方一致させる範囲キーを`{領域}QueryScopes`、`queryOptions`を返す関数を`{領域}Queries`として公開する。クエリが一本だけの領域でも同じ形にする。
+
+```ts
+export const menuQueryScopes = {
+  all: () => ["menu"] as const,
+  lists: () => [...menuQueryScopes.all(), "list"] as const,
+};
+
+export const menuQueries = {
+  list: () => queryOptions({ queryKey: menuQueryScopes.lists(), queryFn: getMenu }),
+};
+```
+
+`{領域}QueryScopes`の関数は範囲キーだけを返し、`{領域}Queries`の関数は`queryOptions`だけを返す。キーと`queryOptions`を同じオブジェクトへ混ぜない。
+
+`queryFn`へ渡す取得処理は`entities/{領域}/api/{操作}-{対象}.ts`へ分けて置く。応答をこのアプリが扱う型へ変換し、失敗を投げるところまでをこの関数が担う。
+
+キャッシュキーをQuery定義の外へ書かない。複数のQueryをまとめて操作するときは`{領域}QueryScopes`を指定し、特定のQueryだけを操作するときは`{領域}Queries.{対象}(...).queryKey`を指定する。
+
+複数の業務領域をまたぐ、画面固有のQuery定義は、その画面の`pages/{画面}/api`または機能の`features/{領域}/api`へ置く。所有者が一つに決まらないものを`entities`へ入れない。
 
 ### 経路
 
@@ -119,6 +144,14 @@ Presenterへ上位の層を読ませないのは、部品の再利用先を型�
 
 TanStack Queryを画面側に置くのは、注文確定後に在庫と販売可否を取り直す経路が必要になるためである。確定はサーバーの状態を変えるため、変更後に同じキーのキャッシュを無効化して再取得する。この結線を各画面へ手で書くと、画面ごとに再取得の抜けが生じる。
 
+Query定義を`api`へ置くのは、`queryOptions`がサーバーへの要求とキャッシュキーの記述であり、画面が保持する状態ではないためである。`model`へ置くのは、Jotaiのatomのように画面が持つ状態に限る。さらにそれを所有する業務領域のスライスへ置くのは、キャッシュキーとその構造を、データを所有する場所と同じ場所で決めるためである。キーを利用側へ書くと、無効化の対象を画面ごとに推測することになる。
+
+クエリが一本だけの領域でも`{領域}Queries`のオブジェクトにするのは、置き方をクエリの本数で変えないためである。本数を条件にすると、二本目を追加するときに書き換えが必要になり、いつ切り替えるかの判断が毎回発生する。
+
+範囲キーを`{領域}QueryScopes`へ分けるのは、`{領域}Queries`の関数が返すものを`queryOptions`だけに揃えるためである。同じオブジェクトへキーを返す関数を混ぜると、`menuQueries.all()`と`menuQueries.list()`のように呼び出しの形が同じで返すものが違い、定義を開くまで区別できない。範囲キーとQueryの名前を分ければ、複数のQueryへ前方一致させる操作と、特定のQueryを扱う操作を利用箇所で読み分けられる。特定のQueryのキーは`queryOptions`に含まれるため、別のキーファクトリーへ重複して定義しない。
+
+`index.ts`へ外から読むものだけを載せるのは、スライスの内側を変えたときに影響範囲を公開面から読めるようにするためである。使われていないものを公開すると、利用箇所を調べずに内側を変えられなくなる。
+
 Storybookをテスト対象と揃えてPresenterだけへ向けるのは、確認する内容を一つに保つためである。Containerはデータ取得と結線だけを持つため、Storybookで確認する見た目を持たない。
 
 ## 影響
@@ -127,4 +160,4 @@ Storybookをテスト対象と揃えてPresenterだけへ向けるのは、確�
 - 新しいスライスを追加する場合は`index.ts`を作り、そのスライスの外へ出すものだけを載せる。
 - 表示の分岐を追加した場合は、Presenterのテストとfixtureを同じ変更で更新する。
 - 経路を追加すると`src/routeTree.gen.ts`が再生成される。生成は`vite`の実行時に行われるため、経路の追加後は`pnpm web build`または`pnpm web dev`を通す。
-- 試験は`src/test/setup.ts`で描画結果を毎回破棄する。一つのファイルで複数回描画するため、破棄しないと前の描画が残って要素の取得が二重になる。
+- 試験は`src/testing/setup.ts`で描画結果を毎回破棄する。一つのファイルで複数回描画するため、破棄しないと前の描画が残って要素の取得が二重になる。

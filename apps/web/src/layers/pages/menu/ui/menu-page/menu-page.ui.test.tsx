@@ -1,7 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { render } from "../../../../../test/render";
+import { render } from "../../../../../testing/render";
 import { menuFixture } from "../../../../entities/menu/testing";
 import { MenuPageUI } from "./menu-page.ui";
 
