@@ -17,7 +17,7 @@
     "db:seed:local": "wrangler d1 execute nekomimi-ramen --local --file=./seed.sql",
     "db:seed:remote": "wrangler d1 execute nekomimi-ramen --remote --file=./seed.sql",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev --var ORIGIN:localhost:5173",
+    "dev": "wrangler dev --var ORIGIN:localhost",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
     "lint": "oxlint .",

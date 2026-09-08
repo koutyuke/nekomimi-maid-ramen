@@ -100,7 +100,13 @@ pnpm --filter @nekomimi/api db:seed:remote
 
 画面が呼び出す API の送信元は `VITE_API_ORIGIN` で指定する。未指定なら `wrangler dev` の待ち受け先(`http://localhost:8787`)を使う。
 
-API が CORS で許可する送信元は `ORIGIN` である。本番では独自ドメイン(`apps/api/wrangler.jsonc`)、手元では `wrangler dev --var` で画面の開発サーバー(`http://localhost:5173`)へ差し替える。画面の開発サーバーはこのポートに固定してあり、空いていなければ別のポートへ移らず失敗する。実機の確認など別の送信元から呼び出す場合は、`pnpm --filter @nekomimi/api exec wrangler dev --var ORIGIN:http://<送信元>` のように送信元を指定して API を起動する。
+API が CORS で許可する送信元は `ORIGIN` である。本番では独自ドメイン(`apps/api/wrangler.jsonc`)を完全一致で判定する。手元では `pnpm --filter @nekomimi/api dev` が `--var ORIGIN:localhost` を渡し、`localhost` と `127.0.0.1` をポートを問わず許可する。開発サーバーはポートが埋まっていると別のポートへ移るため、ポートを含めた完全一致では判定できない。
+
+実機の確認など別の送信元から呼び出す場合は、送信元を指定して API を起動する。
+
+```sh
+pnpm --filter @nekomimi/api exec wrangler dev --var ORIGIN:http://192.168.1.2:5173
+```
 
 ## 検査
 
