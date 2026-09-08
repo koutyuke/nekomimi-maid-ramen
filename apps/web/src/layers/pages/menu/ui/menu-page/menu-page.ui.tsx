@@ -1,7 +1,7 @@
 import { Button, Container, Group, Loader, Stack, Text, Title } from "@mantine/core";
 
-import { groupByCategory, MENU_CATEGORY_LABEL, MenuItemCardUI } from "../../../entities/menu";
-import type { MenuItem } from "../../../entities/menu";
+import { groupByCategory, MENU_CATEGORY_LABEL, MenuItemCardUI } from "../../../../entities/menu";
+import type { MenuItem } from "../../../../entities/menu";
 
 export type MenuPageUIProps = {
   items: readonly MenuItem[];

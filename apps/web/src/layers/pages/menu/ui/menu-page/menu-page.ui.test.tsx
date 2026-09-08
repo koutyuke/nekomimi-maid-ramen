@@ -1,8 +1,8 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { render } from "../../../../test/render";
-import { menuFixture } from "../../../entities/menu/testing";
+import { render } from "../../../../../test/render";
+import { menuFixture } from "../../../../entities/menu/testing";
 import { MenuPageUI } from "./menu-page.ui";
 
 const noop = () => {};

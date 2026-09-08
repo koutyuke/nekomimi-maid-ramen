@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { menuQueryOptions } from "../../../entities/menu";
+import { menuQueryOptions } from "../../../../entities/menu";
 import { MenuPageUI } from "./menu-page.ui";
 
 export const MenuPage = () => {

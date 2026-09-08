@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { menuFixture } from "../../../entities/menu/testing";
+import { menuFixture } from "../../../../entities/menu/testing";
 import { MenuPageUI } from "./menu-page.ui";
 
 const noop = () => {};
