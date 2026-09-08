@@ -47,16 +47,18 @@ flowchart LR
 
 2 つの Worker を別々のホストへ割り当て、**別々に配備する**。営業中に画面だけを直したいとき、API を巻き込んで Server-Sent Events の接続を切らないためである。
 
-| 作業単位   | 配備先                   | 主な構成                                           |
-| ---------- | ------------------------ | -------------------------------------------------- |
-| `apps/web` | `nekomimi-ramen.com`     | React ・ Vite ・ TanStack Router ・ Mantine        |
-| `apps/api` | `api.nekomimi-ramen.com` | ElysiaJS ・ Effect ・ Drizzle ORM ・ Cloudflare D1 |
+| 作業単位   | 配備先                   | 主な構成                                                               |
+| ---------- | ------------------------ | ---------------------------------------------------------------------- |
+| `apps/web` | `nekomimi-ramen.com`     | React ・ Vite ・ TanStack Router ・ TanStack Query ・ Jotai ・ Mantine |
+| `apps/api` | `api.nekomimi-ramen.com` | ElysiaJS ・ Effect ・ Drizzle ORM ・ Cloudflare D1                     |
 
 画面は Eden Treaty で `apps/api` の型を読む。依存の向きは画面から API への一方向に限り、API は画面の実装を参照しない。
 
 API の内部は**業務領域で縦割り**にする。`src/features/{領域}/` の下に `domain`、`application`、`adapters`、`infra` を置き、仕様([`docs/specs/`](docs/specs/))と同じ切り方で読めるようにしている。エラーと依存は Effect の型に載せ、扱い忘れた失敗が型検査で残るようにする。
 
-判断の根拠は [`DEC-SYS-003` 実行基盤とデータストア](docs/meta/decisions/DEC-SYS-003-technology-stack.md)、[`DEC-SYS-004` 開発環境とツールチェーン](docs/meta/decisions/DEC-SYS-004-development-environment.md)、[`DEC-SYS-005` API の内部構造とエラー処理](docs/meta/decisions/DEC-SYS-005-api-internal-structure.md)にある。
+画面の内部も同じ業務領域で切る。`src/layers/` の下を Feature-Sliced Design の層(`app`、`pages`、`widgets`、`features`、`entities`、`shared`)で分け、部品は表示だけを担う Presenter と副作用を担う Container に分ける。
+
+判断の根拠は [`DEC-SYS-003` 実行基盤とデータストア](docs/meta/decisions/DEC-SYS-003-technology-stack.md)、[`DEC-SYS-004` 開発環境とツールチェーン](docs/meta/decisions/DEC-SYS-004-development-environment.md)、[`DEC-SYS-005` API の内部構造とエラー処理](docs/meta/decisions/DEC-SYS-005-api-internal-structure.md)、[`DEC-SYS-006` 画面の内部構造と状態管理](docs/meta/decisions/DEC-SYS-006-web-internal-structure.md)にある。
 
 ## 準備
 
@@ -97,6 +99,8 @@ pnpm --filter @nekomimi/api db:seed:remote
 ```
 
 画面が呼び出す API の送信元は `VITE_API_ORIGIN` で指定する。未指定なら `wrangler dev` の待ち受け先(`http://localhost:8787`)を使う。
+
+API が CORS で許可する送信元は `ORIGIN` である。本番では独自ドメイン(`apps/api/wrangler.jsonc`)、手元では `wrangler dev --var` で画面の開発サーバー(`http://localhost:5173`)へ差し替える。画面の開発サーバーはこのポートに固定してあり、空いていなければ別のポートへ移らず失敗する。実機の確認など別の送信元から呼び出す場合は、`pnpm --filter @nekomimi/api exec wrangler dev --var ORIGIN:http://<送信元>` のように送信元を指定して API を起動する。
 
 ## 検査
 
