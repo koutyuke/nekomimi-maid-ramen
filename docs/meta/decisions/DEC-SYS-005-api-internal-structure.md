@@ -16,47 +16,84 @@ evidence: []
 APIの内部を業務領域で縦割りにし、領域の中を層で分ける。エラー処理、型定義、依存の解決はEffect(`effect`、3.22系)で行う。
 
 ```
-apps/api/src/
-├── core/            複数領域が共有するもの
-│   ├── domain/      共有する識別子、金額、保存先の失敗を表す型
-│   ├── infra/       D1とDrizzleの実体、全表の定義
-│   └── adapters/    Effectをルートハンドラへ繋ぐ処理
-├── features/        業務領域ごと(inventory、visitor-information、…)
-│   └── {領域}/
-│       ├── domain/       概念ごとに1ファイル(stock.ts、menu-item.ts、…)
-│       ├── application/  ports(依存の宣言)、use-cases(業務処理)
-│       ├── adapters/     repositories(保存先の実装)
-│       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
-│       ├── index.ts      この領域の公開面
-│       └── layer.ts      この領域の実装を組み立てる
-├── routes/
-│   └── {経路}/
-│       ├── {経路}.route.ts     経路の定義
-│       ├── {経路}.response.ts  応答の形と組み立て
-│       └── tests/
-├── app.ts           経路の合成。画面が読む型の正本
-└── index.ts         Workerの入口。実装の解決はここだけで行う
+apps/api/
+├── src/
+│   ├── core/            複数領域が共有するもの
+│   │   ├── domain/      共有する識別子、金額、保存先の失敗を表す型
+│   │   ├── infra/       D1とDrizzleの実体、全表の定義
+│   │   └── adapters/    Effectをルートハンドラへ繋ぐ処理
+│   ├── features/        業務領域ごと(inventory、visitor-information、…)
+│   │   └── {領域}/
+│   │       ├── domain/       概念ごとに1ファイル(stock.ts、menu-item.ts、…)
+│   │       ├── application/
+│   │       │   ├── ports/
+│   │       │   │   ├── inbound/   領域が外部へ提供する契約
+│   │       │   │   └── outbound/  領域が外部へ要求する契約
+│   │       │   ├── facades/       inboundポートの実装
+│   │       │   └── use-cases/     業務処理
+│   │       ├── adapters/     接続先の領域ごとに置く他領域との接続
+│   │       ├── infra/        保存先を使うcommands、repositories
+│   │       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
+│   │       ├── public.ts     この領域の公開面
+│   │       └── layer.ts      この領域の実装を組み立てる
+│   ├── routes/
+│   │   └── {経路}/
+│   │       ├── {経路}.route.ts     経路の定義
+│   │       ├── {経路}.response.ts  応答の形と組み立て
+│   │       └── tests/
+│   ├── tests/
+│   │   └── integration/     APIの入口から複数領域と保存先を通す統合テスト
+│   ├── app.ts           経路の合成。画面が読む型の正本
+│   └── index.ts         Workerの入口。実装の解決はここだけで行う
+└── testing/
+    ├── env.d.ts         テスト実行時だけ使う型宣言
+    └── setup/           テスト環境の入口と初期化
 ```
 
 領域の名前は[ドキュメント管理](../../documentation-management.md)の業務領域に合わせる。
 
+### coreの公開入口
+
+`core/adapters`と`core/infra`は、`core/{layer}/{module}/index.ts`をモジュールごとの唯一の公開入口とする。`core`全体や層全体をまとめる`index.ts`は作らない。モジュール外からはディレクトリを指定して読み込み、内部ファイルへの直接参照は`no-restricted-imports`で禁止する。同じモジュール内の実装とテストは内部ファイルを直接参照してよい。公開入口は既存の層間の依存制限を緩めない。
+
+- `core/adapters/elysia`は`logAndDie`、`makeRunner`、`EffectRunner`を公開する。
+- `core/infra/drizzle`は`Database`、`makeDatabaseLive`を公開する。
+
+`core/domain`は`index.ts`を作らず、`ids`、`money`、`persistence-error`のように概念ごとのファイルを直接参照する。これらはそれぞれが公開するドメインの定義であり、インポート先に概念名を残す。
+
 ### 表定義
 
-すべての表を`core/infra/drizzle/schema.ts`に置く。業務領域ごとに分けない。
+すべての表を`core/infra/drizzle/schema.ts`に置く。業務領域ごとに分けない。マイグレーション生成設定はこのファイルを参照する。
+
+DBモジュールの外では`core/infra/drizzle`から読み込み、テーブルは`Database.tables.orders`のように参照する。`Database.tables`は接続に依存しない静的な定義であり、注入した`database.run`がDB操作を実行する。テーブルをローカル変数へ取り出す必要がある場合は、`ordersTable`のように`Table`を付け、テーブルであることを名前に残す。
 
 ### ファイルの切り方
 
 `domain`のファイルは種類ではなく概念で切る。エンティティ、そのエンティティだけが使うバリューオブジェクト、業務判定の関数を同じファイルへ入れる。バリューオブジェクトを独立したファイルへ出すのは、同じ領域の2つ以上のエンティティが使うときだけである。2つ以上の領域が使うものは`core/domain`へ置く。
 
-領域の内側にバレルを作らない。
+業務領域の内側にバレルを作らない。
+
+`infra/commands`には、ユースケースを単位として状態を変更する保存先の実装を置く。一つの原子的な操作で複数の表を更新する実装も、その操作を所有する領域へ置く。ファイル名は`{操作}.command.live.ts`とする。ここでいうコマンドは保存先を操作する`outbound`ポートであり、入力CommandとそのHandlerに相当するユースケースは`application`へ置く。`infra/repositories`には、集約またはエンティティを単位とする汎用的な永続化を置き、ファイル名は`{対象}.repository.live.ts`とする。`adapters`には、他領域が公開するポートを自領域の出力ポートへ適合させる実装を置く。
+
+### ポートと実装の命名
+
+ポートを表す`Context.Tag`には、業務上の対象に役割を示すサフィックスを付ける。領域が外部へ提供する`inbound`ポートは`Facade`、別領域や外部サービスへ要求する`outbound`ポートは`Gateway`、集約またはエンティティ単位の永続化は`Repository`、ユースケース単位の原子的な永続化は`Command`とする。ユースケースは動詞から始まる関数名とし、役割のサフィックスを付けない。
+
+ポートのファイル名は`{対象}.{役割}.ts`、具象実装はポート名とファイル名へ`Live`を付けて`{対象}.{役割}.live.ts`とする。他領域と接続するGatewayの実装は`adapters/{接続先領域}/`へ置く。`adapters`と`Gateway`が実装の役割を表すため、`adapters/gateways/`や実装名への`Adapter`の追加は行わない。
 
 ### 領域の公開面
 
-領域の外から読めるのは`features/{領域}/index.ts`だけである。ここへ載せるのはポート、ドメインの型と判定関数、ユースケースである。
+領域の外から読めるのは`features/{領域}/public.ts`だけである。ここへ載せるのは、他領域のアダプターや経路が必要とする`inbound`ポート、HTTPの境界で使うユースケースと型、業務エラーである。コマンドやリポジトリなど永続化の詳細や領域内の接続に使う`outbound`ポートは公開面へ載せない。
 
-`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。`layer.ts`を読むのは`src/index.ts`だけである。
+たとえば在庫領域は`InventoryAvailabilityFacade`とその要求・不足のDTOを公開し、`StockRepository`、`Stock`、`isSellable`は領域内に閉じる。来場者向け情報領域は`MenuItemCatalogFacade`を公開し、`MenuItemRepository`とメニュー表示専用の`MenuItemAvailabilityGateway`は領域内に閉じる。販売領域は注文確定のユースケースとHTTP境界で必要な型を公開し、`OrderConfirmationCommand`、`OrderRepository`、`OrderPricingGateway`、`OrderStockAvailabilityGateway`は領域内に閉じる。
+
+`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
 
 テスト用の`fixtures`と`mocks`は`features/{領域}/testing/index.ts`を入口とする。
+
+### テストの配置
+
+一つの概念、層、経路に閉じるテストは対象の隣の`tests/`へ置く。保存先へ一括保存するコマンドの契約テストは`apps/api/src/features/{領域}/infra/commands/tests/`へ置く。APIの入口から複数の業務領域と実際の保存先を組み合わせるテストは`apps/api/src/tests/integration/`へ置き、必要な`layer.ts`を組み立てる。Workerの入口を含む公開境界全体を外側から検証するテストは`apps/api/src/tests/e2e/`へ置く。テストランナーの入口と初期化は`apps/api/testing/setup/`へ置き、テスト実行時の型宣言は`apps/api/testing/env.d.ts`へ置く。
 
 ### 応答の形
 
@@ -64,13 +101,15 @@ apps/api/src/
 
 ### 依存の向き
 
-`core`は`features`を読まない。`domain`は何にも依存しない。`application`は`domain`と`core/domain`だけに依存する。`adapters`は`application`が宣言したポートを実装し、`core/infra`を読む。
+`core`は`features`を読まない。`domain`は自領域の`domain`と`core/domain`を参照する。`application`は自領域の`application/ports`、`application/facades`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には領域が外部へ提供する契約を置き、`application/ports/outbound`には領域が外部の保存先や別領域へ要求する契約を置く。`adapters`は自領域の`outbound`ポートとドメイン、および相手領域の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自領域の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
+
+`public.ts`は自領域の契約と型を公開し、内部のコマンドやリポジトリなど永続化の詳細、`layer.ts`、テスト用コードを参照しない。`layer.ts`は自領域の`adapters`、`infra`、`application`、`domain`、`public.ts`を組み立て、他領域の`layer.ts`を参照しない。複数の表を一つの操作として更新する実装は、その操作を所有する領域の`infra/commands`へ置き、自領域の内部ポートとドメイン、および`core/infra`を参照する。`routes`は領域の`public.ts`、`core/domain`、`core/adapters`を参照し、テストファイルでは`testing/index.ts`を利用できる。
 
 ユースケースは`Effect.Effect<成功値, エラー, 要求する依存>`を返す関数として書く。この型が契約であるため、ユースケースのインターフェースを別ファイルへ置かない。
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きは`apps/api/.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。
+この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}/public.ts`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
 ### 型定義
 
@@ -102,7 +141,7 @@ TypeScriptの`enum`は使わない。`tsconfig.base.json`の`erasableSyntaxOnly`
 
 ## 理由
 
-Effectを使うのは、エラーと依存を関数の型に載せるためである。注文確定は在庫不足、在庫の記録なし、保存先の失敗が同時に起こりうる。返り値が`Promise<Order>`であれば、どの失敗を扱い忘れているかを型から読めない。`Effect<Order, OutOfStock | PersistenceError, StockRepository>`であれば、扱っていない失敗が型検査で残る。
+Effectを使うのは、エラーと依存を関数の型に載せるためである。注文確定は在庫不足、在庫の記録なし、保存先の失敗が同時に起こりうる。返り値が`Promise<Order>`であれば、どの失敗を扱い忘れているかを型から読めない。`Effect<Order, OutOfStock | PersistenceError, OrderConfirmationCommand | OrderPricingGateway | OrderRepository | OrderStockAvailabilityGateway>`であれば、扱っていない失敗と依存が型検査で残る。ポートの役割を名前へ含めることで、この依存型と利用箇所だけから、領域の公開入口、他領域への要求、永続化を区別できる。
 
 安定版の3.22系を使う。4.0系は`Schema`が書き直されており、この文書の時点でリリース候補である。出店日までの期間で、未安定の版へ追随する余地はない。
 
@@ -110,7 +149,9 @@ Effectを使うのは、エラーと依存を関数の型に載せるためで�
 
 ユースケースのインターフェースを別ファイルへ置かないのは、`Effect`の型が成功値、エラー、依存のすべてを表すためである。同じ内容をインターフェースとして再宣言すると、実装を変えるたびに二箇所を直すことになり、ずれても検出できない。
 
-`app.ts`が`ManagedRuntime`だけを受け取るのは、画面が読む型にD1とDrizzleの型定義を漏らさないためである。`app.ts`が保存先の実装を参照すると、画面側の型検査にWorkers固有の型定義が必要になる([`DEC-SYS-004`](DEC-SYS-004-development-environment.md))。ポートの型はこの領域の値だけで構成されるため、実装を`index.ts`へ寄せることでこの境界を保てる。
+`app.ts`が`ManagedRuntime`だけを受け取るのは、画面が読む型にD1とDrizzleの型定義を漏らさないためである。`app.ts`が保存先の実装を参照すると、画面側の型検査にWorkers固有の型定義が必要になる([`DEC-SYS-004`](DEC-SYS-004-development-environment.md))。ポートの型は公開面の契約と領域の値だけで構成されるため、保存先の実装を各領域の`infra`へ置き、`src/index.ts`で`Layer`を解決することでこの境界を保てる。
+
+Repositoryは、保存先の形式をドメインモデルへ変換する役割だけを見ればアダプターである。しかし、現在の具象実装はDrizzleの問い合わせAPIと表定義へ直接依存しており、これらをInterface Adaptersより外側のFrameworks & Driversに分類すると、アダプターから外側へのソースコード依存が生じる。Drizzleの問い合わせ能力を技術非依存の契約として再定義すると、ORMの抽象を複製するか、Repositoryポートとほぼ同じ契約を追加することになる。この分離に独立した変更理由がないため、Drizzleを使うRepositoryとコマンドの具象実装全体を`infra`に置く。
 
 境界の検証をEffect Schemaに寄せるのは、検証の書き方を一系統に保つためである。TypeBoxを境界に残すと、同じ制約を境界とドメインの二箇所へ書くことになる。
 
@@ -126,4 +167,4 @@ Effectを使うのは、エラーと依存を関数の型に載せるためで�
 - 新しい表を追加する場所は`src/core/infra/drizzle/schema.ts`だけである。
 - テストでは`main`をテスト専用の入口へ差し替える。Elysiaの事前コンパイルはWorkerの起動時にしか行えず、本番の入口をテストランナー内で読み込むと拒否される。
 - `no-underscore-dangle`は`_tag`を許可する。Effectのタグ付きエラーはこの名前で種類を判別する。
-- 新しい業務領域を追加する手順は、`domain`、`application/ports`、`application/use-cases`、`adapters`、`layer.ts`を作り、`apps/api/.oxlintrc.jsonc`の業務領域パターンへ領域を加え、`index.ts`の`Layer.mergeAll`へ加えることである。
+- 新しい業務領域を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他領域と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/oxlint.config.ts`の業務領域パターンへ領域を加え、`src/index.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する領域の`infra/commands`に実装と契約テストを置く。

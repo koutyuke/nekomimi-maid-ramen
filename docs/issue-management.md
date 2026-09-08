@@ -90,7 +90,7 @@ Epic の子 Issue はそれぞれの成果物に応じた `T-*` を選び、親�
 1. [Issue 一覧](https://github.com/koutyuke/nekomimi-maid-ramen/issues)で、終了済みも含めて同じ問題がないか検索する。同じ問題があれば、既存の Issue に再現条件や不足情報を追記する。終了済みの問題が再発した場合は、再現状況を追記し、開発担当者へ再開の判断を依頼する。
 2. 対象の[要件・仕様](README.md)を確認し、関連する `REQ-*`、`SPEC-*`、`Q-*` へのリンクを用意する。既存の文書に該当するものがなければ、その旨を本文に書く。
 3. [New issue](https://github.com/koutyuke/nekomimi-maid-ramen/issues/new/choose)を開き、用途に合うテンプレートを選ぶ。本文の案内を記入内容へ置き換える。タイトルと本文は日本語で書き、未確認の情報は未確認と明記する。
-4. Labels から既存のラベルを選ぶ。担当者や対象リリースが決まっている場合は、Assignees と Milestone も設定する。リリースの区切りはマイルストーンで管理する。
+4. Labels から既存のラベルを選ぶ。担当者が決まっている場合は Assignees を設定する。マイルストーンは提供範囲(`PROFILE-*`)と同じIDを名前とし、その提供範囲に含まれる要件を満たす Issue へ設定する。どの提供範囲にも含まれない作業には設定しない。
 5. 完了を判断できる内容になっていることを確認して送信する。作成された Issue で本文、リンク、ラベルを確認する。
 
 既存ラベルの付与にはトリアージ以上の権限が必要である。Labels を操作できない場合は、希望するラベルを本文に書き、開発担当者へ付与を依頼する。ラベルの定義自体を追加・変更する場合は、[ラベル管理](../.github/labels/README.md)に従う。画面操作と権限の詳細は GitHub 公式の[Issue の作成](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue)と[ラベルの管理](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)を参照する。

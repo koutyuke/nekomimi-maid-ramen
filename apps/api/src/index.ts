@@ -2,11 +2,17 @@ import { env } from "cloudflare:workers";
 import { Layer, ManagedRuntime } from "effect";
 
 import { createApp } from "./app";
-import { databaseLayer } from "./core/infra/drizzle/database";
+import { makeDatabaseLive } from "./core/infra/drizzle";
 import { InventoryLayer } from "./features/inventory/layer";
+import { SalesLayer } from "./features/sales/layer";
 import { VisitorInformationLayer } from "./features/visitor-information/layer";
 
-const AppLayer = Layer.mergeAll(InventoryLayer, VisitorInformationLayer).pipe(Layer.provide(databaseLayer(env.DB)));
+const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(InventoryLayer));
+const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
+const SalesWithInventoryLayer = SalesLayer.pipe(Layer.provide(InventoryAndVisitorLayer));
+const AppLayer = Layer.mergeAll(InventoryAndVisitorLayer, SalesWithInventoryLayer).pipe(
+  Layer.provide(makeDatabaseLive(env.DB)),
+);
 
 export default createApp({
   origin: env.ORIGIN,

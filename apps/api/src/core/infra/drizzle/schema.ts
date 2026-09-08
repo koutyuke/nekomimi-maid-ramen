@@ -46,3 +46,40 @@ export const stocks = sqliteTable(
   // DEC-SYS-005
   (table) => [check("stocks_quantity_non_negative", sql`${table.quantity} >= 0`)],
 );
+
+export const orders = sqliteTable(
+  "orders",
+  {
+    id: text("id").primaryKey(),
+    businessDate: text("business_date").notNull(),
+    orderNumber: integer("order_number").notNull(),
+    requestId: text("request_id").notNull(),
+    totalAmount: integer("total_amount").notNull(),
+    cookingState: text("cooking_state").notNull(),
+    confirmedAt: integer("confirmed_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("orders_business_date_order_number_unique").on(table.businessDate, table.orderNumber),
+    uniqueIndex("orders_request_id_unique").on(table.requestId),
+    check("orders_order_number_positive", sql`${table.orderNumber} > 0`),
+  ],
+);
+
+export const orderLines = sqliteTable(
+  "order_lines",
+  {
+    orderId: text("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    menuItemId: text("menu_item_id")
+      .notNull()
+      .references(() => menuItems.id),
+    quantity: integer("quantity").notNull(),
+    unitPrice: integer("unit_price").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.orderId, table.menuItemId] }),
+    check("order_lines_quantity_range", sql`${table.quantity} between 1 and 10`),
+  ],
+);

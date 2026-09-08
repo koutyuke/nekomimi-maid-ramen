@@ -1,8 +1,7 @@
 import { Effect } from "effect";
 
-import { isSellable, StockRepository } from "../../../inventory";
-import { MenuItemRepository } from "../ports/menu-item.repository";
-import type { MenuItemId } from "../../../../core/domain/ids";
+import { MenuItemAvailabilityGateway } from "../ports/outbound/menu-item-availability.gateway";
+import { MenuItemRepository } from "../ports/outbound/menu-item.repository";
 import type { PersistenceError } from "../../../../core/domain/persistence-error";
 import type { MenuItem } from "../../domain/menu-item";
 
@@ -14,20 +13,15 @@ export type MenuEntry = {
 export const listMenu = (): Effect.Effect<
   ReadonlyArray<MenuEntry>,
   PersistenceError,
-  MenuItemRepository | StockRepository
+  MenuItemAvailabilityGateway | MenuItemRepository
 > =>
   Effect.gen(function* () {
     const menuItemRepository = yield* MenuItemRepository;
-    const stockRepository = yield* StockRepository;
+    const menuItemAvailabilityGateway = yield* MenuItemAvailabilityGateway;
 
-    const [menuItems, stocks] = yield* Effect.all(
-      [menuItemRepository.listInDisplayOrder(), stockRepository.listAll()],
-      { concurrency: 2 },
-    );
-
-    const sellableByMenuItemId = new Map<MenuItemId, boolean>(
-      stocks.map((stock) => [stock.menuItemId, isSellable(stock)]),
-    );
+    const menuItems = yield* menuItemRepository.listInDisplayOrder();
+    const sellability = yield* menuItemAvailabilityGateway.listSellability(menuItems.map((menuItem) => menuItem.id));
+    const sellableByMenuItemId = new Map(sellability.map((entry) => [entry.menuItemId, entry.sellable]));
 
     return menuItems.map((menuItem) => ({
       menuItem,

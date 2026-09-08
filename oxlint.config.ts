@@ -1,0 +1,30 @@
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["oxc", "typescript", "unicorn", "import", "promise"],
+  categories: {
+    correctness: "error",
+    suspicious: "error",
+    perf: "warn",
+  },
+  options: {
+    typeAware: true,
+  },
+  rules: {
+    eqeqeq: "error",
+    "eslint/no-unused-vars": "error",
+    "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
+
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        prefer: "type-imports",
+        fixStyle: "separate-type-imports",
+      },
+    ],
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+  },
+});

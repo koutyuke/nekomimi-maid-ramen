@@ -1,5 +1,6 @@
 import { Layer } from "effect";
 
-import { StockRepositoryLive } from "./adapters/repositories/stock.repository.live";
+import { InventoryAvailabilityFacadeLive } from "./application/facades/inventory-availability.facade.live";
+import { StockRepositoryLive } from "./infra/repositories/stock.repository.live";
 
-export const InventoryLayer = Layer.mergeAll(StockRepositoryLive);
+export const InventoryLayer = InventoryAvailabilityFacadeLive.pipe(Layer.provide(StockRepositoryLive));
