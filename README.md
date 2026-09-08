@@ -85,6 +85,15 @@ API の起動後は、[`http://localhost:8787/openapi`](http://localhost:8787/op
 ```sh
 pnpm --filter @nekomimi/api db:generate       # 表定義から移行ファイルを作る
 pnpm --filter @nekomimi/api db:migrate:local  # 手元の D1 へ適用する
+pnpm --filter @nekomimi/api db:seed:local     # メニューと初期在庫を投入する
+```
+
+投入する内容は `apps/api/seed.sql` にある。[メニュー](docs/product/menu.md)の6商品、特定原材料の9品目、全商品を販売可能にする初期在庫を入れる。品目の追加や価格の変更はこのファイルを直して投入し直す。何度実行しても行は重複せず、投入後に更新された説明文・原材料の確認状態・在庫数は上書きしない。
+
+本番へ入れる場合は、移行を当てた後に `db:seed:remote` を実行する。
+
+```sh
+pnpm --filter @nekomimi/api db:seed:remote
 ```
 
 画面が呼び出す API の送信元は `VITE_API_ORIGIN` で指定する。未指定なら `wrangler dev` の待ち受け先(`http://localhost:8787`)を使う。
