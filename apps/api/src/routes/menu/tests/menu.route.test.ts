@@ -10,7 +10,7 @@ import {
 } from "../../../features/sales/testing";
 import {
   failingMenuItemAvailabilityGatewayMock,
-  menuItemCatalogFacadeMock,
+  menuItemRepositoryMock,
 } from "../../../features/visitor-information/testing";
 
 describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () => {
@@ -20,7 +20,7 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
     );
     const runtime = ManagedRuntime.make(
       Layer.mergeAll(
-        menuItemCatalogFacadeMock([]),
+        menuItemRepositoryMock([]),
         failingAvailability,
         orderPricingGatewayMock([]),
         orderStockAvailabilityGatewayMock([]),

@@ -7,4 +7,5 @@ import { MenuItemRepositoryLive } from "./infra/repositories/menu-item.repositor
 export const VisitorInformationLayer = Layer.mergeAll(
   MenuItemCatalogFacadeLive.pipe(Layer.provide(MenuItemRepositoryLive)),
   MenuItemAvailabilityGatewayLive,
+  MenuItemRepositoryLive,
 );

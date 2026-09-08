@@ -9,7 +9,6 @@ export const MenuItemCatalogFacadeLive = Layer.effect(
     const repository = yield* MenuItemRepository;
 
     return MenuItemCatalogFacade.of({
-      listInDisplayOrder: () => repository.listInDisplayOrder(),
       findPrices: (menuItemIds) => {
         const requestedIds = new Set(menuItemIds);
 

@@ -5,7 +5,6 @@ import type { MenuItem } from "../../domain/menu-item";
 
 export const menuItemCatalogFacadeMock = (menuItems: ReadonlyArray<MenuItem>) =>
   Layer.succeed(MenuItemCatalogFacade, {
-    listInDisplayOrder: () => Effect.succeed(menuItems),
     findPrices: (menuItemIds) => {
       const requestedIds = new Set(menuItemIds);
 

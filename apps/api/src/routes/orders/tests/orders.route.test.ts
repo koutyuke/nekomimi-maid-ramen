@@ -12,8 +12,8 @@ import {
 } from "../../../features/sales/testing";
 import {
   menuItemAvailabilityGatewayMock,
-  menuItemCatalogFacadeMock,
   menuItemFixture,
+  menuItemRepositoryMock,
 } from "../../../features/visitor-information/testing";
 import type { AppRequirements } from "../../../app";
 import type { Stock } from "../../../features/inventory/testing";
@@ -30,7 +30,7 @@ const sellingApp = (stocks: ReadonlyArray<Stock>) =>
       orderStockAvailabilityGatewayMock(stocks),
       orderRepositoryMock(),
       menuItemAvailabilityGatewayMock([]),
-      menuItemCatalogFacadeMock([]),
+      menuItemRepositoryMock([]),
     ),
   );
 
@@ -122,7 +122,7 @@ describe("SPEC-OPS-002 保存先が失敗したときの注文確定応答", () 
           new PersistenceError({ operation: "注文の確定", cause: new Error("D1_CONNECTION_LOST") }),
         ),
         menuItemAvailabilityGatewayMock([]),
-        menuItemCatalogFacadeMock([]),
+        menuItemRepositoryMock([]),
       ),
     );
 

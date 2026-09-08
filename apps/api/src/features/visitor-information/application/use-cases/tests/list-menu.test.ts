@@ -1,7 +1,7 @@
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { menuItemAvailabilityGatewayMock, menuItemCatalogFacadeMock, menuItemFixture } from "../../../testing";
+import { menuItemAvailabilityGatewayMock, menuItemFixture, menuItemRepositoryMock } from "../../../testing";
 import { listMenu } from "../list-menu";
 import type { MenuItem } from "../../../domain/menu-item";
 import type { MenuItemSellability } from "../../ports/outbound/menu-item-availability.gateway";
@@ -18,9 +18,7 @@ const gyoza = menuItemFixture({
 const run = (menuItems: ReadonlyArray<MenuItem>, sellability: ReadonlyArray<MenuItemSellability>) =>
   Effect.runPromise(
     listMenu().pipe(
-      Effect.provide(
-        Layer.mergeAll(menuItemCatalogFacadeMock(menuItems), menuItemAvailabilityGatewayMock(sellability)),
-      ),
+      Effect.provide(Layer.mergeAll(menuItemRepositoryMock(menuItems), menuItemAvailabilityGatewayMock(sellability))),
     ),
   );
 
