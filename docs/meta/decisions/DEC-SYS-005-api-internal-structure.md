@@ -109,7 +109,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きの主要な境界は`apps/api/.oxlintrc.jsonc`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}/public.ts`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
+この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}/public.ts`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
 ### 型定義
 
@@ -167,4 +167,4 @@ Repositoryは、保存先の形式をドメインモデルへ変換する役割�
 - 新しい表を追加する場所は`src/core/infra/drizzle/schema.ts`だけである。
 - テストでは`main`をテスト専用の入口へ差し替える。Elysiaの事前コンパイルはWorkerの起動時にしか行えず、本番の入口をテストランナー内で読み込むと拒否される。
 - `no-underscore-dangle`は`_tag`を許可する。Effectのタグ付きエラーはこの名前で種類を判別する。
-- 新しい業務領域を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他領域と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/.oxlintrc.jsonc`の業務領域パターンへ領域を加え、`src/index.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する領域の`infra/commands`に実装と契約テストを置く。
+- 新しい業務領域を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他領域と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/oxlint.config.ts`の業務領域パターンへ領域を加え、`src/index.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する領域の`infra/commands`に実装と契約テストを置く。

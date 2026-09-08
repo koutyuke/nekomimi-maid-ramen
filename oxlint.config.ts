@@ -1,24 +1,25 @@
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["oxc", "typescript", "unicorn", "import", "promise"],
-  "categories": {
-    "correctness": "error",
-    "suspicious": "error",
-    "perf": "warn",
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["oxc", "typescript", "unicorn", "import", "promise"],
+  categories: {
+    correctness: "error",
+    suspicious: "error",
+    perf: "warn",
   },
-  "options": {
-    "typeAware": true,
+  options: {
+    typeAware: true,
   },
-  "rules": {
-    "eqeqeq": "error",
+  rules: {
+    eqeqeq: "error",
     "eslint/no-unused-vars": "error",
     "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
 
     "typescript/consistent-type-imports": [
       "error",
       {
-        "prefer": "type-imports",
-        "fixStyle": "separate-type-imports",
+        prefer: "type-imports",
+        fixStyle: "separate-type-imports",
       },
     ],
     "typescript/no-floating-promises": "error",
@@ -26,4 +27,4 @@
     "typescript/await-thenable": "error",
     "typescript/switch-exhaustiveness-check": "error",
   },
-}
+});
