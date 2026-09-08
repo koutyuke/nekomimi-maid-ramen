@@ -24,7 +24,12 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
 
   const app = new Elysia({ adapter: CloudflareAdapter, aot })
     // Plugins
-    .use(cors({ origin, credentials: true }))
+    .use(
+      cors({
+        origin: origin === "localhost" ? /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/ : origin,
+        credentials: true,
+      }),
+    )
     .use(
       openapi({
         documentation: {

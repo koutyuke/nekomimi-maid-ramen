@@ -1,4 +1,4 @@
-import { Container, Stack, Title } from "@mantine/core";
+import { Anchor, Container, Stack, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -7,9 +7,10 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   return (
-    <Container size="sm" py="md">
+    <Container py="md" size="sm">
       <Stack>
         <Title order={1}>猫耳メイドラーメン</Title>
+        <Anchor href="/menu">メニューを見る</Anchor>
       </Stack>
     </Container>
   );
