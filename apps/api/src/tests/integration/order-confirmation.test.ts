@@ -1,4 +1,5 @@
 import { env } from "cloudflare:test";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Layer, ManagedRuntime } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -34,6 +35,17 @@ const confirm = (body: unknown) =>
   );
 
 const listMenu = () => app.handle(new Request("https://api.nekomimi-ramen.com/menu"));
+
+// `wrangler d1 execute --file`と違い`D1Database.exec`は1行1文しか受け付けないため、投入SQLを文ごとに分けて渡す。
+// ponytail: 文字列リテラルに`;`を書かない前提の素朴な分割。必要になったらSQLパーサへ差し替える。
+const seed = () =>
+  env.DB.batch(
+    env.TEST_SEED_SQL.replace(/^\s*--.*$/gm, "")
+      .split(";")
+      .map((statement) => statement.trim())
+      .filter((statement) => statement !== "")
+      .map((statement) => env.DB.prepare(statement)),
+  );
 
 const storedOrders = () => db.select().from(Database.tables.orders).all();
 const stockOf = async (menuItemId: string) =>
@@ -140,5 +152,55 @@ describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () =
         { id: "item-missing-stock", sellable: false },
       ],
     });
+  });
+});
+
+describe("SPEC-VIS-002 投入したメニューの取得", () => {
+  beforeEach(async () => {
+    await db.delete(Database.tables.stocks);
+    await db.delete(Database.tables.menuItems);
+    await seed();
+  });
+
+  it("6商品を表示順で返し、すべて販売可能かつ特定原材料は未確認である", async () => {
+    const response = await listMenu();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      items: [
+        { id: "item-ramen", name: "ラーメン", price: 500, category: "main" },
+        { id: "item-gyoza", name: "餃子", price: 400, category: "side" },
+        { id: "item-cola", name: "コーラ", price: 300, category: "drink" },
+        { id: "item-orange-juice", name: "オレンジジュース", price: 300, category: "drink" },
+        { id: "item-ginger-ale", name: "ジンジャーエール", price: 300, category: "drink" },
+        { id: "item-oolong-tea", name: "烏龍茶", price: 300, category: "drink" },
+      ].map((item) => ({
+        ...item,
+        description: null,
+        sellable: true,
+        allergenCheckState: "unchecked",
+        containedAllergens: [],
+      })),
+    });
+  });
+
+  it("特定原材料の9品目を登録する", async () => {
+    const allergens = await db.select().from(Database.tables.allergens).all();
+
+    expect(allergens.map((allergen) => allergen.name).toSorted()).toEqual(
+      ["えび", "かに", "カシューナッツ", "くるみ", "小麦", "そば", "卵", "乳", "落花生"].toSorted(),
+    );
+  });
+
+  it("二度投入しても商品が重複せず、減った在庫も戻らない", async () => {
+    await db
+      .update(Database.tables.stocks)
+      .set({ quantity: 7 })
+      .where(eq(Database.tables.stocks.menuItemId, "item-ramen"));
+
+    await seed();
+
+    expect(await db.select().from(Database.tables.menuItems).all()).toHaveLength(6);
+    expect(await stockOf("item-ramen")).toBe(7);
   });
 });
