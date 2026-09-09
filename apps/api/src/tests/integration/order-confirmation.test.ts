@@ -8,7 +8,7 @@ import { createApp } from "../../app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
-import { authenticationGatewayMock, staffFixture } from "../../features/system-wide/testing";
+import { staffRepositoryMock, authenticationGatewayMock, staffFixture } from "../../features/system-wide/testing";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
 
 const db = drizzle(env.DB);
@@ -20,6 +20,7 @@ const AppLayer = Layer.mergeAll(
   InventoryAndVisitorLayer,
   SalesWithInventoryLayer,
   authenticationGatewayMock(staffFixture),
+  staffRepositoryMock(),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 
 const app = createApp({

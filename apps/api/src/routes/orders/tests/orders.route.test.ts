@@ -10,7 +10,7 @@ import {
   orderRepositoryMock,
   orderStockAvailabilityGatewayMock,
 } from "../../../features/sales/testing";
-import { authenticationGatewayMock, staffFixture } from "../../../features/system-wide/testing";
+import { staffRepositoryMock, authenticationGatewayMock, staffFixture } from "../../../features/system-wide/testing";
 import {
   menuItemAvailabilityGatewayMock,
   menuItemFixture,
@@ -22,10 +22,16 @@ import type { StaffAccessRequirements } from "../../../plugins/staff-access";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 
-const appWith = (layers: Layer.Layer<Exclude<AppRequirements, StaffAccessRequirements>>) =>
+const appWith = (
+  layers: Layer.Layer<
+    Exclude<AppRequirements, StaffAccessRequirements | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>>
+  >,
+) =>
   createApp({
     origin: "https://nekomimi-ramen.com",
-    runtime: ManagedRuntime.make(Layer.merge(layers, authenticationGatewayMock(staffFixture))),
+    runtime: ManagedRuntime.make(
+      Layer.mergeAll(layers, authenticationGatewayMock(staffFixture), staffRepositoryMock()),
+    ),
     aot: false,
   });
 

@@ -8,11 +8,13 @@ import { StaffPage } from "./staff-page";
 let loggedIn = true;
 let logoutFails = false;
 let sessionFails = false;
+let currentRole = "Staff";
 
 beforeEach(() => {
   loggedIn = true;
   logoutFails = false;
   sessionFails = false;
+  currentRole = "Staff";
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
@@ -23,7 +25,7 @@ beforeEach(() => {
         }
         return Response.json({
           staff: loggedIn
-            ? { id: "test-staff", name: "担当者", email: "staff@gm.ibaraki-ct.ac.jp", role: "Staff" }
+            ? { id: "test-staff", name: "担当者", email: "staff@gm.ibaraki-ct.ac.jp", role: currentRole }
             : null,
         });
       }
@@ -83,5 +85,19 @@ describe("SPEC-SYS-006 ログアウトと認証状態の表示", () => {
     sessionFails = false;
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
     await screen.findByRole("button", { name: "ログアウト" });
+  });
+});
+
+describe("SPEC-SYS-008 管理ページへの導線", () => {
+  it("Adminには管理ページへのリンクを表示する", async () => {
+    currentRole = "Admin";
+    renderPage();
+    expect((await screen.findByRole("link", { name: "管理ページ" })).getAttribute("href")).toBe("/staff/admin");
+  });
+  it("Staffには管理ページへのリンクを表示しない", async () => {
+    currentRole = "Staff";
+    renderPage();
+    await screen.findByRole("region", { name: "ログイン中のスタッフ" });
+    expect(screen.queryByRole("link", { name: "管理ページ" })).toBeNull();
   });
 });
