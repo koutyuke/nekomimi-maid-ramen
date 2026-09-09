@@ -8,6 +8,7 @@ import { createApp } from "../../app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
+import { authenticationGatewayMock, staffFixture } from "../../features/system-wide/testing";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
 
 const db = drizzle(env.DB);
@@ -15,9 +16,11 @@ const db = drizzle(env.DB);
 const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(InventoryLayer));
 const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
 const SalesWithInventoryLayer = SalesLayer.pipe(Layer.provide(InventoryAndVisitorLayer));
-const AppLayer = Layer.mergeAll(InventoryAndVisitorLayer, SalesWithInventoryLayer).pipe(
-  Layer.provide(makeDatabaseLive(env.DB)),
-);
+const AppLayer = Layer.mergeAll(
+  InventoryAndVisitorLayer,
+  SalesWithInventoryLayer,
+  authenticationGatewayMock(staffFixture),
+).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 
 const app = createApp({
   origin: "https://nekomimi-ramen.com",
@@ -29,7 +32,7 @@ const confirm = (body: unknown) =>
   app.handle(
     new Request("https://api.nekomimi-ramen.com/orders", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: "https://nekomimi-ramen.com" },
       body: JSON.stringify(body),
     }),
   );

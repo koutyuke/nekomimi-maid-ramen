@@ -10,14 +10,14 @@
   },
   "scripts": {
     "build": "wrangler deploy --dry-run --outdir dist",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "wrangler types --strict-vars false",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply nekomimi-ramen --local",
     "db:migrate:remote": "wrangler d1 migrations apply nekomimi-ramen --remote",
     "db:seed:local": "wrangler d1 execute nekomimi-ramen --local --file=./seed.sql",
     "db:seed:remote": "wrangler d1 execute nekomimi-ramen --remote --file=./seed.sql",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev --var ORIGIN:localhost",
+    "dev": "wrangler dev --var ENVIRONMENT:development",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
     "lint": "oxlint .",
@@ -28,6 +28,8 @@
   "dependencies": {
     "@elysia/openapi": "^1.4.16",
     "@elysiajs/cors": "^1.4.2",
+    "@nekomimi/core": "workspace:*",
+    "better-auth": "1.7.3",
     "drizzle-orm": "catalog:",
     "effect": "catalog:",
     "elysia": "catalog:"

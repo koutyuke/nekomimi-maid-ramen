@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/api/**"
+      - "packages/core/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
