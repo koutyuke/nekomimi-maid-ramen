@@ -11,6 +11,7 @@ export default defineConfig({
     typeAware: true,
   },
   rules: {
+    curly: ["error", "all"],
     eqeqeq: "error",
     "eslint/no-unused-vars": "error",
     "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
