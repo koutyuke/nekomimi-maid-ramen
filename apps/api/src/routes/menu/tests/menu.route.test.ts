@@ -8,7 +8,7 @@ import {
   orderRepositoryMock,
   orderStockAvailabilityGatewayMock,
 } from "../../../features/sales/testing";
-import { authenticationGatewayMock } from "../../../features/system-wide/testing";
+import { staffRepositoryMock, authenticationGatewayMock } from "../../../features/system-wide/testing";
 import {
   failingMenuItemAvailabilityGatewayMock,
   menuItemRepositoryMock,
@@ -22,6 +22,7 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
     const runtime = ManagedRuntime.make(
       Layer.mergeAll(
         authenticationGatewayMock(),
+        staffRepositoryMock(),
         menuItemRepositoryMock([]),
         failingAvailability,
         orderPricingGatewayMock([]),

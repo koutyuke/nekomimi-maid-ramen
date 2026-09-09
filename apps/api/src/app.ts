@@ -12,12 +12,21 @@ import { logoutRoute } from "./routes/auth/logout.route";
 import { sessionRoute } from "./routes/auth/session.route";
 import { menuRoutes } from "./routes/menu/menu.route";
 import { orderRoutes } from "./routes/orders/orders.route";
+import { listStaffRoute } from "./routes/staff/list-staff.route";
+import { updateStaffRoleRoute } from "./routes/staff/update-staff-role.route";
 import { getAllowedOrigin } from "@nekomimi/core/http";
 import type { StaffAccessRequirements } from "./plugins/staff-access";
 import type { MenuRouteRequirements } from "./routes/menu/menu.route";
 import type { OrderRouteRequirements } from "./routes/orders/orders.route";
+import type { ListStaffRouteRequirements } from "./routes/staff/list-staff.route";
+import type { UpdateStaffRoleRouteRequirements } from "./routes/staff/update-staff-role.route";
 
-export type AppRequirements = MenuRouteRequirements | OrderRouteRequirements | StaffAccessRequirements;
+export type AppRequirements =
+  | MenuRouteRequirements
+  | OrderRouteRequirements
+  | StaffAccessRequirements
+  | ListStaffRouteRequirements
+  | UpdateStaffRoleRouteRequirements;
 
 export type AppDependencies = {
   origin: string;
@@ -47,6 +56,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
           tags: [
             { name: "システム", description: "API 自体の情報と稼働状態" },
             { name: "認証", description: "担当者のGoogle認証とセッション管理" },
+            { name: "ロール管理", description: "利用者の一覧とロールの付与・剥奪" },
             { name: "メニュー", description: "来店者へ提供するメニュー情報" },
             { name: "注文", description: "会計担当者が確定する注文" },
           ],
@@ -56,7 +66,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
       }),
     )
 
-    // Handlers
+    // Endpoints
     .get("/", () => "Hello! This is Nekomimi Maid Ramen!", {
       detail: {
         operationId: "hello",
@@ -88,7 +98,9 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
     .use(googleRoute(run))
     .use(googleCallbackRoute(run))
     .use(logoutRoute(run))
-    .use(orderRoutes(run, origin));
+    .use(orderRoutes(run, origin))
+    .use(listStaffRoute(run, origin))
+    .use(updateStaffRoleRoute(run, origin));
 
   return aot ? app.compile() : app;
 };

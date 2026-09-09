@@ -1,14 +1,16 @@
 import { env } from "cloudflare:test";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { Layer, ManagedRuntime, Option, Schema } from "effect";
+import { Effect, Layer, ManagedRuntime, Option, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../../app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { InventoryLayer } from "../../features/inventory/layer";
 import { SalesLayer } from "../../features/sales/layer";
+import { StaffRepository } from "../../features/system-wide/application/ports/outbound/staff.repository";
 import { makeSystemWideLayer } from "../../features/system-wide/layer";
-import { Staff } from "../../features/system-wide/public";
+import { updateStaffRole, Staff } from "../../features/system-wide/public";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
 
 const apiOrigin = "https://api.nekomimi-ramen.com";
@@ -218,9 +220,11 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     expect((await confirm(cookies(none), "none")).status).toBe(403);
     expect(await db.select().from(Database.tables.orders)).toHaveLength(0);
     expect((await db.select().from(Database.tables.stocks))[0]?.quantity).toBe(2);
-    await db.update(Database.tables.users).set({ role: "Staff" });
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const target = Option.getOrThrow(await session(cookies(none)));
+    expect((await changeRole(owner.cookie, target.id, "Staff")).status).toBe(200);
     expect((await confirm(cookies(none), "staff")).status).toBe(201);
-    await db.update(Database.tables.users).set({ role: "None" });
+    expect((await changeRole(owner.cookie, target.id, "None")).status).toBe(200);
     expect((await confirm(cookies(none), "revoked")).status).toBe(403);
     expect(await db.select().from(Database.tables.orders)).toHaveLength(1);
     expect((await db.select().from(Database.tables.stocks))[0]?.quantity).toBe(1);
@@ -302,5 +306,153 @@ describe("SPEC-SYS-007 認証で不要な個人情報を保存しない", () => 
       idToken: null,
     });
     expect(storedSession).toMatchObject({ ipAddress: null, userAgent: null });
+  });
+});
+
+const listStaff = (cookie: string) => handle(new Request(`${apiOrigin}/staff`, { headers: { cookie } }));
+const changeRole = (cookie: string, id: string, role: string, requestOrigin = origin) =>
+  handle(
+    new Request(`${apiOrigin}/staff/${id}/role`, {
+      method: "PATCH",
+      headers: { cookie, origin: requestOrigin, "content-type": "application/json" },
+      body: JSON.stringify({ role }),
+    }),
+  );
+const loggedInStaff = async (claims: Record<string, unknown> = {}) => {
+  const cookie = cookies(await login(claims));
+  return { cookie, staff: Option.getOrThrow(await session(cookie)) };
+};
+
+describe("SPEC-SYS-008 ロールの付与・剥奪", () => {
+  it("Ownerが一覧から付与・剥奪し、同じセッションの次の操作に反映する", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const target = await loggedInStaff();
+    const response = await listStaff(owner.cookie);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toEqual({ staff: expect.arrayContaining([owner.staff, target.staff]) });
+    expect((await changeRole(owner.cookie, target.staff.id, "Staff")).status).toBe(200);
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe("Staff");
+    expect((await changeRole(owner.cookie, target.staff.id, "None")).status).toBe(200);
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe("None");
+  });
+  it("AdminはStaffの付与・剥奪ができ、剥奪後は管理操作ができない", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const admin = await loggedInStaff({ sub: "google-admin", email: `admin@${domain}` });
+    const target = await loggedInStaff();
+    expect((await changeRole(owner.cookie, admin.staff.id, "Admin")).status).toBe(200);
+    expect((await listStaff(admin.cookie)).status).toBe(200);
+    expect((await changeRole(admin.cookie, target.staff.id, "Staff")).status).toBe(200);
+    expect((await changeRole(admin.cookie, target.staff.id, "None")).status).toBe(200);
+    expect((await changeRole(owner.cookie, admin.staff.id, "None")).status).toBe(200);
+    expect((await listStaff(admin.cookie)).status).toBe(403);
+    expect((await changeRole(admin.cookie, target.staff.id, "Staff")).status).toBe(403);
+    const staleActor = { ...admin.staff, role: "Admin" } as const;
+    const outcome = await runtime.runPromise(updateStaffRole(staleActor, target.staff.id, "Staff").pipe(Effect.either));
+    expect(outcome).toMatchObject({ _tag: "Left", left: { _tag: "StaffForbidden" } });
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe("None");
+  });
+  it.each([
+    ["None", "Admin"],
+    ["Staff", "Admin"],
+    ["Admin", "Staff"],
+    ["Admin", "None"],
+  ] as const)("%sから%sへの変更はAdminに拒否し、Ownerに許可する", async (before, after) => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const admin = await loggedInStaff({ sub: "google-admin", email: `admin@${domain}` });
+    const target = await loggedInStaff();
+    await changeRole(owner.cookie, admin.staff.id, "Admin");
+    await changeRole(owner.cookie, target.staff.id, before);
+    expect((await changeRole(admin.cookie, target.staff.id, after)).status).toBe(403);
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe(before);
+    expect((await changeRole(owner.cookie, target.staff.id, after)).status).toBe(200);
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe(after);
+  });
+  it("対象が確認後にAdminへ昇格した場合も、Adminによる剥奪を保存時に拒否する", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const admin = await loggedInStaff({ sub: "google-admin", email: `admin@${domain}` });
+    const target = await loggedInStaff();
+    await changeRole(owner.cookie, admin.staff.id, "Admin");
+    const repository = await runtime.runPromise(StaffRepository);
+    const find = repository.find;
+    const spy = vi.spyOn(repository, "find").mockImplementation((id) =>
+      find(id).pipe(
+        Effect.tap(() =>
+          Effect.promise(async () => {
+            await db.update(Database.tables.users).set({ role: "Admin" }).where(eq(Database.tables.users.id, id));
+          }),
+        ),
+      ),
+    );
+    try {
+      expect((await changeRole(admin.cookie, target.staff.id, "None")).status).toBe(403);
+      expect(Option.getOrThrow(await session(target.cookie)).role).toBe("Admin");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+  it("未認証では一覧も変更も利用できない", async () => {
+    const target = await loggedInStaff();
+    expect((await listStaff("")).status).toBe(401);
+    expect((await changeRole("", target.staff.id, "Admin")).status).toBe(401);
+  });
+  it.each(["None", "Staff"] as const)("%sは一覧も変更も利用できない", async (role) => {
+    const target = await loggedInStaff();
+    await db.update(Database.tables.users).set({ role });
+    expect((await listStaff(target.cookie)).status).toBe(403);
+    expect((await changeRole(target.cookie, target.staff.id, "Admin")).status).toBe(403);
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe(role);
+  });
+  it("Owner・自分自身の変更とOwnerの付与を拒否し、保存値を変えない", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const admin = await loggedInStaff();
+    expect((await changeRole(owner.cookie, admin.staff.id, "Admin")).status).toBe(200);
+    const before = await db.select().from(Database.tables.users);
+    expect((await changeRole(admin.cookie, owner.staff.id, "None")).status).toBe(403);
+    expect((await changeRole(owner.cookie, owner.staff.id, "Staff")).status).toBe(403);
+    expect((await changeRole(admin.cookie, admin.staff.id, "None")).status).toBe(403);
+    expect((await changeRole(owner.cookie, admin.staff.id, "Owner")).status).toBe(422);
+    expect(await db.select().from(Database.tables.users)).toEqual(before);
+  });
+  it("不正な送信元と存在しない対象では更新しない", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const target = await loggedInStaff();
+    expect((await changeRole(owner.cookie, target.staff.id, "Admin", "https://attacker.example")).status).toBe(403);
+    expect((await changeRole(owner.cookie, target.staff.id, "Admin", "")).status).toBe(403);
+    expect((await changeRole(owner.cookie, "missing", "Admin")).status).toBe(404);
+    expect(Option.getOrThrow(await session(target.cookie)).role).toBe("None");
+  });
+});
+
+describe("SPEC-SYS-008 保存失敗と未登録の利用者", () => {
+  it("保存に失敗した場合に成功を返さず、再試行できる", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const target = await loggedInStaff();
+    await env.DB.prepare(
+      "CREATE TRIGGER fail_role BEFORE UPDATE OF role ON users BEGIN SELECT RAISE(ABORT, 'PRIVATE_ROLE_FAILURE'); END",
+    ).run();
+    try {
+      const response = await changeRole(owner.cookie, target.staff.id, "Staff");
+      expect(response.status).toBe(500);
+      expect(await response.text()).not.toContain("PRIVATE_ROLE_FAILURE");
+      expect(Option.getOrThrow(await session(target.cookie)).role).toBe("None");
+    } finally {
+      await env.DB.prepare("DROP TRIGGER fail_role").run();
+    }
+    expect((await changeRole(owner.cookie, target.staff.id, "Staff")).status).toBe(200);
+  });
+  it("Googleアカウントの登録が完了していない利用者を一覧と付与対象から除く", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    await db.insert(Database.tables.users).values({
+      id: "incomplete",
+      name: "未完了",
+      email: `incomplete@${domain}`,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const response = await listStaff(owner.cookie);
+    expect(await response.json()).toEqual({ staff: [owner.staff] });
+    expect((await changeRole(owner.cookie, "incomplete", "Staff")).status).toBe(404);
   });
 });

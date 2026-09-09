@@ -3,3 +3,7 @@ export { callbackAuthentication } from "./application/use-cases/callback-authent
 export { logout } from "./application/use-cases/logout";
 export { getCurrentStaff } from "./application/use-cases/get-current-staff";
 export { canOperate, Staff, StaffRole } from "./domain/staff";
+
+export { listStaff } from "./application/use-cases/list-staff";
+export { updateStaffRole } from "./application/use-cases/update-staff-role";
+export { EditableStaffRole } from "./domain/staff";
