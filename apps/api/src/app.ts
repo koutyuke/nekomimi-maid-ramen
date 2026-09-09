@@ -6,12 +6,18 @@ import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import type { ManagedRuntime } from "effect";
 
 import { makeRunner } from "./core/adapters/elysia";
+import { googleCallbackRoute } from "./routes/auth/google-callback.route";
+import { googleRoute } from "./routes/auth/google.route";
+import { logoutRoute } from "./routes/auth/logout.route";
+import { sessionRoute } from "./routes/auth/session.route";
 import { menuRoutes } from "./routes/menu/menu.route";
 import { orderRoutes } from "./routes/orders/orders.route";
+import { getAllowedOrigin } from "@nekomimi/core/http";
+import type { StaffAccessRequirements } from "./plugins/staff-access";
 import type { MenuRouteRequirements } from "./routes/menu/menu.route";
 import type { OrderRouteRequirements } from "./routes/orders/orders.route";
 
-export type AppRequirements = MenuRouteRequirements | OrderRouteRequirements;
+export type AppRequirements = MenuRouteRequirements | OrderRouteRequirements | StaffAccessRequirements;
 
 export type AppDependencies = {
   origin: string;
@@ -26,7 +32,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
     // Plugins
     .use(
       cors({
-        origin: origin === "localhost" ? /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/ : origin,
+        origin: getAllowedOrigin(origin),
         credentials: true,
       }),
     )
@@ -40,6 +46,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
           },
           tags: [
             { name: "システム", description: "API 自体の情報と稼働状態" },
+            { name: "認証", description: "担当者のGoogle認証とセッション管理" },
             { name: "メニュー", description: "来店者へ提供するメニュー情報" },
             { name: "注文", description: "会計担当者が確定する注文" },
           ],
@@ -77,7 +84,11 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
 
     // Routes
     .use(menuRoutes(run))
-    .use(orderRoutes(run));
+    .use(sessionRoute(run))
+    .use(googleRoute(run))
+    .use(googleCallbackRoute(run))
+    .use(logoutRoute(run))
+    .use(orderRoutes(run, origin));
 
   return aot ? app.compile() : app;
 };

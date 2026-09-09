@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/web/**"
+      - "packages/core/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -45,8 +46,6 @@ jobs:
 
       - name: Build
         run: pnpm --filter @nekomimi/web run build
-        env:
-          VITE_API_ORIGIN: https://api.nekomimi-ramen.com
 
       - name: Deploy
         run: pnpm --filter @nekomimi/web exec wrangler deploy

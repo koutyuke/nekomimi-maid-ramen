@@ -98,15 +98,14 @@ pnpm --filter @nekomimi/api db:seed:local     # メニューと初期在庫を�
 pnpm --filter @nekomimi/api db:seed:remote
 ```
 
-画面が呼び出す API の送信元は `VITE_API_ORIGIN` で指定する。未指定なら `wrangler dev` の待ち受け先(`http://localhost:8787`)を使う。
+画面とAPIのURLは共有パッケージの[`packages/core/src/http/url.ts`](packages/core/src/http/url.ts)で管理する。APIは`ENVIRONMENT=development`のときに開発用URLを使い、それ以外は本番用URLを使う。`pnpm --filter @nekomimi/api dev`は開発環境を指定して起動する。画面はViteの`import.meta.env.PROD`で切り替える。
 
-API が CORS で許可する送信元は `ORIGIN` である。本番では独自ドメイン(`apps/api/wrangler.jsonc`)を完全一致で判定する。手元では `pnpm --filter @nekomimi/api dev` が `--var ORIGIN:localhost` を渡し、`localhost` と `127.0.0.1` をポートを問わず許可する。開発サーバーはポートが埋まっていると別のポートへ移るため、ポートを含めた完全一致では判定できない。
+| 環境 | 画面                         | API                              |
+| ---- | ---------------------------- | -------------------------------- |
+| 開発 | `http://localhost:5173`      | `http://localhost:8787`          |
+| 本番 | `https://nekomimi-ramen.com` | `https://api.nekomimi-ramen.com` |
 
-実機の確認など別の送信元から呼び出す場合は、送信元を指定して API を起動する。
-
-```sh
-pnpm --filter @nekomimi/api exec wrangler dev --var ORIGIN:http://192.168.1.2:5173
-```
+CORSと認証操作の送信元判定は同じ定義を使う。本番では画面のURLと完全一致する送信元だけを許可する。開発では、開発サーバーのポート変更に対応するため、`localhost`と`127.0.0.1`のHTTPをポートを問わず許可する。
 
 ## 検査
 
@@ -127,7 +126,7 @@ oxlintはルートから一度だけ実行し、対象ファイルに最も近�
 
 ## 配備
 
-`main` へ統合すると GitHub Actions が配備する。**変更された Worker だけ**が対象になる。
+`main` へ統合すると GitHub Actions が配備する。**変更された Worker だけ**が対象になる。共有パッケージ`packages/core/**`の変更では両方が対象になる。
 
 | ワークフロー      | 契機                           | 内容                                 |
 | ----------------- | ------------------------------ | ------------------------------------ |
@@ -147,15 +146,38 @@ pnpm --filter @nekomimi/web run build && pnpm --filter @nekomimi/web exec wrangl
 
 ## 外部サービスの設定
 
-`wrangler login` と D1 の作成、GitHub のシークレット登録は済んでいる。残りは次のとおり。
+スタッフのログイン画面は`/staff`にある。Google OAuthのクライアントを種類「ウェブ アプリケーション」で作成し、次の戻り先をGoogle Cloudへ登録する。
+
+- 本番: `https://api.nekomimi-ramen.com/auth/google/callback`
+- 手元: `http://localhost:8787/auth/google/callback`
+
+Google OAuthはテスト状態とし、利用する学校アカウントをテストユーザーへ登録する。認証後も`gm.ibaraki-ct.ac.jp`以外を拒否する。手元では`apps/api/.dev.vars`へ次の設定を追加する。各設定を1行ずつ`KEY=value`形式で記述する。このファイルはGitへ含めない。
+
+対象とする学校ドメインは`apps/api/wrangler.jsonc`の`SCHOOL_DOMAIN`で設定する。
+
+| 設定                   | 内容                                                |
+| ---------------------- | --------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`     | Google OAuthクライアントID                          |
+| `GOOGLE_CLIENT_SECRET` | Google OAuthクライアントの秘密情報                  |
+| `BETTER_AUTH_SECRET`   | `openssl rand -base64 32`で生成する認証用の秘密情報 |
+| `OWNER_EMAIL`          | Ownerにする学校アカウントのメールアドレス           |
+
+D1へ移行を適用してから`pnpm dev`を起動し、画面の開発サーバーが示す`http://localhost:ポート番号/staff`からログインする。認証ではAPIとホスト名を揃えるため、画面も`localhost`で開く。Owner以外の初期ロールはNoneである。現在の確認範囲はOwnerとNoneのログインまでである。ロールを付与・剥奪する操作は未実装のため、通常担当者の業務利用はまだ開始できない。
+
+本番の設定は、配備先を確認したうえで対話入力する。`BETTER_AUTH_SECRET`は本番用に別途生成する。
 
 ```sh
-# Google OAuth の秘密情報を Worker へ登録する
 pnpm --filter @nekomimi/api exec wrangler secret put GOOGLE_CLIENT_ID
 pnpm --filter @nekomimi/api exec wrangler secret put GOOGLE_CLIENT_SECRET
+pnpm --filter @nekomimi/api exec wrangler secret put BETTER_AUTH_SECRET
+pnpm --filter @nekomimi/api exec wrangler secret put OWNER_EMAIL
 ```
 
-Google Cloud 側でクライアントを作り、戻り先 URL を登録する。スタッフのログインは `gm.ibaraki-ct.ac.jp` ドメインに限る。
+Google Cloudの戻り先は、共有パッケージで定義した環境別のAPI公開先に合わせる。認証の設定が不足している場合、公開ページは利用できるが、ログインは503、業務操作は401で拒否する。
+
+設定後はOwnerと通常の学校アカウントでログインし、OwnerとNoneになること、ログアウト後に再ログインが必要になることを確認する。学校外の拒否を確認するときは、管理する学校外のテスト用アカウントもGoogleのテストユーザーへ登録し、Googleの同意画面を通過した後にアプリ側がログインを拒否することを確かめる。Google側で拒否された場合はアプリ側のドメイン判定を確認したことにはならない。
+
+セッションは12時間で失効する。期限切れやアカウントの選択違いでは、学校アカウントを選んで再ログインする。再試行しても失敗する場合は管理者へ連絡し、管理者が4つの秘密情報、`SCHOOL_DOMAIN`、Googleのテストユーザー登録、戻り先URLと環境別のAPI公開先の一致、D1への移行適用を確認する。
 
 `nekomimi-ramen.com` と `api.nekomimi-ramen.com` の Custom Domain 割り当ては、初回の配備時に `wrangler` が作成する。
 

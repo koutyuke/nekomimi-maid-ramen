@@ -2,7 +2,7 @@ import { defineConfig } from "oxlint";
 
 import baseConfig from "../../oxlint.config.ts";
 
-const featurePath = "**/{inventory,visitor-information,sales,kitchen,handoff,operations}";
+const featurePath = "**/{inventory,visitor-information,sales,kitchen,handoff,operations,system-wide}";
 
 const coreModuleImports = {
   group: ["**/core/{adapters,infra}/*/**", "!**/core/{adapters,infra}/*/index", "!**/core/{adapters,infra}/*/index.ts"],
@@ -69,7 +69,7 @@ export default defineConfig({
   // 同じルールのオプションは後続のoverrideで置き換わるため、共通制限も各設定に含める。
   overrides: [
     {
-      files: ["src/routes/**"],
+      files: ["src/routes/**", "src/plugins/**"],
       rules: {
         "no-restricted-imports": [
           "error",
@@ -88,13 +88,14 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/routes/**"],
+      files: ["src/routes/**", "src/plugins/**"],
       // 経路のテストはtesting入口を使えるため、本番用の制限から除く。
       excludeFiles: [
         "src/routes/**/tests/**",
         "src/routes/**/testing/**",
         "src/routes/**/*.test.ts",
         "src/routes/**/*.spec.ts",
+        "src/plugins/**/tests/**",
       ],
       rules: {
         "no-restricted-imports": [
@@ -238,7 +239,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               {
-                group: ["**/adapters/**"],
+                group: ["**/adapters/**", "!better-auth/adapters/drizzle"],
                 message: "保存先の実装からアダプターを読まない。",
               },
               {

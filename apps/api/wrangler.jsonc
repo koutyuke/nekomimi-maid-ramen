@@ -21,7 +21,11 @@
       "migrations_dir": "drizzle",
     },
   ],
+  "secrets": {
+    "required": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "BETTER_AUTH_SECRET", "OWNER_EMAIL"],
+  },
   "vars": {
-    "ORIGIN": "https://nekomimi-ramen.com",
+    "ENVIRONMENT": "production",
+    "SCHOOL_DOMAIN": "gm.ibaraki-ct.ac.jp",
   },
 }

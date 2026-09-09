@@ -10,6 +10,7 @@ import {
   orderRepositoryMock,
   orderStockAvailabilityGatewayMock,
 } from "../../../features/sales/testing";
+import { authenticationGatewayMock, staffFixture } from "../../../features/system-wide/testing";
 import {
   menuItemAvailabilityGatewayMock,
   menuItemFixture,
@@ -17,11 +18,16 @@ import {
 } from "../../../features/visitor-information/testing";
 import type { AppRequirements } from "../../../app";
 import type { Stock } from "../../../features/inventory/testing";
+import type { StaffAccessRequirements } from "../../../plugins/staff-access";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 
-const appWith = (layers: Layer.Layer<AppRequirements>) =>
-  createApp({ origin: "https://nekomimi-ramen.com", runtime: ManagedRuntime.make(layers), aot: false });
+const appWith = (layers: Layer.Layer<Exclude<AppRequirements, StaffAccessRequirements>>) =>
+  createApp({
+    origin: "https://nekomimi-ramen.com",
+    runtime: ManagedRuntime.make(Layer.merge(layers, authenticationGatewayMock(staffFixture))),
+    aot: false,
+  });
 
 const sellingApp = (stocks: ReadonlyArray<Stock>) =>
   appWith(
@@ -38,7 +44,7 @@ const confirm = (app: ReturnType<typeof appWith>, body: unknown) =>
   app.handle(
     new Request("https://api.nekomimi-ramen.com/orders", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: "https://nekomimi-ramen.com" },
       body: JSON.stringify(body),
     }),
   );

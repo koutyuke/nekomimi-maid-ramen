@@ -3,6 +3,8 @@ import { Elysia } from "elysia";
 
 import { logAndDie } from "../../core/adapters/elysia";
 import { confirmOrder } from "../../features/sales/public";
+import { staffAccessPlugin } from "../../plugins/staff-access";
+import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import {
   ConfirmedOrderResponse,
   OutOfStockResponse,
@@ -12,11 +14,12 @@ import {
   RejectedOrderResponse,
 } from "./orders.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
+import type { StaffAccessRequirements } from "../../plugins/staff-access";
 
-export type OrderRouteRequirements = Effect.Effect.Context<ReturnType<typeof confirmOrder>>;
+export type OrderRouteRequirements = Effect.Effect.Context<ReturnType<typeof confirmOrder>> | StaffAccessRequirements;
 
-export const orderRoutes = (run: EffectRunner<OrderRouteRequirements>) =>
-  new Elysia().post(
+export const orderRoutes = (run: EffectRunner<OrderRouteRequirements>, origin: string) =>
+  new Elysia().use(staffAccessPlugin(run, origin)).post(
     "/orders",
     async ({ body, status }) => {
       const outcome = await run(
@@ -39,6 +42,7 @@ export const orderRoutes = (run: EffectRunner<OrderRouteRequirements>) =>
       return status(outcome.status, outcome.body);
     },
     {
+      staffRole: "Staff",
       body: Schema.standardSchemaV1(
         Schema.Struct({
           requestId: Schema.String.pipe(Schema.nonEmptyString(), Schema.maxLength(64)).annotations({
@@ -63,6 +67,8 @@ export const orderRoutes = (run: EffectRunner<OrderRouteRequirements>) =>
         tags: ["注文"],
       },
       response: {
+        401: Schema.standardSchemaV1(AuthenticationRequiredResponse),
+        403: Schema.standardSchemaV1(ForbiddenResponse),
         201: Schema.standardSchemaV1(ConfirmedOrderResponse),
         409: Schema.standardSchemaV1(OutOfStockResponse),
         422: Schema.standardSchemaV1(RejectedOrderResponse),
