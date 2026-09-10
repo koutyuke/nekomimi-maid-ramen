@@ -1,0 +1,24 @@
+---
+import "../styles/global.css";
+import SiteHeader from "../ui/site-header.astro";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="猫耳メイドラーメンのメニューと販売状況をご案内します。" />
+    <title>{title} | 猫耳メイドラーメン</title>
+  </head>
+  <body class="mx-auto max-w-3xl p-5">
+    <SiteHeader />
+    <main class="my-8"><slot /></main>
+  </body>
+</html>

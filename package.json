@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "api": "pnpm --filter @nekomimi/api",
-    "web": "pnpm --filter @nekomimi/web",
+    "site": "pnpm --filter @nekomimi/site",
+    "staff": "pnpm --filter @nekomimi/staff",
     "build": "turbo build",
     "check": "pnpm run lint && pnpm run fmt:check && pnpm run typecheck && pnpm run test",
     "dev": "turbo dev",

@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+  }
+  body {
+    background: Canvas;
+    color: CanvasText;
+  }
+  a {
+    color: LinkText;
+    text-decoration: underline;
+  }
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-block: 1rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-block: 1rem;
+  }
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  p {
+    margin-block: 1rem;
+  }
+  select,
+  button {
+    font: inherit;
+    padding: 0.5rem;
+  }
+  button {
+    border: 1px solid;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+  article {
+    border: 1px solid;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-block: 1rem;
+  }
+}

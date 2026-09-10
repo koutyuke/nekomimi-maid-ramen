@@ -1,0 +1,13 @@
+---
+import ThemeSelectUI from "./theme-select.ui.astro";
+---
+
+<ThemeSelectUI />
+<script>
+  import { setupTheme } from "../../model/setup-theme";
+
+  const select = document.querySelector<HTMLSelectElement>("#theme");
+  if (select) {
+    setupTheme(select);
+  }
+</script>
