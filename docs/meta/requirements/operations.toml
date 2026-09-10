@@ -4,10 +4,10 @@ domain_code = "OPS"
 
 [[requirements]]
 id = "REQ-OPS-001"
-title = "営業開始前に業務を確認できる"
+title = "営業開始前に在庫を確認できる"
 kind = "constraint"
-statement = "運用担当者は、営業開始前に公開情報、在庫、端末、権限、注文から受け渡しまでの流れを確認できる。"
-reason = "本番データや利用環境の不備を営業開始前に発見するため。"
+statement = "Admin権限を持つ担当者は、営業開始前に実在庫とシステム在庫を照合し、差があればシステム在庫を修正できる。"
+reason = "販売開始時の在庫数を実在庫と一致させるため。"
 priority = "must"
 status = "draft"
 specs = ["SPEC-OPS-001"]
