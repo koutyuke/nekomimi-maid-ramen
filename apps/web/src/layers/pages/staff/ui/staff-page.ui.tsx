@@ -39,6 +39,12 @@ type Navigation = {
 // 導線は実装済みのページだけを載せる。ページを増やしたらここへ追加する。
 const staffNavigations: readonly Navigation[] = [
   {
+    href: "/staff/sales",
+    label: "注文・会計",
+    description: "商品と個数を入力し、会計を終えて注文を確定する",
+    roles: ["Owner", "Admin", "Staff"],
+  },
+  {
     href: "/staff/admin",
     label: "管理ページ",
     description: "スタッフや商品の管理ページ",
