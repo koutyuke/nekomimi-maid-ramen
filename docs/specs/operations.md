@@ -8,7 +8,7 @@ domain: OPS
 
 ## 現在の状態
 
-開店前、営業中、閉店後に確認する対象は定まっているが、担当者、頻度、判断基準、障害時の代替手順は未決である。この仕様だけでは当日の手順として実行できない。
+出店は2026年10月24日と25日の10時から16時まで営業し、注文受付は15時30分に終了する。2日間で来場者3,000人、確定注文400件を想定する。通常時は10分間に6件、ピーク時は10分間に20件の確定注文を見込む。通常時とピーク時は別の10分間を表し、2日間の時間配分は定めない。
 
 開催条件と業務量は[`Q-OPS-002`](../meta/questions/Q-OPS-002-event-conditions-and-load.md)、障害時の切り替えと復旧は[`Q-OPS-001`](../meta/questions/Q-OPS-001-fallback-operation.md)、データ保持と終了処理は[`Q-OPS-003`](../meta/questions/Q-OPS-003-data-retention.md)、当日の担当者と判定基準は[`Q-OPS-004`](../meta/questions/Q-OPS-004-operating-responsibilities.md)で決定する。
 
