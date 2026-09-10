@@ -7,9 +7,9 @@ import { Effect, Option } from "effect";
 
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import { Database } from "../../../core/infra/drizzle";
+import { isTrustedOrigin } from "../../../shared/http";
 import { AuthenticationGateway } from "../application/ports/outbound/authentication.gateway";
 import { resolveRole } from "../domain/staff";
-import { isTrustedOrigin } from "@nekomimi/core/http";
 
 export type AuthenticationConfig = {
   apiBaseURL: URL;
