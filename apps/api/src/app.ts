@@ -1,11 +1,11 @@
 import { openapi } from "@elysia/openapi";
-import { cors } from "@elysiajs/cors";
 import { JSONSchema, Schema } from "effect";
 import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import type { ManagedRuntime } from "effect";
 
 import { makeRunner } from "./core/adapters/elysia";
+import { corsPlugin } from "./plugins/cors/cors.plugin";
 import { googleCallbackRoute } from "./routes/auth/google-callback.route";
 import { googleRoute } from "./routes/auth/google.route";
 import { logoutRoute } from "./routes/auth/logout.route";
@@ -14,7 +14,6 @@ import { menuRoutes } from "./routes/menu/menu.route";
 import { orderRoutes } from "./routes/orders/orders.route";
 import { listStaffRoute } from "./routes/staff/list-staff.route";
 import { updateStaffRoleRoute } from "./routes/staff/update-staff-role.route";
-import { getAllowedOrigin } from "@nekomimi/core/http";
 import type { StaffAccessRequirements } from "./plugins/staff-access";
 import type { MenuRouteRequirements } from "./routes/menu/menu.route";
 import type { OrderRouteRequirements } from "./routes/orders/orders.route";
@@ -39,12 +38,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
 
   const app = new Elysia({ adapter: CloudflareAdapter, aot })
     // Plugins
-    .use(
-      cors({
-        origin: getAllowedOrigin(origin),
-        credentials: true,
-      }),
-    )
+    .use(corsPlugin(origin))
     .use(
       openapi({
         documentation: {

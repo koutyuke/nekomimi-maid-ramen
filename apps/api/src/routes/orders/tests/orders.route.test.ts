@@ -28,7 +28,7 @@ const appWith = (
   >,
 ) =>
   createApp({
-    origin: "https://nekomimi-ramen.com",
+    origin: "https://staff.nekomimi-ramen.com",
     runtime: ManagedRuntime.make(
       Layer.mergeAll(layers, authenticationGatewayMock(staffFixture), staffRepositoryMock()),
     ),
@@ -50,7 +50,7 @@ const confirm = (app: ReturnType<typeof appWith>, body: unknown) =>
   app.handle(
     new Request("https://api.nekomimi-ramen.com/orders", {
       method: "POST",
-      headers: { "content-type": "application/json", origin: "https://nekomimi-ramen.com" },
+      headers: { "content-type": "application/json", origin: "https://staff.nekomimi-ramen.com" },
       body: JSON.stringify(body),
     }),
   );

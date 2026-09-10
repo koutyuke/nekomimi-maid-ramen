@@ -4,7 +4,7 @@ import type { Effect } from "effect";
 
 import { logAndDie } from "../../core/adapters/elysia";
 import { canOperate, getCurrentStaff } from "../../features/system-wide/public";
-import { isTrustedOrigin } from "@nekomimi/core/http";
+import { isTrustedOrigin } from "../../shared/http";
 import type { EffectRunner } from "../../core/adapters/elysia";
 
 export type StaffAccessRequirements = Effect.Effect.Context<ReturnType<typeof getCurrentStaff>>;

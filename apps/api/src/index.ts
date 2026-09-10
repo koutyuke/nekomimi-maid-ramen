@@ -7,14 +7,14 @@ import { InventoryLayer } from "./features/inventory/layer";
 import { SalesLayer } from "./features/sales/layer";
 import { makeSystemWideLayer } from "./features/system-wide/layer";
 import { VisitorInformationLayer } from "./features/visitor-information/layer";
-import { getAPIBaseURL, getWebBaseURL } from "@nekomimi/core/http";
+import { getAPIBaseURL, getStaffBaseURL } from "@nekomimi/core/http";
 
 const production = env.ENVIRONMENT !== "development";
-const webBaseURL = getWebBaseURL(production);
+const webBaseURL = getStaffBaseURL(production);
 const apiBaseURL = getAPIBaseURL(production);
 const origin = webBaseURL.origin;
 const googleCallbackPath = "/auth/google/callback";
-const authenticationResultPath = "/staff";
+const authenticationResultPath = "/";
 
 const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(InventoryLayer));
 const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
