@@ -46,9 +46,14 @@
     "description": "area: api - apps/api"
   },
   {
-    "name": "A-Web",
+    "name": "A-Site",
     "color": "0e8a16",
-    "description": "area: web - apps/web"
+    "description": "area: site - apps/site（来場者向け公開サイト）"
+  },
+  {
+    "name": "A-Staff",
+    "color": "0e8a16",
+    "description": "area: staff - apps/staff（スタッフ向け業務画面）"
   },
   {
     "name": "A-Docs",

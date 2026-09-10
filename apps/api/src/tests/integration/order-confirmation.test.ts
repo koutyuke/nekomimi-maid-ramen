@@ -24,7 +24,7 @@ const AppLayer = Layer.mergeAll(
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 
 const app = createApp({
-  origin: "https://nekomimi-ramen.com",
+  origin: "https://staff.nekomimi-ramen.com",
   runtime: ManagedRuntime.make(AppLayer),
   aot: false,
 });
@@ -33,7 +33,7 @@ const confirm = (body: unknown) =>
   app.handle(
     new Request("https://api.nekomimi-ramen.com/orders", {
       method: "POST",
-      headers: { "content-type": "application/json", origin: "https://nekomimi-ramen.com" },
+      headers: { "content-type": "application/json", origin: "https://staff.nekomimi-ramen.com" },
       body: JSON.stringify(body),
     }),
   );

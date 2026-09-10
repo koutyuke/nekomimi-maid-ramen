@@ -30,9 +30,14 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
         orderRepositoryMock(),
       ),
     );
-    const app = createApp({ origin: "https://nekomimi-ramen.com", runtime, aot: false });
+    const app = createApp({ origin: "https://staff.nekomimi-ramen.com", runtime, aot: false });
 
-    const response = await app.handle(new Request("https://api.nekomimi-ramen.com/menu"));
+    const response = await app.handle(
+      new Request("https://api.nekomimi-ramen.com/menu", {
+        headers: { origin: "https://nekomimi-ramen.com" },
+      }),
+    );
+    expect(response.headers.get("access-control-allow-origin")).toBe("https://nekomimi-ramen.com");
     const body = await response.text();
 
     expect(response.status).toBe(500);

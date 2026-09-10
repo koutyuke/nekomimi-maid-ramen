@@ -18,5 +18,5 @@
       "unknown",
     ],
   },
-  "ignorePatterns": ["apps/api/worker-configuration.d.ts", "apps/api/drizzle/**", "apps/web/src/routeTree.gen.ts"],
+  "ignorePatterns": ["apps/api/worker-configuration.d.ts", "apps/api/drizzle/**", "apps/staff/src/routeTree.gen.ts"],
 }

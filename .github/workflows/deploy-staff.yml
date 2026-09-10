@@ -1,0 +1,54 @@
+name: Deploy Staff
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/staff/**"
+      - "packages/core/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/deploy-staff.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staff
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Staff
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @nekomimi/staff run typecheck
+
+      - name: Test
+        run: pnpm --filter @nekomimi/staff run test
+
+      - name: Build
+        run: pnpm --filter @nekomimi/staff run build
+
+      - name: Deploy
+        run: pnpm --filter @nekomimi/staff exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

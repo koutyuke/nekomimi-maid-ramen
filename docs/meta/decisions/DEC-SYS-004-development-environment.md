@@ -13,35 +13,35 @@ evidence: []
 
 ## 結論
 
-一つのリポジトリで2つのWorkerを扱う。実行基盤とデータストアは[`DEC-SYS-003`](DEC-SYS-003-technology-stack.md)で定める。
+一つのリポジトリで3つのWorkerを扱う。実行基盤とデータストアは[`DEC-SYS-003`](DEC-SYS-003-technology-stack.md)で定める。
 
-| 対象               | 採用するもの                                                    |
-| ------------------ | --------------------------------------------------------------- |
-| 開発環境           | Nix flake + direnv                                              |
-| 作業単位の管理     | pnpm workspace + Turborepo                                      |
-| 静的検査           | oxlint。型情報を使う検査を`oxlint-tsgolint`で有効にする         |
-| 整形               | oxfmt                                                           |
-| 試験               | Vitest。APIは`@cloudflare/vitest-pool-workers`でworkerd上を使う |
-| Gitフック          | lefthook                                                        |
-| 継続的検査と配備   | GitHub Actions                                                  |
-| TypeScriptの基本   | `@tsconfig/strictest`                                           |
-| 画面の経路         | TanStack Router                                                 |
-| 画面の部品と様式   | Mantine                                                         |
-| 画面部品のカタログ | Storybook                                                       |
+| 対象                     | 採用するもの                                                    |
+| ------------------------ | --------------------------------------------------------------- |
+| 開発環境                 | Nix flake + direnv                                              |
+| 作業単位の管理           | pnpm workspace + Turborepo                                      |
+| 静的検査                 | oxlint。型情報を使う検査を`oxlint-tsgolint`で有効にする         |
+| 整形                     | oxfmt                                                           |
+| 試験                     | Vitest。APIは`@cloudflare/vitest-pool-workers`でworkerd上を使う |
+| Gitフック                | lefthook                                                        |
+| 継続的検査と配備         | GitHub Actions                                                  |
+| TypeScriptの基本         | `@tsconfig/strictest`                                           |
+| スタッフ画面の経路       | TanStack Router                                                 |
+| スタッフ画面の部品と様式 | Mantine                                                         |
+| 画面部品のカタログ       | Storybook                                                       |
 
-作業単位は`apps/api`と`apps/web`の2つとし、それぞれ`nekomimi-ramen-api`と`nekomimi-ramen-web`としてデプロイする。
+作業単位は`apps/api`、`apps/site`、`apps/staff`の3つとし、それぞれ`nekomimi-ramen-api`、`nekomimi-ramen-web`、`nekomimi-ramen-staff`として配備する。公開側はAstroで静的HTMLを生成し、Tailwind CSSを使う。公開側のStorybookは`@storybook-astro/framework`、スタッフ側は`@storybook/react-vite`を使う。`pnpm site sb`は6007番、`pnpm staff sb`は6006番で起動する。CIは公開側のStorybookの静的ビルドも検証する。
 
 APIは経路定義(`src/app.ts`)とWorkerの入口(`src/index.ts`)に分ける。経路定義は`cloudflare:workers`を参照せず、実行基盤の値は引数で受け取る。画面はこの経路定義の型だけを読む。この分割より内側の構造は[`DEC-SYS-005`](DEC-SYS-005-api-internal-structure.md)で定める。
 
 依存の版はpnpmのcatalogで一箇所に固定する。公開から1日を経ていない版は取り込まない。
 
-画面の様式はMantineだけで組み立てる。他の様式指定の仕組みは併用しない。
+スタッフ画面の様式はMantineだけで組み立てる。他の様式指定の仕組みは併用しない。
 
 本番への配備はGitHub Actionsから行う。`main`への統合を契機とし、変更されたWorkerだけを配備する。APIの配備では、D1の移行を配備の前に適用する。
 
 配備するジョブはGitHubのEnvironment`production`に属させる。保護設定は普段は使わず、出店当日だけ承認必須へ切り替える。
 
-プルリクエストでは、画面の版を`wrangler versions upload`で上げてプレビューURLを得て、Lighthouseで計測する。この版は本番へ昇格しない。
+プルリクエストでは、画面の版を`wrangler versions upload`で上げてプレビューURLを得る。Lighthouseで計測するのは公開側だけである。この版は本番へ昇格しない。
 
 ## 理由
 
@@ -70,9 +70,9 @@ APIを経路定義と入口に分けるのは、画面が`@nekomimi/api`の型�
 - 事前コンパイルはWorkerの起動時にしか行えない。Cloudflare Workersが`new Function`を許すのは起動時だけであり、試験は起動後にアプリを組み立てる。そのため試験では事前コンパイルを無効にする。経路の組み立て方が本番と異なる点は、受け入れ確認を本番相当の環境で行うことで補う。
 - Workerの互換性日付は、依存の版に合わせて上げる。依存を更新しないまま日付だけを進めると、workerdが対応せず試験が起動しない。
 - D1のデータベースはAPACに作成済みである。
-- 画面はMantineの様式を一括で読み込む。全部品分を含むため、圧縮後で約34キロバイトになる。部品ごとに読み込む方法もあるが、読み込み漏れが表示崩れとして現れるため、`Q-SYS-005`で読み込み時間の目標が定まるまでは一括で扱う。
+- スタッフ画面はMantineの様式を一括で読み込む。全部品分を含むため、圧縮後で約34キロバイトになる。部品ごとに読み込む方法もあるが、読み込み漏れが表示崩れとして現れるため、`Q-SYS-005`で読み込み時間の目標が定まるまでは一括で扱う。
 - 配備にはCloudflareのAPIトークンが必要になる。GitHubのシークレットとして保持し、Workersのスクリプト編集とD1の編集に限る権限を与える。
-- プレビュー版は`workers.dev`上に置かれ、APIが許可する送信元と一致しない。APIの呼び出しはCORSで拒否されるため、プレビューで確認できるのは画面の構造と表示に限られる。APIの応答を含めて確認する必要が生じた場合は、許可する送信元の扱いを決める。
-- プレビュー版の削除手段はない。`wrangler versions`に削除の副命令がなく、保持期間も公表されていない。プレビューURLは静的なファイルだけを配信し、秘密情報を含まず、認証もCORSも通らない。出店の終了後に`preview_urls`を無効にして配信を止める。
+- 公開側とスタッフ側は別々のワークフローでプレビューを作成する。公開メニューは閲覧できるが、スタッフ側のプレビューは認証と業務操作の許可対象外であり、画面の構造と表示を確認する。
+- プレビュー版の削除手段はない。`wrangler versions`に削除の副命令がなく、保持期間も公表されていない。プレビューURLは静的なファイルだけを配信し、秘密情報を含まず、認証と業務操作は許可されない。出店の終了後に`preview_urls`を無効にして配信を止める。
 - 表定義と移行ファイルは、業務領域ごとの変更で追加する。
 - 文書の検査スクリプトは未作成である。実装言語が決まったため、[ドキュメント管理](../../documentation-management.md)の手動確認を自動化できる。

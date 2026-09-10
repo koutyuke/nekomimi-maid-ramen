@@ -14,14 +14,14 @@ import { updateStaffRole, Staff } from "../../features/system-wide/public";
 import { VisitorInformationLayer } from "../../features/visitor-information/layer";
 
 const apiOrigin = "https://api.nekomimi-ramen.com";
-const origin = "https://nekomimi-ramen.com";
+const origin = "https://staff.nekomimi-ramen.com";
 const domain = "gm.ibaraki-ct.ac.jp";
 const db = drizzle(env.DB);
 const config = {
   apiBaseURL: new URL(apiOrigin),
   webBaseURL: new URL(origin),
   googleCallbackPath: "/auth/google/callback",
-  authenticationResultPath: "/staff",
+  authenticationResultPath: "/",
   googleClientId: "test-google-client",
   googleClientSecret: "test-google-secret",
   schoolDomain: domain,
@@ -143,7 +143,12 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
   it("初回はNoneになり、別端末でも同じ利用者としてログインする", async () => {
     const first = await login();
     expect(first.status).toBe(302);
-    expect(first.headers.get("location")).toBe(`${origin}/staff`);
+    expect(first.headers.get("location")).toBe(`${origin}/`);
+    const sessionCookie = first.headers.getSetCookie().find((cookie) => cookie.includes("session_token="));
+    expect(sessionCookie).toContain("HttpOnly");
+    expect(sessionCookie).toContain("Secure");
+    expect(sessionCookie?.toLowerCase()).toContain("samesite=lax");
+    expect(sessionCookie?.toLowerCase()).not.toContain("domain=");
     expect(Option.getOrNull(await session(cookies(first)))).toMatchObject({ name: "担当者", role: "None" });
     const second = await login();
     expect(Option.getOrNull(await session(cookies(second)))).toMatchObject({ role: "None" });
@@ -176,7 +181,7 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     expect(new URL(url).searchParams.get("hd")).toBe(domain);
     expect(new URL(url).searchParams.get("scope")?.split(" ").toSorted()).toEqual(["email", "openid", "profile"]);
     const response = await login({ hd: "outside.example" }, { initiation });
-    expect(response.headers.get("location")).toContain(`${origin}/staff?error=`);
+    expect(response.headers.get("location")).toContain(`${origin}/?error=`);
     expect(await db.select().from(Database.tables.sessions)).toHaveLength(0);
   });
   it("署名が改ざんされたIDトークンからセッションを発行しない", async () => {
@@ -192,7 +197,7 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
         headers: { cookie: cookies(initiation) },
       }),
     );
-    expect(response.headers.get("location")).toContain(`${origin}/staff?error=`);
+    expect(response.headers.get("location")).toContain(`${origin}/?error=`);
     expect(await db.select().from(Database.tables.sessions)).toHaveLength(0);
   });
   it("Noneと学校外のログインでは注文も在庫も変わらず、Staffの確定だけが成立する", async () => {
@@ -277,6 +282,25 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     const response = await login();
     await db.update(Database.tables.sessions).set({ expiresAt: new Date(0) });
     expect(Option.isNone(await session(cookies(response)))).toBe(true);
+  });
+  it("公開ホストからは認証・ログアウトを許可せずセッションを維持する", async () => {
+    const response = await login();
+    const cookie = cookies(response);
+    const responses = await Promise.all(
+      ["/auth/google", "/auth/logout"].map((path) =>
+        handle(
+          new Request(`${apiOrigin}${path}`, {
+            method: "POST",
+            headers: { origin: "https://nekomimi-ramen.com", cookie },
+          }),
+        ),
+      ),
+    );
+    for (const denied of responses) {
+      expect(denied.status).toBe(403);
+      expect(denied.headers.get("access-control-allow-origin")).toBeNull();
+    }
+    expect(Option.isSome(await session(cookie))).toBe(true);
   });
   it("外部サイトからの認証操作と未公開のBetter Auth経路を拒否する", async () => {
     expect(

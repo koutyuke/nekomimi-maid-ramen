@@ -49,3 +49,15 @@ status = "accepted"
 specs = ["SPEC-VIS-004"]
 depends_on = ["REQ-VIS-002"]
 sources = []
+
+[[requirements]]
+id = "REQ-VIS-005"
+title = "公開ページのテーマを選択できる"
+kind = "functional"
+statement = "来場者はライト・ダーク・端末設定に合わせるから公開ページのテーマを選び、同じブラウザーで選択を維持できる。"
+reason = "閲覧環境に合った配色で公開情報を読めるようにするため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-VIS-005"]
+depends_on = []
+sources = []

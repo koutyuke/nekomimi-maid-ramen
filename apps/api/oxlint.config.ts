@@ -9,6 +9,11 @@ const coreModuleImports = {
   message: "coreの技術モジュールは`core/{layer}/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
 };
 
+const sharedModuleImports = {
+  group: ["**/shared/*/**", "!**/shared/*/index", "!**/shared/*/index.ts"],
+  message: "sharedのモジュールは`shared/{module}`の公開入口から読む。内部ファイルを直接参照しない。",
+};
+
 const routeImplementationImports = {
   group: ["**/*.live", "**/infra/**"],
   message: "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
@@ -53,7 +58,7 @@ export default defineConfig({
     "no-restricted-imports": [
       "error",
       {
-        patterns: [coreModuleImports],
+        patterns: [coreModuleImports, sharedModuleImports],
       },
     ],
     // Effectのタグ付きエラーはライブラリが定める`_tag`で種類を判別する。
@@ -76,6 +81,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               routeImplementationImports,
               {
                 group: featureBoundaryImports.group,
@@ -103,6 +109,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               routeImplementationImports,
               {
                 group: [featurePath, `${featurePath}/**`, `!${featurePath}/public`, `!${featurePath}/public.ts`],
@@ -117,12 +124,32 @@ export default defineConfig({
       },
     },
     {
+      files: ["src/shared/**"],
+      excludeFiles: ["src/shared/**/tests/**", "src/shared/**/*.test.ts", "src/shared/**/*.spec.ts"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["**/core/**", "!@nekomimi/core/**", "**/features/**", "**/routes/**", "**/plugins/**"],
+                message: "`shared`はレイヤーや上位の機能へ依存しない。",
+              },
+              productionTestImports,
+              productionTestDirectories,
+            ],
+          },
+        ],
+      },
+    },
+    {
       files: ["src/core/**"],
       rules: {
         "no-restricted-imports": [
           "error",
           {
             patterns: [
+              sharedModuleImports,
               {
                 group: ["**/{adapters,infra}/*/**", "!**/{adapters,infra}/*/index", "!**/{adapters,infra}/*/index.ts"],
                 message:
@@ -147,6 +174,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               featureBoundaryImports,
               coreAdapterImports,
               layerImports,
@@ -165,6 +193,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               {
                 group: [featurePath, `${featurePath}/**`],
                 message: "アプリケーションとドメインは他の業務領域を読まない。領域間の接続はアダプターで行う。",
@@ -216,6 +245,7 @@ export default defineConfig({
             ],
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               featureBoundaryImports,
               coreAdapterImports,
               {
@@ -238,6 +268,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               {
                 group: ["**/adapters/**", "!better-auth/adapters/drizzle"],
                 message: "保存先の実装からアダプターを読まない。",
@@ -259,6 +290,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               {
                 group: [featurePath, `${featurePath}/**`],
                 message: "公開面は自領域の契約だけを公開し、他領域や内部実装を読まない。",
@@ -288,6 +320,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               {
                 group: [
                   featurePath,
@@ -331,6 +364,7 @@ export default defineConfig({
           {
             patterns: [
               coreModuleImports,
+              sharedModuleImports,
               {
                 group: featureBoundaryImports.group,
                 message: "テスト用コードも他領域の公開面またはtesting入口だけを読む。",

@@ -1,0 +1,2 @@
+/staff https://staff.nekomimi-ramen.com/ 302
+/staff/* https://staff.nekomimi-ramen.com/:splat 302

@@ -7,7 +7,7 @@ import { authenticationGatewayMock, staffFixture } from "../../../features/syste
 import { staffAccessPlugin } from "../staff-access.plugin";
 import type { Staff } from "../../../features/system-wide/public";
 
-const origin = "https://nekomimi-ramen.com";
+const origin = "https://staff.nekomimi-ramen.com";
 const appFor = (staff: Staff | null) => {
   const run = makeRunner(ManagedRuntime.make(authenticationGatewayMock(staff)));
   return new Elysia({ aot: false })
@@ -36,10 +36,12 @@ describe("SPEC-SYS-006 HTTP入口でのロール制限", () => {
     }
     expect((await post(app, "/admin-operation")).status).toBe(role === "Owner" || role === "Admin" ? 200 : 403);
   });
-  it.each([null, "https://attacker.example", "https://nekomimi-ramen.com.attacker.example"])(
-    "許可していない送信元 %s からの更新を拒否する",
-    async (requestOrigin) => {
-      expect((await post(appFor(staffFixture), "/staff-operation", requestOrigin)).status).toBe(403);
-    },
-  );
+  it.each([
+    null,
+    "https://nekomimi-ramen.com",
+    "https://attacker.example",
+    "https://staff.nekomimi-ramen.com.attacker.example",
+  ])("許可していない送信元 %s からの更新を拒否する", async (requestOrigin) => {
+    expect((await post(appFor(staffFixture), "/staff-operation", requestOrigin)).status).toBe(403);
+  });
 });

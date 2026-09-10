@@ -1,0 +1,13 @@
+---
+import MenuPageUI from "./menu-page.ui.astro";
+---
+
+<MenuPageUI />
+<script>
+  import { loadMenu } from "../../model/load-menu";
+
+  const root = document.querySelector<HTMLElement>("#menu");
+  if (root) {
+    void loadMenu(root);
+  }
+</script>
