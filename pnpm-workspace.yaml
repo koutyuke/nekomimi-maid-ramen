@@ -2,6 +2,12 @@ packages:
   - apps/*
   - packages/*
 
+# drizzle-kit は Studio の実行時に drizzle-orm を読み込むが、依存関係として宣言していない。
+packageExtensions:
+  drizzle-kit@0.31.10:
+    peerDependencies:
+      drizzle-orm: "*"
+
 catalog:
   "@cloudflare/vitest-pool-workers": ^0.22.0
   "@tanstack/react-router": ^1.170.32
@@ -10,6 +16,7 @@ catalog:
   "@types/react": ^19.2.18
   "@types/react-dom": ^19.2.5
   "@vitejs/plugin-react": ^6.1.1
+  better-sqlite3: ^13.0.3
   drizzle-kit: ^0.31.10
   drizzle-orm: ^0.45.2
   effect: ~3.22.1
@@ -22,6 +29,7 @@ catalog:
   wrangler: ^4.127.0
 
 allowBuilds:
+  better-sqlite3: true
   esbuild: true
   lefthook: true
   workerd: true

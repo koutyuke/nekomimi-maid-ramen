@@ -88,6 +88,7 @@ API の起動後は、[`http://localhost:8787/openapi`](http://localhost:8787/op
 pnpm --filter @nekomimi/api db:generate       # 表定義から移行ファイルを作る
 pnpm --filter @nekomimi/api db:migrate:local  # 手元の D1 へ適用する
 pnpm --filter @nekomimi/api db:seed:local     # メニューと初期在庫を投入する
+pnpm --filter @nekomimi/api db:studio         # 手元の D1 を Drizzle Studio で開く
 ```
 
 投入する内容は `apps/api/seed.sql` にある。[メニュー](docs/product/menu.md)の6商品、特定原材料の9品目、全商品を販売可能にする初期在庫を入れる。品目の追加や価格の変更はこのファイルを直して投入し直す。何度実行しても行は重複せず、投入後に更新された説明文・原材料の確認状態・在庫数は上書きしない。

@@ -16,6 +16,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply nekomimi-ramen --remote",
     "db:seed:local": "wrangler d1 execute nekomimi-ramen --local --file=./seed.sql",
     "db:seed:remote": "wrangler d1 execute nekomimi-ramen --remote --file=./seed.sql",
+    "db:studio": "drizzle-kit studio --config=drizzle.studio.config.ts",
+    "db:studio:remote": "drizzle-kit studio --config=drizzle.studio.config.remote.ts",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev --var ENVIRONMENT:development",
     "fmt": "oxfmt .",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "catalog:",
+    "better-sqlite3": "catalog:",
     "drizzle-kit": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
