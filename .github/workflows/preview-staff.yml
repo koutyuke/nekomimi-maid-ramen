@@ -1,0 +1,115 @@
+name: Preview Staff
+
+on:
+  pull_request:
+    paths:
+      - "apps/staff/**"
+      - "packages/core/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/preview-staff.yml"
+
+concurrency:
+  group: preview-staff-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # プレビューは補助であり、資格情報が未登録の間は赤を出さずに見送る。
+  # 配備そのものが行われなかった場合とは扱いを分ける。
+  guard:
+    name: Check credentials
+    # 別リポジトリからのプルリクエストには秘密情報が渡らない。
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        run: |
+          if [[ -n "${CLOUDFLARE_API_TOKEN}" && -n "${CLOUDFLARE_ACCOUNT_ID}" ]]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            echo "::notice::CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID が未登録のため、プレビューを見送った。"
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  preview:
+    name: Preview
+    needs: guard
+    if: needs.guard.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter @nekomimi/staff run build
+
+      # 版を上げるだけで本番へは昇格させない。別名を固定するため、
+      # 同じプルリクエストへ押し直してもURLが変わらない。
+      - name: Upload preview version
+        id: preview
+        run: |
+          set -euo pipefail
+          output="$(pnpm --filter @nekomimi/staff exec wrangler versions upload --preview-alias "pr-${PR_NUMBER}" 2>&1 | tee /dev/stderr || true)"
+
+          # 版は既存のWorkerにしか足せない。最初の本番配備が済むまでは見送る。
+          if grep -q 'does not yet exist' <<< "${output}"; then
+            echo "::notice::Workerが未作成のため、プレビューを見送った。最初の本番配備の後に有効になる。"
+            exit 0
+          fi
+
+          url="$(grep -oE 'https://[A-Za-z0-9._-]+\.workers\.dev' <<< "${output}" | head -n 1)"
+          if [[ -z "${url}" ]]; then
+            echo "::error::wrangler の出力からプレビューURLを取得できなかった。"
+            exit 1
+          fi
+          echo "url=${url}" >> "${GITHUB_OUTPUT}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      - name: Comment preview URL
+        if: steps.preview.outputs.url != ''
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp
+          {
+            echo '<!-- preview-staff-report -->'
+            echo '## スタッフ画面のプレビュー'
+            echo
+            printf '[プレビューを開く](%s)\n' "${PREVIEW_URL}"
+            echo
+            echo '本番認証は許可していない。業務操作の確認にはローカル開発環境を使う。'
+          } > .tmp/comment.md
+          cat .tmp/comment.md >> "${GITHUB_STEP_SUMMARY}"
+          existing="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate --field per_page=100 | jq --slurp -r 'flatten | map(select(.user.type == "Bot" and (.body | contains("<!-- preview-staff-report -->")))) | first | .id // ""')"
+          jq -n --rawfile body .tmp/comment.md '{body: $body}' > .tmp/payload.json
+          if [[ -n "${existing}" ]]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${existing}" --input .tmp/payload.json >/dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --input .tmp/payload.json >/dev/null
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}

@@ -1,18 +1,18 @@
-name: Preview Web
+name: Preview Site
 
 on:
   pull_request:
     paths:
-      - "apps/web/**"
+      - "apps/site/**"
       - "packages/core/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig.base.json"
-      - ".github/workflows/preview-web.yml"
+      - ".github/workflows/preview-site.yml"
 
 concurrency:
-  group: preview-web-${{ github.event.pull_request.number }}
+  group: preview-site-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -61,7 +61,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm --filter @nekomimi/web run build
+        run: pnpm --filter @nekomimi/site run build
 
       # 版を上げるだけで本番へは昇格させない。別名を固定するため、
       # 同じプルリクエストへ押し直しても測る先が変わらない。
@@ -69,7 +69,7 @@ jobs:
         id: preview
         run: |
           set -euo pipefail
-          output="$(pnpm --filter @nekomimi/web exec wrangler versions upload --preview-alias "pr-${PR_NUMBER}" 2>&1 | tee /dev/stderr || true)"
+          output="$(pnpm --filter @nekomimi/site exec wrangler versions upload --preview-alias "pr-${PR_NUMBER}" 2>&1 | tee /dev/stderr || true)"
 
           # 版は既存のWorkerにしか足せない。最初の本番配備が済むまでは見送る。
           if grep -q 'does not yet exist' <<< "${output}"; then
@@ -119,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          marker="<!-- preview-web-report -->"
+          marker="<!-- preview-site-report -->"
           report=".tmp/lighthouse/report.report.json"
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
@@ -169,7 +169,7 @@ jobs:
 
           existing="$(
             gh api --method GET "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --paginate --field per_page=100 |
-              jq --slurp -r 'flatten | map(select(.user.type == "Bot" and (.body | contains("<!-- preview-web-report -->")))) | first | .id // ""'
+              jq --slurp -r 'flatten | map(select(.user.type == "Bot" and (.body | contains("<!-- preview-site-report -->")))) | first | .id // ""'
           )"
 
           jq -n --rawfile body .tmp/comment.md '{body: $body}' > .tmp/payload.json

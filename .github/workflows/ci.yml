@@ -42,3 +42,6 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      - name: Build site Storybook
+        run: pnpm site sb:build

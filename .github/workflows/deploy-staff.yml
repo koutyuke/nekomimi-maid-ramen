@@ -1,21 +1,21 @@
-name: Deploy Web
+name: Deploy Staff
 
 on:
   push:
     branches:
       - main
     paths:
-      - "apps/web/**"
+      - "apps/staff/**"
       - "packages/core/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "tsconfig.base.json"
-      - ".github/workflows/deploy-web.yml"
+      - ".github/workflows/deploy-staff.yml"
   workflow_dispatch:
 
 concurrency:
-  group: deploy-web
+  group: deploy-staff
   cancel-in-progress: false
 
 permissions:
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy Web
+    name: Deploy Staff
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -39,16 +39,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter @nekomimi/web run typecheck
+        run: pnpm --filter @nekomimi/staff run typecheck
 
       - name: Test
-        run: pnpm --filter @nekomimi/web run test
+        run: pnpm --filter @nekomimi/staff run test
 
       - name: Build
-        run: pnpm --filter @nekomimi/web run build
+        run: pnpm --filter @nekomimi/staff run build
 
       - name: Deploy
-        run: pnpm --filter @nekomimi/web exec wrangler deploy
+        run: pnpm --filter @nekomimi/staff exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
