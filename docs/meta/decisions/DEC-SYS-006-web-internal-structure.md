@@ -15,10 +15,38 @@ evidence: []
 
 ## 結論
 
-画面の内部をFeature-Sliced Design(FSD)の層で分け、層の中を業務領域(スライス)で切る。部品は表示だけを担うPresenterと、副作用と結線を担うContainerへ分ける。サーバーから取得する状態はTanStack Query(`@tanstack/react-query`、5系)、画面をまたいで保持するクライアント状態はJotai(`jotai`、2系)で扱う。
+スタッフ画面の内部をFeature-Sliced Design(FSD)の層で分け、層の中を業務領域(スライス)で切る。部品は表示だけを担うPresenterと、副作用と結線を担うContainerへ分ける。サーバーから取得する状態はTanStack Query(`@tanstack/react-query`、5系)、画面をまたいで保持するクライアント状態はJotai(`jotai`、2系)で扱う。
+
+公開側もFSDの依存方向を使うが、現在必要な`app`、`pages`、`features`、`shared`だけを置く。Astroが経路として要求する`src/pages`は、`layers/app`のレイアウトと`layers/pages`の画面を結線するだけにする。`app` → `pages` → `features` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
+
+Astro部品では、表示だけを担う`.ui.astro`をPresenter、副作用と結線を担う`.astro`をContainerとする。ブラウザーで取得後に変わる表示は、DOMへ状態を反映する`*.view.ts`をPresenter、API取得と再試行を制御する`model`をContainerとして分ける。副作用のないトップ画面にはContainerを作らない。
+
+公開トップと見出しは静的HTMLとして生成し、現在の販売可否はブラウザーから公開APIへ問い合わせる。取得中・失敗・商品なしを区別し、失敗時は商品一覧を消す。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。端末設定への追従はCSSの`color-scheme`を使う。
+
+公開側のStorybookは`@storybook-astro/framework`でAstro部品を描画し、アプリと同じCSSを読み込む。ストーリーは部品の隣に`{部品}.stories.ts`として置く。静的ビルドではAstroのpropsが事前描画されるため、Controlsによる変更は開発サーバーで確認する。
+
+Astroを採用するのは、静的な情報提供と独自デザインをスタッフ側のProviderやMantineから分離できるためである。Astro 7.3.2で、見出しを含む静的HTMLとブラウザーからAPIを取得するスクリプトを小規模にビルドできることを確認した。Reactのアイランドは現在のメニュー取得とテーマ切り替えには不要で、標準のDOM操作で足りる。APIクライアントは既存のEden Treatyを利用し、描画時はAPIの文字列をHTMLとして解釈しない。
+
+公開側とスタッフ側のUI・スタイル・Providerは共有しない。`packages/core`では両者が使うURLとメニューの型・分類定数だけを共有する。APIへの依存は型参照に限定する。
+
+参考: [Astroのスクリプト処理](https://docs.astro.build/en/guides/client-side-scripts/)、[Cloudflareへの配備](https://docs.astro.build/en/guides/deploy/cloudflare/)。
 
 ```
-apps/web/
+apps/site/
+├── src/
+│   ├── pages/          Astroの経路。レイアウトと画面の結線だけを行う
+│   └── layers/
+│       ├── app/        共通レイアウト、ヘッダー、スタイル
+│       ├── pages/      画面ごとのスライス
+│       ├── features/   利用者の操作と副作用を伴う機能
+│       └── shared/     APIクライアントなど領域に属さない基盤
+└── .storybook/
+```
+
+空の層は作らない。複数画面で共有する業務概念が生じた場合に`entities`、複数の機能を組み合わせる独立した区画が生じた場合に`widgets`を追加する。
+
+```
+apps/staff/
 ├── src/
 │   ├── layers/
 │   │   ├── app/            アプリ全体の初期化
@@ -123,7 +151,7 @@ export const menuQueries = {
 
 ### 経路
 
-`src/routes/`はTanStack Routerのファイル経路であり、`pages`の部品を貼るだけにする。経路ファイルへ部品の見た目とデータ取得を書かない。経路一覧(`src/routeTree.gen.ts`)は生成物であり、直接編集しない。
+`src/routes/`はTanStack Routerのファイル経路であり、`pages`の部品を貼るだけにする。経路ファイルへ部品の見た目とデータ取得を書かない。経路一覧(`src/routeTree.gen.ts`)は生成物であり、直接編集しない。管理・会計の経路は共通の認証レイアウトを通し、未認証なら`/`へ戻す。認証確認の通信失敗時はその場で再試行し、認証済み利用者のロール判定は各画面とAPIで行う。
 
 ### 試験とStorybook
 
@@ -135,7 +163,7 @@ Storybookのファイル名は`{部品}.stories.tsx`、テストのファイル�
 
 `app`から`shared`へ向かう一方向だけを許す。`app` → `pages` → `widgets` → `features` → `entities` → `shared`の順であり、下位の層は上位の層を読まない。`routes`は`pages`だけを読む。
 
-この向きと、スライスの公開入口を経由することを`apps/web/oxlint.config.ts`の`no-restricted-imports`で検査する。
+この向きと、スライスの公開入口を経由することを`apps/staff/oxlint.config.ts`の`no-restricted-imports`で検査する。
 
 ## 理由
 
@@ -168,5 +196,5 @@ Storybookをテスト対象と揃えてPresenterだけへ向けるのは、確�
 - 新しい画面を追加する手順は、必要な型とAPI呼び出しを`entities/{領域}`へ置き、`pages/{画面}/ui/{部品}/`へPresenterとContainerを作り、`src/routes/`へ経路を追加して`pages`の部品を貼ることである。
 - 新しいスライスを追加する場合は`index.ts`を作り、そのスライスの外へ出すものだけを載せる。
 - 表示の分岐を追加した場合は、Presenterのテストとfixtureを同じ変更で更新する。
-- 経路を追加すると`src/routeTree.gen.ts`が再生成される。生成は`vite`の実行時に行われるため、経路の追加後は`pnpm web build`または`pnpm web dev`を通す。
+- 経路を追加すると`src/routeTree.gen.ts`が再生成される。生成は`vite`の実行時に行われるため、経路の追加後は`pnpm staff build`または`pnpm staff dev`を通す。
 - 試験は`src/testing/setup.ts`で描画結果を毎回破棄する。一つのファイルで複数回描画するため、破棄しないと前の描画が残って要素の取得が二重になる。

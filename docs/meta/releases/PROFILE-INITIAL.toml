@@ -7,6 +7,7 @@ requirements = [
   "REQ-VIS-002",
   "REQ-VIS-003",
   "REQ-VIS-004",
+  "REQ-VIS-005",
   "REQ-SAL-001",
   "REQ-SAL-002",
   "REQ-SAL-003",

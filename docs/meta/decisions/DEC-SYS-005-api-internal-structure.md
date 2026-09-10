@@ -21,10 +21,12 @@ APIを追加・変更するときは、[ファイルの切り方](#ファイル�
 ```
 apps/api/
 ├── src/
-│   ├── core/            複数領域が共有するもの
+│   ├── core/            複数領域が共有する、レイヤーに属するもの
 │   │   ├── domain/      共有する識別子、金額、保存先の失敗を表す型
 │   │   ├── infra/       D1とDrizzleの実体、全表の定義
 │   │   └── adapters/    Effectをルートハンドラへ繋ぐ処理
+│   ├── shared/          特定の領域やレイヤーに属さないもの
+│   │   └── http/        API共通のHTTP方針。入口は`index.ts`
 │   ├── features/        業務領域ごと(inventory、visitor-information、…)
 │   │   └── {領域}/
 │   │       ├── domain/       概念ごとに1ファイル(stock.ts、menu-item.ts、…)
@@ -55,7 +57,7 @@ apps/api/
 
 領域の名前は[ドキュメント管理](../../documentation-management.md)の業務領域に合わせる。
 
-### coreの公開入口
+### coreとsharedの公開入口
 
 `core/adapters`と`core/infra`は、`core/{layer}/{module}/index.ts`をモジュールごとの唯一の公開入口とする。`core`全体や層全体をまとめる`index.ts`は作らない。モジュール外からはディレクトリを指定して読み込み、内部ファイルへの直接参照は`no-restricted-imports`で禁止する。同じモジュール内の実装とテストは内部ファイルを直接参照してよい。公開入口は既存の層間の依存制限を緩めない。
 
@@ -63,6 +65,8 @@ apps/api/
 - `core/infra/drizzle`は`Database`、`makeDatabaseLive`を公開する。
 
 `core/domain`は`index.ts`を作らず、`ids`、`money`、`persistence-error`のように概念ごとのファイルを直接参照する。これらはそれぞれが公開するドメインの定義であり、インポート先に概念名を残す。
+
+`shared`には、特定の業務領域にも`domain`、`application`、`adapters`、`infra`の各レイヤーにも属さない、API内で共有する処理と定数を置く。`shared/{module}/index.ts`をモジュールごとの唯一の公開入口とし、モジュール外から内部ファイルを直接参照しない。`shared`は`src/core`、`features`、`routes`、`plugins`を参照しない。HTTPの送信元判定は`shared/http`から公開する。
 
 ### 表定義
 
@@ -135,7 +139,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ### 依存の向き
 
-`core`は`features`を読まない。`domain`は自領域の`domain`と`core/domain`を参照する。`application`は自領域の`application/ports`、`application/facades`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には領域が外部へ提供する契約を置き、`application/ports/outbound`には領域が外部の保存先や別領域へ要求する契約を置く。`adapters`は自領域の`outbound`ポートとドメイン、および相手領域の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自領域の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
+`shared`は`src/core`、`features`、`routes`、`plugins`を読まない。`core`は`features`を読まない。`domain`は自領域の`domain`と`core/domain`を参照する。`application`は自領域の`application/ports`、`application/facades`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には領域が外部へ提供する契約を置き、`application/ports/outbound`には領域が外部の保存先や別領域へ要求する契約を置く。`adapters`は自領域の`outbound`ポートとドメイン、および相手領域の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自領域の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
 
 `public.ts`は自領域の契約と型を公開し、内部のコマンドやリポジトリなど永続化の詳細、`layer.ts`、テスト用コードを参照しない。`layer.ts`は自領域の`adapters`、`infra`、`application`、`domain`、`public.ts`を組み立て、他領域の`layer.ts`を参照しない。複数の表を一つの操作として更新する実装は、その操作を所有する領域の`infra/commands`へ置き、自領域の内部ポートとドメイン、および`core/infra`を参照する。`routes`は領域の`public.ts`、`core/domain`、`core/adapters`を参照し、テストファイルでは`testing/index.ts`を利用できる。
 
@@ -143,7 +147,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}/public.ts`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
+この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`shared`から`core`と上位の機能を、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`core`と`shared`の技術モジュールは公開入口からだけ読む。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}/public.ts`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
 ### 型定義
 
