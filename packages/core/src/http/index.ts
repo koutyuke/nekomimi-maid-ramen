@@ -1,1 +1,1 @@
-export { getAllowedOrigin, getAPIBaseURL, getWebBaseURL, isTrustedOrigin } from "./url";
+export { getAPIBaseURL, getStaffBaseURL, getSiteBaseURL } from "./url";

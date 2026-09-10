@@ -4,18 +4,17 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./http": "./src/http/index.ts"
+    "./http": "./src/http/index.ts",
+    "./models": "./src/models/index.ts"
   },
   "scripts": {
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "catalog:"
   }
 }
