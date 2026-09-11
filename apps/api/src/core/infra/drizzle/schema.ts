@@ -62,7 +62,8 @@ export const orders = sqliteTable(
     orderNumber: integer("order_number").notNull(),
     requestId: text("request_id").notNull(),
     totalAmount: integer("total_amount").notNull(),
-    cookingState: text("cooking_state").notNull(),
+    handedOffAt: integer("handed_off_at", { mode: "timestamp_ms" }),
+    cancelledAt: integer("cancelled_at", { mode: "timestamp_ms" }),
     confirmedAt: integer("confirmed_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
@@ -84,10 +85,14 @@ export const orderLines = sqliteTable(
       .references(() => menuItems.id),
     quantity: integer("quantity").notNull(),
     unitPrice: integer("unit_price").notNull(),
+    cookingState: text("cooking_state", { enum: ["unstarted", "cooking", "completed"] })
+      .notNull()
+      .default("unstarted"),
   },
   (table) => [
     primaryKey({ columns: [table.orderId, table.menuItemId] }),
     check("order_lines_quantity_range", sql`${table.quantity} between 1 and 10`),
+    check("order_lines_cooking_state", sql`${table.cookingState} in ('unstarted', 'cooking', 'completed')`),
   ],
 );
 
