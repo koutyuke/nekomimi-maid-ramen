@@ -2,7 +2,7 @@ import { Effect, Schema } from "effect";
 import { Elysia } from "elysia";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { requestAuthentication } from "../../features/system-wide/public";
+import { requestAuthentication } from "../../features/staff/public";
 import { AuthenticationUnavailableResponse, ForbiddenResponse, GoogleSignInResponse } from "./auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
 

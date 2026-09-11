@@ -3,7 +3,7 @@ import { Elysia } from "elysia";
 import type { Effect } from "effect";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { getCurrentStaff } from "../../features/system-wide/public";
+import { getCurrentStaff } from "../../features/staff/public";
 import { SessionResponse } from "./auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
 

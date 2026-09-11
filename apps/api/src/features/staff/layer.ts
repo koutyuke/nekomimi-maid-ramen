@@ -5,7 +5,7 @@ import { makeAuthenticationGateway } from "./infra/authentication.gateway.live";
 import { makeStaffRepositoryLive } from "./infra/staff.repository.live";
 import type { AuthenticationConfig } from "./infra/authentication.gateway.live";
 
-export const makeSystemWideLayer = (d1: D1Database, config: AuthenticationConfig) =>
+export const makeStaffLayer = (d1: D1Database, config: AuthenticationConfig) =>
   Layer.merge(
     makeStaffRepositoryLive(config.ownerEmail),
     Layer.sync(AuthenticationGateway, () => {

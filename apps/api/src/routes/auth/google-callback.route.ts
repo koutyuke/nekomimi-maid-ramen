@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import type { Effect } from "effect";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { callbackAuthentication } from "../../features/system-wide/public";
+import { callbackAuthentication } from "../../features/staff/public";
 import type { EffectRunner } from "../../core/adapters/elysia";
 
 export type GoogleCallbackRouteRequirements = Effect.Effect.Context<ReturnType<typeof callbackAuthentication>>;

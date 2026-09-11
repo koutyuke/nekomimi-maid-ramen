@@ -3,9 +3,9 @@ import { Elysia } from "elysia";
 import { describe, expect, it } from "vitest";
 
 import { makeRunner } from "../../../core/adapters/elysia";
-import { authenticationGatewayMock, staffFixture } from "../../../features/system-wide/testing";
+import { authenticationGatewayMock, staffFixture } from "../../../features/staff/testing";
 import { staffAccessPlugin } from "../staff-access.plugin";
-import type { Staff } from "../../../features/system-wide/public";
+import type { Staff } from "../../../features/staff/public";
 
 const origin = "https://staff.nekomimi-ramen.com";
 const appFor = (staff: Staff | null) => {
