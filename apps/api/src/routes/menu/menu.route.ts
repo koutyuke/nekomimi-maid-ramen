@@ -2,7 +2,7 @@ import { Effect, Schema } from "effect";
 import { Elysia } from "elysia";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { listMenu } from "../../features/visitor-information/public";
+import { listMenu } from "../../features/menu/public";
 import { MenuResponse, presentMenu } from "./menu.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
 

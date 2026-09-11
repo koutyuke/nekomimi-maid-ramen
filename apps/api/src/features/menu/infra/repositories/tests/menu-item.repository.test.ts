@@ -31,6 +31,13 @@ const menuItemRow = (args: {
   updatedAt: new Date(),
 });
 
+const insertMenuItem = (category: string, allergenCheckState: string) =>
+  env.DB.prepare(
+    "INSERT INTO menu_items (id, name, price, category, display_order, allergen_check_state, updated_at) VALUES ('item-ramen', 'ラーメン', 500, ?, 1, ?, 1000)",
+  )
+    .bind(category, allergenCheckState)
+    .run();
+
 beforeEach(async () => {
   await db.delete(Database.tables.menuItemAllergens);
   await db.delete(Database.tables.allergens);
@@ -38,6 +45,11 @@ beforeEach(async () => {
 });
 
 describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
+  it("定義外の分類と確認状態を保存しない", async () => {
+    await expect(insertMenuItem("invalid", "unchecked")).rejects.toThrow();
+    await expect(insertMenuItem("main", "invalid")).rejects.toThrow();
+  });
+
   it("複数の品目を持つ商品を1件にまとめる", async () => {
     await db
       .insert(Database.tables.menuItems)

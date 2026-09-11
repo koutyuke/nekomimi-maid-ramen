@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import { MenuItemAvailabilityGateway } from "../ports/outbound/menu-item-availability.gateway";
+import { InventoryAvailabilityFacade } from "../ports/inbound/inventory-availability.facade";
 import { MenuItemRepository } from "../ports/outbound/menu-item.repository";
 import type { PersistenceError } from "../../../../core/domain/persistence-error";
 import type { MenuItem } from "../../domain/menu-item";
@@ -13,18 +13,20 @@ export type MenuEntry = {
 export const listMenu = (): Effect.Effect<
   ReadonlyArray<MenuEntry>,
   PersistenceError,
-  MenuItemAvailabilityGateway | MenuItemRepository
+  InventoryAvailabilityFacade | MenuItemRepository
 > =>
   Effect.gen(function* () {
     const menuItemRepository = yield* MenuItemRepository;
-    const menuItemAvailabilityGateway = yield* MenuItemAvailabilityGateway;
+    const inventoryAvailabilityFacade = yield* InventoryAvailabilityFacade;
 
     const menuItems = yield* menuItemRepository.listInDisplayOrder();
-    const sellability = yield* menuItemAvailabilityGateway.listSellability(menuItems.map((menuItem) => menuItem.id));
-    const sellableByMenuItemId = new Map(sellability.map((entry) => [entry.menuItemId, entry.sellable]));
+    const shortages = yield* inventoryAvailabilityFacade.findShortages(
+      menuItems.map((menuItem) => ({ menuItemId: menuItem.id, quantity: 1 })),
+    );
+    const unavailableMenuItemIds = new Set(shortages.map((shortage) => shortage.menuItemId));
 
     return menuItems.map((menuItem) => ({
       menuItem,
-      sellable: sellableByMenuItemId.get(menuItem.id) ?? false,
+      sellable: !unavailableMenuItemIds.has(menuItem.id),
     }));
   });

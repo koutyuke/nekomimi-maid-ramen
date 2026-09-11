@@ -1,11 +1,12 @@
 import { Layer } from "effect";
 
-import { MenuItemAvailabilityGatewayLive } from "./adapters/inventory/menu-item-availability.gateway.live";
+import { InventoryAvailabilityFacadeLive } from "./application/facades/inventory-availability.facade.live";
 import { MenuItemCatalogFacadeLive } from "./application/facades/menu-item-catalog.facade.live";
 import { MenuItemRepositoryLive } from "./infra/repositories/menu-item.repository.live";
+import { StockRepositoryLive } from "./infra/repositories/stock.repository.live";
 
-export const VisitorInformationLayer = Layer.mergeAll(
+export const MenuLayer = Layer.mergeAll(
+  InventoryAvailabilityFacadeLive.pipe(Layer.provide(StockRepositoryLive)),
   MenuItemCatalogFacadeLive.pipe(Layer.provide(MenuItemRepositoryLive)),
-  MenuItemAvailabilityGatewayLive,
   MenuItemRepositoryLive,
 );

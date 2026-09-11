@@ -1,10 +1,15 @@
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { menuItemAvailabilityGatewayMock, menuItemFixture, menuItemRepositoryMock } from "../../../testing";
+import {
+  inventoryAvailabilityFacadeMock,
+  menuItemFixture,
+  menuItemRepositoryMock,
+  stockFixture,
+} from "../../../testing";
 import { listMenu } from "../list-menu";
 import type { MenuItem } from "../../../domain/menu-item";
-import type { MenuItemSellability } from "../../ports/outbound/menu-item-availability.gateway";
+import type { Stock } from "../../../domain/stock";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 const gyoza = menuItemFixture({
@@ -15,10 +20,10 @@ const gyoza = menuItemFixture({
   category: "side",
 });
 
-const run = (menuItems: ReadonlyArray<MenuItem>, sellability: ReadonlyArray<MenuItemSellability>) =>
+const run = (menuItems: ReadonlyArray<MenuItem>, stocks: ReadonlyArray<Stock>) =>
   Effect.runPromise(
     listMenu().pipe(
-      Effect.provide(Layer.mergeAll(menuItemRepositoryMock(menuItems), menuItemAvailabilityGatewayMock(sellability))),
+      Effect.provide(Layer.mergeAll(menuItemRepositoryMock(menuItems), inventoryAvailabilityFacadeMock(stocks))),
     ),
   );
 
@@ -27,31 +32,25 @@ const sellableById = (entries: Awaited<ReturnType<typeof run>>) =>
 
 describe("SPEC-INV-001 在庫に基づく販売可否", () => {
   it("在庫が残っている商品を販売可能とする", async () => {
-    const entries = await run([ramen], [{ menuItemId: ramen.id, sellable: true }]);
+    const entries = await run([ramen], [stockFixture(ramen.id, 1)]);
 
     expect(sellableById(entries)).toEqual({ "item-ramen": true });
   });
 
   it("在庫が0の商品を販売可能としない", async () => {
-    const entries = await run([ramen], [{ menuItemId: ramen.id, sellable: false }]);
+    const entries = await run([ramen], [stockFixture(ramen.id, 0)]);
 
     expect(sellableById(entries)).toEqual({ "item-ramen": false });
   });
 
   it("在庫の記録がない商品を販売可能としない", async () => {
-    const entries = await run([ramen, gyoza], [{ menuItemId: ramen.id, sellable: true }]);
+    const entries = await run([ramen, gyoza], [stockFixture(ramen.id, 1)]);
 
     expect(sellableById(entries)).toEqual({ "item-ramen": true, "item-gyoza": false });
   });
 
   it("在庫のない商品もメニューから消さない", async () => {
-    const entries = await run(
-      [ramen, gyoza],
-      [
-        { menuItemId: ramen.id, sellable: false },
-        { menuItemId: gyoza.id, sellable: false },
-      ],
-    );
+    const entries = await run([ramen, gyoza], []);
 
     expect(entries.map((entry) => entry.menuItem.name)).toEqual(["ラーメン", "餃子"]);
   });
