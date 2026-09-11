@@ -1,16 +1,23 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-export const menuItems = sqliteTable("menu_items", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  price: integer("price").notNull(),
-  category: text("category").notNull(),
-  displayOrder: integer("display_order").notNull(),
-  allergenCheckState: text("allergen_check_state").notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-});
+export const menuItems = sqliteTable(
+  "menu_items",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    description: text("description"),
+    price: integer("price").notNull(),
+    category: text("category", { enum: ["main", "side", "drink"] }).notNull(),
+    displayOrder: integer("display_order").notNull(),
+    allergenCheckState: text("allergen_check_state", { enum: ["unchecked", "checked"] }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    check("menu_items_category", sql`${table.category} in ('main', 'side', 'drink')`),
+    check("menu_items_allergen_check_state", sql`${table.allergenCheckState} in ('unchecked', 'checked')`),
+  ],
+);
 
 export const allergens = sqliteTable(
   "allergens",
