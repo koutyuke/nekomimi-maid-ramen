@@ -53,7 +53,7 @@ const run = makeRunner(runtime);
 
 export default {
   fetch: (request: Request) =>
-    new URL(request.url).pathname === "/staff/sync/events"
+    new URL(request.url).pathname === "/staff/events"
       ? upgradeWebSocketRoute(run, origin, request, (sessionId) => connectWebSocketHub(env.STAFF_UPDATES, sessionId))
       : app.fetch(request),
 } satisfies ExportedHandler<Env>;

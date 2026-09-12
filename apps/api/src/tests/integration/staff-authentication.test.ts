@@ -42,7 +42,7 @@ const appLayer = Layer.mergeAll(
 const runtime = ManagedRuntime.make(appLayer);
 const app = createApp({ origin, runtime, aot: false });
 const handle = (request: Request) =>
-  new URL(request.url).pathname === "/staff/sync/events"
+  new URL(request.url).pathname === "/staff/events"
     ? upgradeWebSocketRoute(makeRunner(runtime), origin, request, (sessionId) =>
         connectWebSocketHub(env.STAFF_UPDATES, sessionId),
       )
@@ -509,7 +509,7 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
     const cookie = role === "None" ? (await loggedInStaff()).cookie : "";
     const status = role === "None" ? 403 : 401;
     expect((await kitchen(cookie)).status).toBe(status);
-    expect((await kitchen(cookie, "/staff/sync/events")).status).toBe(status);
+    expect((await kitchen(cookie, "/staff/events")).status).toBe(status);
     expect((await kitchen(cookie, "/staff/menu/revision")).status).toBe(status);
     expect((await kitchen(cookie, "/staff/orders/revision")).status).toBe(status);
     expect((await kitchen(cookie, "/staff/menu")).status).toBe(status);
@@ -557,7 +557,7 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
     const staff = await loggedInStaff();
     await changeRole(owner.cookie, staff.staff.id, "Staff");
     const response = await handle(
-      new Request(`${apiOrigin}/staff/sync/events`, {
+      new Request(`${apiOrigin}/staff/events`, {
         headers: { cookie: staff.cookie, origin, upgrade: "websocket" },
       }),
     );

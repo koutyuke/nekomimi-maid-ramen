@@ -43,7 +43,7 @@ const request = (path: string, init?: RequestInit) => {
     ...init,
     headers,
   });
-  return path === "/staff/sync/events"
+  return path === "/staff/events"
     ? upgradeWebSocketRoute(makeRunner(live), origin, input, (sessionId) =>
         connectWebSocketHub(env.STAFF_UPDATES, sessionId),
       )
@@ -61,7 +61,7 @@ const revisions = async () => {
 };
 const sockets: WebSocket[] = [];
 const connect = async () => {
-  const response = await request("/staff/sync/events", { headers: { upgrade: "websocket" } });
+  const response = await request("/staff/events", { headers: { upgrade: "websocket" } });
   expect(response.status).toBe(101);
   const socket = response.webSocket!;
   expect(socket).toBeDefined();
@@ -250,7 +250,7 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     await Promise.all(
       ["https://nekomimi-ramen.com", "https://staff.nekomimi-ramen.com.evil.test", "null", ""].map(
         async (requestOrigin) => {
-          const response = await request("/staff/sync/events", {
+          const response = await request("/staff/events", {
             headers: { origin: requestOrigin, upgrade: "websocket" },
           });
           expect(response.status).toBe(403);
