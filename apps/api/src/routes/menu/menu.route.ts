@@ -8,7 +8,7 @@ import type { EffectRunner } from "../../core/adapters/elysia";
 
 export type MenuRouteRequirements = Effect.Effect.Context<ReturnType<typeof listMenu>>;
 
-export const menuRoutes = (run: EffectRunner<MenuRouteRequirements>) =>
+export const menuRoute = (run: EffectRunner<MenuRouteRequirements>) =>
   new Elysia()
     // Endpoints
     .get("/menu", () => run(logAndDie(listMenu().pipe(Effect.map(presentMenu)))), {

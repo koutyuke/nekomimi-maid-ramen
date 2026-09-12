@@ -5,39 +5,25 @@ import type { ManagedRuntime } from "effect";
 
 import { cloudflareAdapter, makeRunner } from "../core/adapters/elysia";
 import { corsPlugin } from "../plugins/cors/cors.plugin";
-import { googleCallbackRoute } from "../routes/auth/google-callback.route";
-import { googleRoute } from "../routes/auth/google.route";
-import { logoutRoute } from "../routes/auth/logout.route";
-import { sessionRoute } from "../routes/auth/session.route";
-import { menuRevisionRoute } from "../routes/menu/menu-revision.route";
-import { menuRoutes } from "../routes/menu/menu.route";
-import { staffMenuRoute } from "../routes/menu/staff-menu.route";
-import { completeHandoffRoute } from "../routes/orders/complete-handoff.route";
-import { confirmOrderRoutes } from "../routes/orders/confirm-orders.route";
-import { listOrdersRoute } from "../routes/orders/list-orders.route";
-import { ordersRevisionRoute } from "../routes/orders/orders-revision.route";
-import { updateCookingStateRoute } from "../routes/orders/update-cooking-state.route";
-import { upgradeWebSocketRoute } from "../routes/realtime/upgrade-websocket.route";
-import { listStaffRoute } from "../routes/staff/list-staff.route";
-import { updateStaffRoleRoute } from "../routes/staff/update-staff-role.route";
-import type { MenuRouteRequirements } from "../routes/menu/menu.route";
-import type { CompleteHandoffRequirements } from "../routes/orders/complete-handoff.route";
-import type { OrderRouteRequirements } from "../routes/orders/confirm-orders.route";
-import type { ListOrdersRequirements } from "../routes/orders/list-orders.route";
-import type { UpdateCookingStateRequirements } from "../routes/orders/update-cooking-state.route";
-import type { UpgradeWebSocket, UpgradeWebSocketRequirements } from "../routes/realtime/upgrade-websocket.route";
-import type { ListStaffRouteRequirements } from "../routes/staff/list-staff.route";
-import type { UpdateStaffRoleRouteRequirements } from "../routes/staff/update-staff-role.route";
+import { authRoutes } from "../routes/auth";
+import { menuRoutes } from "../routes/menu";
+import { ordersRoutes } from "../routes/orders";
+import { realtimeRoutes } from "../routes/realtime";
+import { staffRoutes } from "../routes/staff";
+import type { AuthRoutesRequirements } from "../routes/auth";
+import type { MenuRoutesRequirements } from "../routes/menu";
+import type { OrdersRoutesRequirements } from "../routes/orders";
+import type { UpgradeWebSocket, RealtimeRoutesRequirements } from "../routes/realtime";
+import type { StaffRoutesRequirements } from "../routes/staff";
 
+/* eslint-disable typescript/no-duplicate-type-constituents -- 各領域の依存変更を反映するため、現在同じ型でも列挙する。 */
 export type AppRequirements =
-  | UpgradeWebSocketRequirements
-  | CompleteHandoffRequirements
-  | ListOrdersRequirements
-  | UpdateCookingStateRequirements
-  | MenuRouteRequirements
-  | OrderRouteRequirements
-  | ListStaffRouteRequirements
-  | UpdateStaffRoleRouteRequirements;
+  | RealtimeRoutesRequirements
+  | AuthRoutesRequirements
+  | MenuRoutesRequirements
+  | OrdersRoutesRequirements
+  | StaffRoutesRequirements;
+/* eslint-enable typescript/no-duplicate-type-constituents */
 
 export type AppDependencies = {
   origin: string;
@@ -103,21 +89,11 @@ export const createApp = ({ origin, runtime, upgradeWebSocket, aot = true }: App
     })
 
     // Routes
-    .use(upgradeWebSocketRoute(run, origin, upgradeWebSocket))
-    .use(menuRevisionRoute(run, origin))
-    .use(ordersRevisionRoute(run, origin))
-    .use(staffMenuRoute(run, origin))
-    .use(listOrdersRoute(run, origin))
-    .use(updateCookingStateRoute(run, origin))
-    .use(completeHandoffRoute(run, origin))
-    .use(menuRoutes(run))
-    .use(sessionRoute(run))
-    .use(googleRoute(run))
-    .use(googleCallbackRoute(run))
-    .use(logoutRoute(run))
-    .use(confirmOrderRoutes(run, origin))
-    .use(listStaffRoute(run, origin))
-    .use(updateStaffRoleRoute(run, origin));
+    .use(realtimeRoutes(run, origin, upgradeWebSocket))
+    .use(menuRoutes(run, origin))
+    .use(ordersRoutes(run, origin))
+    .use(authRoutes(run))
+    .use(staffRoutes(run, origin));
 
   return aot ? app.compile() : app;
 };

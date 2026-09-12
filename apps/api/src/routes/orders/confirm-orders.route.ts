@@ -20,7 +20,7 @@ export type OrderRouteRequirements =
   | Effect.Effect.Context<ReturnType<typeof confirmOrder>>
   | StaffAccessPluginRequirements;
 
-export const confirmOrderRoutes = (run: EffectRunner<OrderRouteRequirements>, origin: string) =>
+export const confirmOrderRoute = (run: EffectRunner<OrderRouteRequirements>, origin: string) =>
   new Elysia()
     // Plugins
     .use(staffAccessPlugin(run, origin))

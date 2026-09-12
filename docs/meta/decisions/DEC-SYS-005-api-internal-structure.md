@@ -23,8 +23,8 @@ apps/api/
 ├── src/
 │   ├── core/            複数領域が共有する、レイヤーに属するもの
 │   │   ├── domain/      共有する識別子、金額、保存先の失敗を表す型
-│   │   ├── infra/       D1とDrizzleの実体、全表の定義
-│   │   └── adapters/    Effectをルートハンドラへ繋ぐ処理
+│   │   ├── infra/       D1とDrizzleの実体、全表の定義、WebSocketの接続・配信基盤
+│   │   └── adapters/    Effectと実行環境をElysiaへ繋ぐ処理
 │   ├── shared/          特定の領域やレイヤーに属さないもの
 │   │   └── http/        API共通のHTTP方針。入口は`index.ts`
 │   ├── features/        変更単位となる業務概念ごと(orders、menu、staff、…)
@@ -43,14 +43,17 @@ apps/api/
 │   │       └── layer.ts      この機能の実装を組み立てる
 │   ├── routes/
 │   │   └── {経路}/
+│   │       ├── index.ts            領域内のルートと依存型の集約(auth、menu、orders、realtime、staff)
 │   │       ├── {操作}.route.ts     経路の定義
 │   │       ├── {経路}.response.ts  応答の形と組み立て
 │   │       └── tests/
 │   ├── tests/
 │   │   └── integration/     APIの入口から複数機能と保存先を通す統合テスト
-│   ├── bootstrap/       アプリの組み立て
-│   │   └── create-app.ts 経路の合成。画面が読む型の正本
-│   └── index.ts         Workerの入口。実装の解決はここだけで行う
+│   ├── bootstrap/       実行入口ごとの依存の組み立て
+│   │   ├── create-app.ts    経路の合成。画面が読む型の正本
+│   │   ├── runtime.ts       HTTP APIのランタイム
+│   │   └── websocket-hub.ts 通知用Durable Objectと認可のランタイム
+│   └── index.ts         Workerの入口とDurable Objectクラスの公開
 └── testing/
     ├── index.ts         共通のテスト用コードの公開入口
     ├── mock/            共通のモック
@@ -58,16 +61,17 @@ apps/api/
     └── setup/           テスト環境の入口と初期化
 ```
 
-一つの集約とライフサイクルを同じ担当者・保存先で扱う操作は、一つの機能へまとめる。注文確定、調理状況、受け渡しは`features/orders`に置く。商品情報と商品別在庫はメニュー表示と注文確定が一緒に参照するため`features/menu`に置き、モデル、リポジトリ、Facadeは分ける。認証とロール管理は同じ利用者を扱うため`features/staff`に置く。仕様書は利用者の業務を追えるよう、[ドキュメント管理](../../documentation-management.md)の業務領域ごとに分けたままとする。
+一つの集約とライフサイクルを同じ担当者・保存先で扱う操作は、一つの機能へまとめる。注文確定、調理状況、受け渡しは`features/orders`に置く。商品情報と商品別在庫はメニュー表示と注文確定が一緒に参照するため`features/menu`に置き、モデル、リポジトリ、Facadeは分ける。認証とロール管理は同じ利用者を扱うため`features/staff`に置く。スタッフ画面間の通知は`features/realtime`が所有する。仕様書は利用者の業務を追えるよう、[ドキュメント管理](../../documentation-management.md)の業務領域ごとに分けたままとする。
 
 ### coreとsharedの公開入口
 
 `core/adapters`と`core/infra`は、`core/{layer}/{module}/index.ts`をモジュールごとの唯一の公開入口とする。`core`全体や層全体をまとめる`index.ts`は作らない。モジュール外からはディレクトリを指定して読み込み、内部ファイルへの直接参照は`no-restricted-imports`で禁止する。同じモジュール内の実装とテストは内部ファイルを直接参照してよい。公開入口は既存の層間の依存制限を緩めない。
 
-- `core/adapters/elysia`は`logAndDie`、`makeRunner`、`EffectRunner`を公開する。
+- `core/adapters/elysia`は`cloudflareAdapter`、`logAndDie`、`makeRunner`、`EffectRunner`を公開する。
 - `core/infra/drizzle`は`Database`、`makeDatabaseLive`を公開する。
+- `core/infra/websocket`は`WebSocketHub`、`getWebSocketHub`、`connectWebSocketHub`を公開する。
 
-`core/domain`は`index.ts`を作らず、`ids`、`money`、`persistence-error`のように概念ごとのファイルを直接参照する。これらはそれぞれが公開するドメインの定義であり、インポート先に概念名を残す。
+`core/domain`は`index.ts`を作らず、`ids`、`money`、`revision`、`persistence-error`のように概念ごとのファイルを直接参照する。これらはそれぞれが公開するドメインの定義であり、インポート先に概念名を残す。
 
 `shared`には、特定の業務領域にも`domain`、`application`、`adapters`、`infra`の各レイヤーにも属さない、API内で共有する処理と定数を置く。`shared/{module}/index.ts`をモジュールごとの唯一の公開入口とし、モジュール外から内部ファイルを直接参照しない。`shared`は`src/core`、`features`、`routes`、`plugins`を参照しない。HTTPの送信元判定は`shared/http`から公開する。
 
@@ -98,7 +102,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ### ルートの組み立てとコメント
 
-`bootstrap/create-app.ts`と各`.route.ts`では、登録する処理のまとまりを次の英語コメントで区切る。該当する処理がある区分だけを書き、区分の間に空行を入れる。
+`bootstrap/create-app.ts`、ルート集約用の`routes/{領域}/index.ts`、各`.route.ts`では、登録する処理のまとまりを次の英語コメントで区切る。該当する処理がある区分だけを書き、区分の間に空行を入れる。
 
 | コメント       | 対象                                     | 例                                                       |
 | -------------- | ---------------------------------------- | -------------------------------------------------------- |
@@ -106,9 +110,21 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 | `// Endpoints` | そのファイルで直接定義するエンドポイント | `.get("/health", ...)`、`.patch("/staff/:id/role", ...)` |
 | `// Routes`    | 別ファイルで定義したルートの登録         | `.use(listStaffRoute(...))`                              |
 
-`bootstrap/create-app.ts`では共通プラグイン、直接定義するエンドポイント、各機能のルートの順に並べる。`/`と`/health`は`bootstrap/create-app.ts`に直接定義する。各`.route.ts`では必要なプラグインを登録してから、一つのエンドポイントを定義する。
+`bootstrap/create-app.ts`では共通プラグイン、直接定義するエンドポイント、領域ごとに集約したルートの順に並べる。`/`と`/health`は`bootstrap/create-app.ts`に直接定義する。各`.route.ts`では必要なプラグインを登録してから、一つのエンドポイントを定義する。
+
+`routes/auth`、`routes/menu`、`routes/orders`、`routes/realtime`、`routes/staff`では、`index.ts`が領域内のルートと要求する依存型を集約する。集約関数は`run`と必要な`origin`、WebSocket接続関数を受け取り、個別ルートを登録したElysiaインスタンスを返す。`bootstrap/create-app.ts`は集約関数を登録し、`AppRequirements`を領域ごとの依存型から構成する。認証マクロを使う個別ルートは、それぞれ`staffAccessPlugin`を登録する。
 
 ハンドラーはエンドポイントへ渡す処理関数を指すため、エンドポイント定義全体の見出しには`// Endpoints`を使う。これらの区分以外のコメントは日本語で、コードだけでは分からない判断理由や制約を補う。
+
+`GET /staff/events`は`routes/realtime/upgrade-websocket.route.ts`で定義し、`routes/realtime/index.ts`で集約し、他の領域とともに`bootstrap/create-app.ts`で合成する。ルートはOrigin、セッションと権限、Upgradeヘッダーを確認し、注入された接続関数を呼ぶ。`core/adapters/elysia`の`cloudflareAdapter`は、Cloudflare固有の`webSocket`を持つ101応答を再構築せず返し、それ以外の応答をElysiaのCloudflareアダプターへ委ねる。
+
+同期機能の通知方針は`features/realtime/application/use-cases/notify-updates.ts`に置く。`UpdateNotifierFacade`が機能間の入口となり、注文機能は`OrderUpdatesGateway`とアダプターを通じて呼ぶ。注文確定・調理・受け渡しのユースケースが保存後に通知を要求し、同期機能が通知の待ち時間と失敗の扱いを決める。HTTPの経路を通さない呼び出しでも同じ保証を保つ。
+
+`UpdatePublisherGateway`は通知先への出力契約とし、`Response`やWebSocketを契約へ含めない。Durable Objectの接続管理と配信は`core/infra/websocket`、D1のリビジョン取得と配信基盤の呼び出しは`features/realtime/infra/update-publisher.gateway.live.ts`に置く。`bootstrap/websocket-hub.ts`がスタッフ機能の認可判定を注入した`WebSocketHub`クラスを定義し、`index.ts`が公開する。認可のランタイムはコンストラクターのバインディングからスタッフのリポジトリとDBだけを組み立て、HTTP APIのランタイムには依存しない。接続・配信基盤は機能へ依存しない。
+
+スタッフ向けのURLは`/staff/menu`と`/staff/orders`を使う。`/staff`は利用者の区分を示す接頭辞であり、注文の実装を`features/staff`へ移す理由にはしない。一覧とリビジョン取得のルートは`routes/menu`・`routes/orders`の各領域内へ隣接させる。
+
+商品リポジトリの`findMany()`は表示順の商品・在庫残数・リビジョンを同じ読み取り時点で返す。公開用とスタッフ用のユースケースが必要な項目を選び、公開用は残数を返さず販売可否へ変換する。リポジトリの契約に利用者区分を持ち込まない。
 
 ### ポートと実装の命名
 
@@ -128,7 +144,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 たとえばメニュー機能は`InventoryAvailabilityFacade`、`MenuItemCatalogFacade`とそのDTOを公開し、`StockRepository`、`MenuItemRepository`、`Stock`、`MenuItem`は機能内に閉じる。注文機能は注文のユースケースとHTTP境界で必要な型を公開し、コマンド、リポジトリ、ゲートウェイは機能内に閉じる。
 
-`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`bootstrap/create-app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
+`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`bootstrap/create-app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで機能の外から`layer.ts`を読むのは`src/bootstrap`だけである。
 
 共有するテスト用データは`features/{機能}/testing/fixture/`、モックは`features/{機能}/testing/mock/`へ置く。`features/{機能}/testing/index.ts`は再公開だけを行う入口とし、データやモックの実装を置かない。API共通のモックは`apps/api/testing/mock/`へ置き、`apps/api/testing/index.ts`から公開する。テスト内の呼び出し確認用のスパイや、その試験に閉じるデータはテスト内に置いてよい。
 
@@ -148,9 +164,9 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 `public.ts`は自機能の契約と型を公開し、内部のコマンドやリポジトリなど永続化の詳細、`layer.ts`、テスト用コードを参照しない。`layer.ts`は自機能の`adapters`、`infra`、`application`、`domain`、`public.ts`を組み立て、他機能の`layer.ts`を参照しない。複数の表を一つの操作として更新する実装は、その操作を所有する機能の`infra/commands`へ置き、自機能の内部ポートとドメイン、および`core/infra`を参照する。`routes`は機能の`public.ts`、`core/domain`、`core/adapters`を参照し、テストファイルでは`testing/index.ts`を利用できる。
 
-ユースケースは`Effect.Effect<成功値, エラー, 要求する依存>`を返す関数として書く。この型が契約であるため、ユースケースのインターフェースを別ファイルへ置かない。
+公開ユースケースは`Effect.gen`で記述し、`Effect.Effect<成功値, エラー, 要求する依存>`を返す関数とする。`nekomimi/use-case-gen`が書き方を検査する。ジェネレーター内のエラー処理やSchemaの組み立てには`pipe`を使ってよい。この型が契約であるため、ユースケースのインターフェースを別ファイルへ置かない。
 
-ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`bootstrap/create-app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
+ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`bootstrap/runtime.ts`が各機能の`Layer`からHTTP APIの`ManagedRuntime`を組み立てる。`bootstrap/create-app.ts`はこのランタイム、許可するOrigin、`(sessionId: string) => Promise<Response>`型の接続関数を受け取る。`bootstrap/runtime.ts`が接続関数へWorkersのバインディングを渡し、`index.ts`は組み立て済みの依存を使ってアプリとDurable Objectクラスを公開する。機能、ルート、`core`、`shared`から`bootstrap`を読まない。`bootstrap/create-app.ts`は`runtime.ts`と`websocket-hub.ts`を読まない。
 
 この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`shared`から`core`と上位の機能を、`core`から`features`の読み込みを禁止し、`routes`から機能の内側への読み込みを禁止する。`core`と`shared`の技術モジュールは公開入口からだけ読む。`features`全体へのoverrideで、機能名を含む読み込み先を公開面(`features/{機能}/public.ts`)と`testing`入口(`features/{機能}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
@@ -202,7 +218,7 @@ Effectを使うのは、エラーと依存を関数の型に載せるためで�
 
 ユースケースのインターフェースを別ファイルへ置かないのは、`Effect`の型が成功値、エラー、依存のすべてを表すためである。同じ内容をインターフェースとして再宣言すると、実装を変えるたびに二箇所を直すことになり、ずれても検出できない。
 
-`bootstrap/create-app.ts`が`ManagedRuntime`だけを受け取るのは、画面が読む型にD1とDrizzleの型定義を漏らさないためである。`bootstrap/create-app.ts`が保存先の実装を参照すると、画面側の型検査にWorkers固有の型定義が必要になる([`DEC-SYS-004`](DEC-SYS-004-development-environment.md))。ポートの型は公開面の契約と領域の値だけで構成されるため、保存先の実装を各領域の`infra`へ置き、`src/index.ts`で`Layer`を解決することでこの境界を保てる。
+`bootstrap/create-app.ts`がランタイムと接続関数を引数で受け取るのは、画面が読む型にD1とDrizzleの型定義を漏らさないためである。`bootstrap/create-app.ts`が保存先の実装を参照すると、画面側の型検査にWorkers固有の型定義が必要になる([`DEC-SYS-004`](DEC-SYS-004-development-environment.md))。ポートの型は公開面の契約と領域の値だけで構成されるため、保存先の実装を各領域の`infra`へ置き、`src/bootstrap`で`Layer`を解決することでこの境界を保てる。
 
 Repositoryは、保存先の形式をドメインモデルへ変換する役割だけを見ればアダプターである。しかし、現在の具象実装はDrizzleの問い合わせAPIと表定義へ直接依存しており、これらをInterface Adaptersより外側のFrameworks & Driversに分類すると、アダプターから外側へのソースコード依存が生じる。Drizzleの問い合わせ能力を技術非依存の契約として再定義すると、ORMの抽象を複製するか、Repositoryポートとほぼ同じ契約を追加することになる。この分離に独立した変更理由がないため、Drizzleを使うRepositoryとコマンドの具象実装全体を`infra`に置く。
 
@@ -218,6 +234,6 @@ Repositoryは、保存先の形式をドメインモデルへ変換する役割�
 
 - 圧縮後のWorkerの大きさが約159キロバイトから約387キロバイトになる。無料枠の上限は圧縮後3メガバイトであり、収まっている。
 - 新しい表を追加する場所は`src/core/infra/drizzle/schema.ts`だけである。
-- テストでは`main`をテスト専用の入口へ差し替える。Elysiaの事前コンパイルはWorkerの起動時にしか行えず、本番の入口をテストランナー内で読み込むと拒否される。
+- テストでは`main`をテスト専用の入口へ差し替え、Durable Objectは`bootstrap/websocket-hub.ts`の本番クラスを公開する。Elysiaの事前コンパイルはWorkerの起動時にしか行えず、本番の入口をテストランナー内で読み込むと拒否される。
 - `no-underscore-dangle`は`_tag`を許可する。Effectのタグ付きエラーはこの名前で種類を判別する。
-- 新しい機能を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他機能と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/oxlint.config.ts`の機能パターンへ名前を加え、`src/index.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する機能の`infra/commands`に実装と契約テストを置く。
+- 新しい機能を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他機能と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/oxlint.config.ts`の機能パターンへ名前を加え、`src/bootstrap/runtime.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する機能の`infra/commands`に実装と契約テストを置く。
