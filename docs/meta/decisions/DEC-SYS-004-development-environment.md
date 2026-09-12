@@ -31,7 +31,7 @@ evidence: []
 
 作業単位は`apps/api`、`apps/site`、`apps/staff`の3つとし、それぞれ`nekomimi-ramen-api`、`nekomimi-ramen-web`、`nekomimi-ramen-staff`として配備する。公開側はAstroで静的HTMLを生成し、Tailwind CSSを使う。公開側のStorybookは`@storybook-astro/framework`、スタッフ側は`@storybook/react-vite`を使う。`pnpm site sb`は6007番、`pnpm staff sb`は6006番で起動する。CIは公開側のStorybookの静的ビルドも検証する。
 
-APIは経路定義(`src/app.ts`)とWorkerの入口(`src/index.ts`)に分ける。経路定義は`cloudflare:workers`を参照せず、実行基盤の値は引数で受け取る。画面はこの経路定義の型だけを読む。この分割より内側の構造は[`DEC-SYS-005`](DEC-SYS-005-api-internal-structure.md)で定める。
+APIは経路定義(`src/bootstrap/create-app.ts`)とWorkerの入口(`src/index.ts`)に分ける。経路定義は`cloudflare:workers`を参照せず、実行基盤の値は引数で受け取る。画面はこの経路定義の型だけを読む。この分割より内側の構造は[`DEC-SYS-005`](DEC-SYS-005-api-internal-structure.md)で定める。
 
 依存の版はpnpmのcatalogで一箇所に固定する。公開から1日を経ていない版は取り込まない。
 
@@ -57,7 +57,7 @@ TypeScriptを6系に留めるのは、ElysiaJSが型推論を深く使うため�
 
 配備をCloudflareのGit連携ではなくGitHub Actionsから行うのは、配備の手順をリポジトリの中に置くためである。Git連携では、ビルドコマンドと対象パスの設定がCloudflareの管理画面に置かれ、[変更管理](../../change-management.md)が定める提案と承認の外側で変更できてしまう。差分も履歴も残らない。加えて、D1の移行を配備の前に置く順序と、Environmentによる承認の関門は、GitHub Actionsでなければ表現できない。
 
-変更されたWorkerだけを配備するのは、営業中に画面だけを更新できる状態を保つためである。APIを再配備するとServer-Sent Eventsの接続が切れるため、画面の修正でAPIを巻き込まない。
+変更されたWorkerだけを配備するのは、営業中に画面だけを更新できる状態を保つためである。APIを再配備するとスタッフの通知接続が切れるため、画面の修正でAPIを巻き込まない。
 
 移行を配備の前に自動で適用するのは、表定義とそれを使うコードが同じプルリクエストで入るためである。適用を手作業にすると、押し忘れたときに新しい表を参照するAPIが本番で動くことになる。適用済みの移行はD1側が記録するため、再実行しても新たな変更は起きない。
 

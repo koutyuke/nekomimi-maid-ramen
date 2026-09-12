@@ -2,7 +2,7 @@ import { defineConfig } from "oxlint";
 
 import baseConfig from "../../oxlint.config.ts";
 
-const featurePath = "**/{menu,operations,orders,staff}";
+const featurePath = "**/{menu,operations,orders,realtime,staff}";
 
 const coreModuleImports = {
   group: ["**/core/{adapters,infra}/*/**", "!**/core/{adapters,infra}/*/index", "!**/core/{adapters,infra}/*/index.ts"],
@@ -16,12 +16,17 @@ const sharedModuleImports = {
 
 const routeImplementationImports = {
   group: ["**/*.live", "**/infra/**"],
-  message: "実装ではなくポートを読む。実装の組み立ては`src/index.ts`が行う。",
+  message: "実装ではなくポートを読む。機能をまたぐ実装の組み立ては`src/bootstrap`が行う。",
 };
 
 const layerImports = {
   group: ["**/features/*/layer", "**/layer"],
-  message: "`layer`を読むのは`src/index.ts`だけである。",
+  message: "機能の外から`layer`を読むのは`src/bootstrap`だけである。",
+};
+
+const bootstrapImports = {
+  group: ["**/bootstrap/**"],
+  message: "起動時の組み立ては入口だけが読む。機能やルートからbootstrapへ依存しない。",
 };
 
 const productionTestImports = {
@@ -53,6 +58,7 @@ const coreAdapterImports = {
 export default defineConfig({
   extends: [baseConfig],
   plugins: [],
+  jsPlugins: ["./lint-rules/use-case-gen.mjs"],
   rules: {
     "no-restricted-imports": [
       "error",
@@ -73,6 +79,38 @@ export default defineConfig({
   // 同じルールのオプションは後続のoverrideで置き換わるため、共通制限も各設定に含める。
   overrides: [
     {
+      files: ["src/bootstrap/create-app.ts", "src/public.ts"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              coreModuleImports,
+              sharedModuleImports,
+              {
+                group: [
+                  ...bootstrapImports.group,
+                  "./runtime",
+                  "./runtime.ts",
+                  "./websocket-hub",
+                  "./websocket-hub.ts",
+                  "!**/bootstrap/create-app",
+                  "!**/bootstrap/create-app.ts",
+                ],
+                message: "経路の合成と公開型は、実行環境の組み立てに依存しない。",
+              },
+              routeImplementationImports,
+              layerImports,
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ["src/features/*/application/use-cases/*.ts"],
+      rules: { "nekomimi/use-case-gen": "error" },
+    },
+    {
       files: ["src/routes/**", "src/plugins/**"],
       rules: {
         "no-restricted-imports": [
@@ -81,6 +119,10 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              {
+                group: [...bootstrapImports.group, "!**/bootstrap/create-app", "!**/bootstrap/create-app.ts"],
+                message: bootstrapImports.message,
+              },
               routeImplementationImports,
               {
                 group: featureBoundaryImports.group,
@@ -109,6 +151,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               routeImplementationImports,
               {
                 group: [`${featurePath}/**`, `!${featurePath}/public`, `!${featurePath}/public.ts`],
@@ -134,6 +177,7 @@ export default defineConfig({
                 group: ["**/core/**", "!@nekomimi/core/**", "**/features/**", "**/routes/**", "**/plugins/**"],
                 message: "`shared`はレイヤーや上位の機能へ依存しない。",
               },
+              bootstrapImports,
               productionTestImports,
               productionTestDirectories,
             ],
@@ -149,6 +193,7 @@ export default defineConfig({
           {
             patterns: [
               sharedModuleImports,
+              bootstrapImports,
               {
                 group: ["**/{adapters,infra}/*/**", "!**/{adapters,infra}/*/index", "!**/{adapters,infra}/*/index.ts"],
                 message:
@@ -174,6 +219,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               featureBoundaryImports,
               coreAdapterImports,
               layerImports,
@@ -193,6 +239,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               {
                 group: [`${featurePath}/**`],
                 message: "アプリケーションとドメインは他の機能を読まない。機能間の接続はアダプターで行う。",
@@ -245,6 +292,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               featureBoundaryImports,
               coreAdapterImports,
               {
@@ -268,6 +316,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               {
                 group: ["**/adapters/**", "!better-auth/adapters/drizzle"],
                 message: "保存先の実装からアダプターを読まない。",
@@ -290,6 +339,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               {
                 group: [`${featurePath}/**`],
                 message: "公開面は自機能の契約だけを公開し、他機能や内部実装を読まない。",
@@ -320,6 +370,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               {
                 group: [
                   `${featurePath}/**`,
@@ -363,6 +414,7 @@ export default defineConfig({
             patterns: [
               coreModuleImports,
               sharedModuleImports,
+              bootstrapImports,
               {
                 group: featureBoundaryImports.group,
                 message: "テスト用コードも他機能の公開面またはtesting入口だけを読む。",

@@ -1,6 +1,6 @@
 import { getMenu } from "../api/get-menu";
 import { renderMenuError, renderMenuItems, renderMenuLoading } from "../ui/menu-page/menu-page.view";
-import type { MenuItem } from "@nekomimi/core/models";
+import type { MenuItem } from "./menu";
 
 export const loadMenu = async (
   root: HTMLElement,

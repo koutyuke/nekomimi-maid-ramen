@@ -10,7 +10,7 @@ export const InventoryAvailabilityFacadeLive = Layer.effect(
     const repository = yield* StockRepository;
 
     return InventoryAvailabilityFacade.of({
-      findShortages: (demands) => repository.listAll().pipe(Effect.map((stocks) => shortagesFor(stocks, demands))),
+      findShortages: (demands) => repository.findMany().pipe(Effect.map((stocks) => shortagesFor(stocks, demands))),
     });
   }),
 );

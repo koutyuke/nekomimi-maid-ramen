@@ -19,3 +19,11 @@ export type Receipt = {
   received: number;
   quotedTotal: number | null;
 };
+
+export const stockShortages = (lines: readonly DraftLine[], items: readonly MenuItem[]) =>
+  lines.flatMap((line) => {
+    const item = items.find((candidate) => candidate.id === line.item.id);
+    const available = item?.sellable ? item.quantity : 0;
+    const requested = Number(line.quantity);
+    return requested > available ? [{ name: line.item.name, menuItemId: line.item.id, requested, available }] : [];
+  });

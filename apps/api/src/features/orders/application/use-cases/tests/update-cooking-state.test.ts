@@ -2,7 +2,7 @@ import { Effect, Layer } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 import { KitchenOrderConflict } from "../../../domain/order";
-import { orderLineFixture } from "../../../testing";
+import { orderLineFixture, orderUpdatesGatewayMock } from "../../../testing";
 import { OrderRepository } from "../../ports/outbound/order.repository";
 import { UpdateCookingStateCommand } from "../../ports/outbound/update-cooking-state.command";
 import { updateCookingState } from "../update-cooking-state";
@@ -12,7 +12,8 @@ const repositoryWith = (cookingState: CookingState) =>
   Layer.succeed(OrderRepository, {
     findByRequestId: () => Effect.succeedNone,
     findLine: () => Effect.succeedSome(orderLineFixture("ramen", 1, 500, cookingState)),
-    list: () => Effect.succeed([]),
+    getRevision: () => Effect.succeed(0),
+    findMany: () => Effect.succeed({ data: [], revision: 0 }),
   });
 
 describe("SPEC-KIT-002 調理状況の遷移判定", () => {
@@ -22,7 +23,7 @@ describe("SPEC-KIT-002 調理状況の遷移判定", () => {
 
     await Effect.runPromise(
       updateCookingState({ id: "staff-1", role: "Staff" }, "order-1", "ramen", "completed").pipe(
-        Effect.provide(Layer.merge(repositoryWith("cooking"), command)),
+        Effect.provide(Layer.mergeAll(repositoryWith("cooking"), command, orderUpdatesGatewayMock)),
       ),
     );
 
@@ -36,7 +37,7 @@ describe("SPEC-KIT-002 調理状況の遷移判定", () => {
     const error = await Effect.runPromise(
       updateCookingState({ id: "staff-1", role: "Staff" }, "order-1", "ramen", "completed").pipe(
         Effect.flip,
-        Effect.provide(Layer.merge(repositoryWith("unstarted"), command)),
+        Effect.provide(Layer.mergeAll(repositoryWith("unstarted"), command, orderUpdatesGatewayMock)),
       ),
     );
 

@@ -21,7 +21,14 @@ const slicePublicEntryImports = {
   message: "他のスライスは公開入口(`{層}/{スライス}`)またはテスト用入口(`{層}/{スライス}/testing`)から読む。",
 };
 
-const restrictedImports = (patterns: readonly unknown[]) => ["error", { patterns }] as const;
+const restrictedImports = (patterns: readonly unknown[]) =>
+  [
+    "error",
+    {
+      paths: [{ name: "@nekomimi/api", allowImportNames: ["App"], message: "APIから読むのはApp型だけである。" }],
+      patterns,
+    },
+  ] satisfies ["error", unknown];
 
 export default defineConfig({
   extends: [baseConfig],
@@ -30,6 +37,7 @@ export default defineConfig({
     browser: true,
   },
   rules: {
+    "no-restricted-imports": restrictedImports([]),
     // 新しいJSX変換を使うため、`React`を読み込む必要がない。
     "react/react-in-jsx-scope": "off",
     "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],

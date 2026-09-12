@@ -75,39 +75,58 @@ export const OrderRepositoryLive = Layer.effect(
               }),
             ),
           ),
-      list: (lookup) =>
+      getRevision: () =>
+        database.run("注文のリビジョン取得", async (db) => {
+          const row = await db
+            .select({ revision: Database.tables.resourceRevisions.revision })
+            .from(Database.tables.resourceRevisions)
+            .where(eq(Database.tables.resourceRevisions.scope, "orders"))
+            .get();
+
+          if (!row) {
+            throw new Error("Missing orders revision");
+          }
+
+          return row.revision;
+        }),
+      findMany: (lookup) =>
         database
           .run("注文の一覧取得", (db) =>
-            db
-              .select({
-                order: ordersTable,
-                line: {
-                  menuItemId: linesTable.menuItemId,
-                  quantity: linesTable.quantity,
-                  name: menuTable.name,
-                  category: menuTable.category,
-                  cookingState: linesTable.cookingState,
-                },
-              })
-              .from(ordersTable)
-              .leftJoin(linesTable, eq(linesTable.orderId, ordersTable.id))
-              .leftJoin(menuTable, eq(menuTable.id, linesTable.menuItemId))
-              .where(
-                lookup
-                  ? and(eq(ordersTable.businessDate, lookup.businessDate), isNull(ordersTable.cancelledAt))
-                  : isNull(ordersTable.cancelledAt),
-              )
-              .orderBy(
-                ordersTable.confirmedAt,
-                ordersTable.businessDate,
-                ordersTable.orderNumber,
-                menuTable.displayOrder,
-                menuTable.id,
-              )
-              .all(),
+            db.batch([
+              db
+                .select({
+                  order: ordersTable,
+                  line: {
+                    menuItemId: linesTable.menuItemId,
+                    quantity: linesTable.quantity,
+                    name: menuTable.name,
+                    category: menuTable.category,
+                    cookingState: linesTable.cookingState,
+                  },
+                })
+                .from(ordersTable)
+                .leftJoin(linesTable, eq(linesTable.orderId, ordersTable.id))
+                .leftJoin(menuTable, eq(menuTable.id, linesTable.menuItemId))
+                .where(
+                  lookup
+                    ? and(eq(ordersTable.businessDate, lookup.businessDate), isNull(ordersTable.cancelledAt))
+                    : isNull(ordersTable.cancelledAt),
+                )
+                .orderBy(
+                  ordersTable.confirmedAt,
+                  ordersTable.businessDate,
+                  ordersTable.orderNumber,
+                  menuTable.displayOrder,
+                  menuTable.id,
+                ),
+              db
+                .select({ revision: Database.tables.resourceRevisions.revision })
+                .from(Database.tables.resourceRevisions)
+                .where(eq(Database.tables.resourceRevisions.scope, "orders")),
+            ]),
           )
           .pipe(
-            Effect.flatMap((rows) => {
+            Effect.flatMap(([rows, revisions]) => {
               const grouped = new Map<string, { order: OrderRow; lines: Array<(typeof rows)[number]["line"]> }>();
               for (const row of rows) {
                 const line =
@@ -129,7 +148,7 @@ export const OrderRepositoryLive = Layer.effect(
               }
               return Schema.decodeUnknown(Schema.Array(OperationalOrder))(
                 [...grouped.values()].map(({ order, lines }) => ({ ...order, lines })),
-              );
+              ).pipe(Effect.map((data) => ({ data, revision: revisions[0]!.revision })));
             }),
             Effect.mapError((cause) =>
               cause instanceof PersistenceError ? cause : new PersistenceError({ operation: "注文の復元", cause }),

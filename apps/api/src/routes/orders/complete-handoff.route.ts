@@ -7,11 +7,11 @@ import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import { HandoffCompletedResponse, HandoffConflictResponse } from "./orders.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
 export type CompleteHandoffRequirements =
   | Effect.Effect.Context<ReturnType<typeof completeHandoff>>
-  | StaffAccessRequirements;
+  | StaffAccessPluginRequirements;
 
 export const completeHandoffRoute = (run: EffectRunner<CompleteHandoffRequirements>, origin: string) =>
   new Elysia()
@@ -20,7 +20,7 @@ export const completeHandoffRoute = (run: EffectRunner<CompleteHandoffRequiremen
 
     // Endpoints
     .post(
-      "/orders/:id/handoff",
+      "/staff/orders/:id/handoff",
       ({ staff, params, status }) =>
         run(
           logAndDie(

@@ -1,12 +1,7 @@
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import {
-  inventoryAvailabilityFacadeMock,
-  menuItemFixture,
-  menuItemRepositoryMock,
-  stockFixture,
-} from "../../../testing";
+import { menuItemFixture, menuItemRepositoryMock, stockFixture } from "../../../testing";
 import { listMenu } from "../list-menu";
 import type { MenuItem } from "../../../domain/menu-item";
 import type { Stock } from "../../../domain/stock";
@@ -21,11 +16,7 @@ const gyoza = menuItemFixture({
 });
 
 const run = (menuItems: ReadonlyArray<MenuItem>, stocks: ReadonlyArray<Stock>) =>
-  Effect.runPromise(
-    listMenu().pipe(
-      Effect.provide(Layer.mergeAll(menuItemRepositoryMock(menuItems), inventoryAvailabilityFacadeMock(stocks))),
-    ),
-  );
+  Effect.runPromise(listMenu().pipe(Effect.provide(menuItemRepositoryMock(menuItems, stocks))));
 
 const sellableById = (entries: Awaited<ReturnType<typeof run>>) =>
   Object.fromEntries(entries.map((entry) => [entry.menuItem.id, entry.sellable]));

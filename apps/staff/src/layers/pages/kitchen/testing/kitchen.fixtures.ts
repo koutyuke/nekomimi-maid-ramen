@@ -5,9 +5,8 @@ export const kitchenPageFixture: KitchenPageUIProps = {
   loading: false,
   failed: false,
   connected: true,
-  pending: false,
+  pendingLines: [],
   error: null,
-  message: null,
   orders: (["unstarted", "cooking", "completed"] as const).map((state, index) => ({
     id: `order-${index + 1}`,
     businessDate: "2026-10-24",

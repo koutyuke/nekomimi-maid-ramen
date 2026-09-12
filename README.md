@@ -33,7 +33,8 @@ flowchart LR
         W["apps/site<br/>nekomimi-ramen.com<br/>Astro 静的HTML"]
         T["apps/staff<br/>staff.nekomimi-ramen.com<br/>React 静的アセット"]
         A["apps/api<br/>api.nekomimi-ramen.com<br/>ElysiaJS"]
-        D[("D1<br/>注文・在庫")]
+        D[("D1<br/>注文・在庫・リビジョン")]
+        H["Durable Object<br/>スタッフ接続管理"]
     end
 
     G["Google OAuth"]
@@ -42,18 +43,19 @@ flowchart LR
     S --> T
     W -->|"公開メニュー"| A
     T -->|"Eden Treaty"| A
-    A -.->|"SSE 調理状況"| T
+    A -->|"保存後の変更通知"| H
+    H -.->|"WebSocket"| T
     A --> D
     A --> G
 ```
 
-3 つの Worker を別々のホストへ割り当て、**別々に配備する**。営業中に画面だけを直したいとき、API を巻き込んで Server-Sent Events の接続を切らないためである。
+3 つの Worker を別々のホストへ割り当て、**別々に配備する**。営業中に画面だけを直したいとき、API を巻き込んで スタッフの通知接続を切らないためである。
 
 | 作業単位     | 配備先                     | 主な構成                                                               |
 | ------------ | -------------------------- | ---------------------------------------------------------------------- |
 | `apps/site`  | `nekomimi-ramen.com`       | Astro ・ TypeScript ・ Tailwind CSS                                    |
 | `apps/staff` | `staff.nekomimi-ramen.com` | React ・ Vite ・ TanStack Router ・ TanStack Query ・ Jotai ・ Mantine |
-| `apps/api`   | `api.nekomimi-ramen.com`   | ElysiaJS ・ Effect ・ Drizzle ORM ・ Cloudflare D1                     |
+| `apps/api`   | `api.nekomimi-ramen.com`   | ElysiaJS ・ Effect ・ Drizzle ORM ・ Cloudflare D1 ・ Durable Objects  |
 
 画面は Eden Treaty で `apps/api` の型を読む。依存の向きは画面から API への一方向に限り、API は画面の実装を参照しない。
 
@@ -116,9 +118,11 @@ pnpm --filter @nekomimi/api db:seed:remote
 
 スタッフの入口は`/`、注文は`/sales`、調理は`/kitchen`、受け渡しは`/handoff`、管理は`/admin`である。未認証で注文・調理・受け渡し・管理画面へアクセスすると`/`へ戻り、ログインを案内する。公開ホストの`/staff`以下は、`/staff`の接頭辞を除いてスタッフホストへ302転送する。
 
-Staff以上の担当者は「調理」から確定注文の商品と数量を確認し、「調理を開始」「完成」で状態を進める。着手を取り消す場合は「未調理に戻す」を使う。他端末の変更はSSEで自動反映する。通信断や更新の競合では表示を確認し、「再読み込み」で最新の一覧を取得してから操作する。取り消し済みの注文は表示されない。
+Staff以上の担当者は「調理」から確定注文の商品と数量を確認し、「調理を開始」「完成」で状態を進める。着手を取り消す場合は「未調理に戻す」を使う。他端末の変更は自動反映する。更新の競合では「再読み込み」で最新の一覧を取得してから操作する。取り消し済みの注文は表示されない。
 
-公開メニューのGETは認証不要で、公開ホストと、このプロジェクトの`nekomimi-ramen-web`・`nekomimi-ramen-staff`の`koutyuke.workers.dev`プレビューから閲覧できる。許可リストは`apps/api/src/core/http/origins.ts`、CORSの適用は`apps/api/src/plugins/cors/cors.plugin.ts`で管理する。認証と業務操作は、本番ではスタッフ側の送信元だけを許可する。開発ではポート変更に対応するため、`localhost`と`127.0.0.1`のHTTPをポートを問わず許可する。
+注文画面は各商品の在庫残数を常時表示する。別端末の注文で在庫が減っても、選択個数と預かり金は保持し、不足する場合は理由を表示して新しい確定を止める。通知接続だけが切れた場合は操作を続けながら30秒ごとに変更を確認する。データ取得や変更確認に失敗した場合は、入力を保持して操作を止める。公開メニューには在庫残数を返さず、自動同期もしない。
+
+公開メニューのGETは認証不要で、公開ホストと、このプロジェクトの`nekomimi-ramen-web`・`nekomimi-ramen-staff`の`koutyuke.workers.dev`プレビューから閲覧できる。許可リストは`apps/api/src/shared/http/origins.ts`、CORSの適用は`apps/api/src/plugins/cors/cors.plugin.ts`で管理する。認証と業務操作は、本番ではスタッフ側の送信元だけを許可する。開発ではポート変更に対応するため、`localhost`と`127.0.0.1`のHTTPをポートを問わず許可する。
 
 ## 検査
 
@@ -159,6 +163,8 @@ pnpm --filter @nekomimi/api exec wrangler deploy
 pnpm --filter @nekomimi/site run build && pnpm --filter @nekomimi/site exec wrangler deploy
 pnpm --filter @nekomimi/staff run build && pnpm --filter @nekomimi/staff exec wrangler deploy
 ```
+
+スタッフ同期を配備するときは、D1の移行を適用し、API、スタッフ画面の順に配備した後、開いているスタッフ画面を再読み込みする。`apps/api/wrangler.jsonc`の`STAFF_UPDATES`バインディングとSQLite形式のDurable Object移行が必要である。リビジョンは`resource_revisions`の`scope`ごとの行で保持する。D1のリビジョンを進めるトリガーは`apps/api/drizzle/0007_resource_revisions.sql`で管理する。表定義の自動生成だけではトリガーを管理できないため、対象列を変える場合は移行SQLも確認する。
 
 初回の分離配備は、スタッフ用Workerを作成してからAPIの送信元設定を反映し、最後に公開側を配備する。公開側は既存の`nekomimi-ramen-web`、スタッフ側は`nekomimi-ramen-staff`を使う。APIと公開側を切り替える間は従来ホストからの業務操作が拒否されるため、営業外に実施する。切り戻す場合は分離前の公開WorkerとAPIを組で戻す。
 

@@ -7,6 +7,6 @@ import type { Stock } from "../../../domain/stock";
 export class StockRepository extends Context.Tag("StockRepository")<
   StockRepository,
   {
-    readonly listAll: () => Effect.Effect<ReadonlyArray<Stock>, PersistenceError>;
+    readonly findMany: () => Effect.Effect<ReadonlyArray<Stock>, PersistenceError>;
   }
 >() {}

@@ -1,1 +1,1 @@
-export type { App } from "./app";
+export type { App } from "./bootstrap/create-app";

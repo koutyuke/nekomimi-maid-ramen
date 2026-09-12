@@ -1,5 +1,5 @@
 import { api } from "../../../shared/api";
-import type { MenuItem } from "@nekomimi/core/models";
+import type { MenuItem } from "../model/menu";
 
 export const getMenu = async (): Promise<readonly MenuItem[]> => {
   const { data, error } = await api.menu.get();

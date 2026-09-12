@@ -6,6 +6,7 @@ import type { MenuItemId } from "../../core/domain/ids";
 import type { OperationalOrder, Order, OrderStockShortage } from "../../features/orders/public";
 
 export const OrdersResponse = Schema.Struct({
+  revision: Schema.Int.pipe(Schema.nonNegative()),
   orders: Schema.Array(
     Schema.Struct({
       id: Schema.String.annotations({ description: "注文の識別子" }),

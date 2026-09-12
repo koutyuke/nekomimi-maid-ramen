@@ -6,8 +6,8 @@ export const handoffPageFixture: HandoffPageUIProps = {
   failed: false,
   connected: true,
   pending: false,
+  pendingLines: [],
   error: null,
-  message: null,
   orders: [
     {
       id: "order-1",

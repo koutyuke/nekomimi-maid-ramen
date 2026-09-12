@@ -13,7 +13,7 @@ export const StockRepositoryLive = Layer.effect(
     const database = yield* Database;
 
     const service = {
-      listAll: () =>
+      findMany: () =>
         database
           .run("在庫の一覧取得", (db) => db.select().from(Database.tables.stocks).all())
           .pipe(

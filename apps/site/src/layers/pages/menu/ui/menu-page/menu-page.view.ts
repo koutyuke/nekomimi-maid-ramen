@@ -1,5 +1,5 @@
-import { MENU_CATEGORY_LABEL } from "@nekomimi/core/models";
-import type { MenuItem } from "@nekomimi/core/models";
+import { MENU_CATEGORY_LABEL } from "../../model/menu";
+import type { MenuItem } from "../../model/menu";
 
 const textElement = (tag: string, text: string): HTMLElement => {
   const element = document.createElement(tag);

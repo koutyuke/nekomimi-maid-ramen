@@ -5,7 +5,8 @@ import { drizzle } from "drizzle-orm/d1";
 import { Layer, ManagedRuntime, Schema } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { createApp } from "../../app";
+import { realtimeMock, upgradeWebSocketMock } from "../../../testing";
+import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";
 import { makeOrdersLayer } from "../../features/orders/layer";
@@ -14,12 +15,14 @@ import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "..
 const db = drizzle(env.DB);
 const origin = "https://staff.nekomimi-ramen.com";
 const app = createApp({
+  upgradeWebSocket: upgradeWebSocketMock,
   origin,
   aot: false,
   runtime: ManagedRuntime.make(
     Layer.mergeAll(
+      realtimeMock,
       MenuLayer,
-      makeOrdersLayer("").pipe(Layer.provide(MenuLayer)),
+      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayer, realtimeMock))),
       authenticationGatewayMock(staffFixture),
       staffRepositoryMock(),
     ).pipe(Layer.provide(makeDatabaseLive(env.DB))),
@@ -34,8 +37,8 @@ const request = (path: string, body?: unknown, method = body === undefined ? "GE
     }),
   );
 const update = (to: string, id = "order-1", menuItemId = "ramen") =>
-  request(`/orders/${id}/lines/${menuItemId}/cooking-state`, { to });
-const handoff = (id = "order-1") => request(`/orders/${id}/handoff`, {}, "POST");
+  request(`/staff/orders/${id}/lines/${menuItemId}/cooking-state`, { to });
+const handoff = (id = "order-1") => request(`/staff/orders/${id}/handoff`, {}, "POST");
 const storedLine = async () =>
   (await db.select().from(Database.tables.orderLines).where(eq(Database.tables.orderLines.orderId, "order-1")))[0];
 beforeEach(async () => {
@@ -75,29 +78,29 @@ describe("SPEC-KIT-001 確定注文の調理一覧", () => {
     await db.delete(Database.tables.orderLines);
     await db.delete(Database.tables.orders);
     const candidate = { requestId: "confirmation-1", lines: [{ menuItemId: "ramen", quantity: 2 }] };
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toEqual({ orders: [] });
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({ orders: [] });
     const confirm = () =>
       app.handle(
-        new Request("https://api.nekomimi-ramen.com/orders", {
+        new Request("https://api.nekomimi-ramen.com/staff/orders", {
           method: "POST",
           headers: { origin, "content-type": "application/json" },
           body: JSON.stringify(candidate),
         }),
       );
     expect((await confirm()).status).toBe(409);
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toEqual({ orders: [] });
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({ orders: [] });
     await db.insert(Database.tables.stocks).values({ menuItemId: "ramen", quantity: 2, updatedAt: new Date() });
     const response = await confirm();
     expect(response.status).toBe(201);
     const { businessDate } = Schema.decodeUnknownSync(Schema.Struct({ businessDate: Schema.String }))(
       await response.json(),
     );
-    expect(await (await request(`/orders?businessDate=${businessDate}`)).json()).toMatchObject({
+    expect(await (await request(`/staff/orders?businessDate=${businessDate}`)).json()).toMatchObject({
       orders: [{ orderNumber: 1, cookingState: "unstarted" }],
     });
   });
   it("保存済みの確定注文を商品名と数量付きで返す", async () => {
-    const response = await request("/orders?businessDate=2026-10-24");
+    const response = await request("/staff/orders?businessDate=2026-10-24");
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toMatchObject({
@@ -112,20 +115,20 @@ describe("SPEC-KIT-001 確定注文の調理一覧", () => {
     });
   });
   it("営業日を指定しない一覧要求を拒否する", async () => {
-    expect((await request("/orders")).status).toBe(422);
+    expect((await request("/staff/orders")).status).toBe(422);
   });
 });
 
 describe("SPEC-KIT-002 調理状況の保存条件", () => {
   it("注文全体を直接更新する経路は提供しない", async () => {
-    expect((await request("/orders/order-1/cooking-state", { to: "cooking" })).status).toBe(404);
+    expect((await request("/staff/orders/order-1/cooking-state", { to: "cooking" })).status).toBe(404);
   });
   it("着手を戻してから再着手・完成でき、別の取得にも完成が反映される", async () => {
     for (const to of ["cooking", "unstarted", "cooking", "completed"]) {
       expect((await update(to)).status).toBe(200);
       expect((await storedLine())?.cookingState).toBe(to);
     }
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toMatchObject({
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({
       orders: [{ cookingState: "completed" }],
     });
   });
@@ -180,7 +183,7 @@ describe("SPEC-KIT-002 明細の独立性と注文全体の集計", () => {
           }),
         ),
       }),
-    )(await (await request("/orders?businessDate=2026-10-24")).json()).orders[0]!;
+    )(await (await request("/staff/orders?businessDate=2026-10-24")).json()).orders[0]!;
 
   it("同じ注文の別明細への同時着手は両方成立し、数量と在庫を変更しない", async () => {
     await db.insert(Database.tables.stocks).values({ menuItemId: "ramen", quantity: 8, updatedAt: new Date() });
@@ -231,10 +234,10 @@ describe("SPEC-HAND-001 SPEC-HAND-002 受け渡しの成立条件と一度だけ
     );
     expect(Number.isNaN(Date.parse(handedOffAt))).toBe(false);
     expect((await handoff()).status).toBe(409);
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toMatchObject({
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({
       orders: [{ id: "order-1", cookingState: "completed", handedOffAt, cancelledAt: null }],
     });
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toMatchObject({
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({
       orders: [{ handedOffAt }],
     });
   });
@@ -255,61 +258,20 @@ describe("SPEC-HAND-001 SPEC-HAND-002 受け渡しの成立条件と一度だけ
     expect((await handoff()).status).toBe(409);
   });
   it("営業日で未取消注文を絞り込む", async () => {
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toMatchObject({
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({
       orders: [{ id: "order-1", cookingState: "unstarted", handedOffAt: null, cancelledAt: null }],
     });
-    expect(await (await request("/orders?businessDate=2026-10-25")).json()).toEqual({ orders: [] });
+    expect(await (await request("/staff/orders?businessDate=2026-10-25")).json()).toMatchObject({ orders: [] });
     await db.update(Database.tables.orders).set({ cancelledAt: new Date() });
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toEqual({ orders: [] });
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({ orders: [] });
   });
 });
 
 describe("SPEC-KIT-001 調理対象の絞り込みと順序", () => {
   it("取り消した注文は表示も更新もできない", async () => {
     await db.update(Database.tables.orders).set({ cancelledAt: new Date() });
-    expect(await (await request("/orders?businessDate=2026-10-24")).json()).toEqual({ orders: [] });
+    expect(await (await request("/staff/orders?businessDate=2026-10-24")).json()).toMatchObject({ orders: [] });
     expect((await update("cooking")).status).toBe(409);
     expect((await storedLine())?.cookingState).toBe("unstarted");
-  });
-});
-
-describe("SPEC-KIT-002 SSEによる変更通知", () => {
-  it("注文全体の状態が変わらなくても明細の更新を通知する", async () => {
-    await db.insert(Database.tables.menuItems).values({
-      id: "tea",
-      name: "烏龍茶",
-      price: 200,
-      category: "drink",
-      displayOrder: 2,
-      allergenCheckState: "unchecked",
-      updatedAt: new Date(),
-    });
-    await db
-      .insert(Database.tables.orderLines)
-      .values({ orderId: "order-1", menuItemId: "tea", quantity: 1, unitPrice: 200, cookingState: "cooking" });
-    const abort = new AbortController();
-    const response = await app.handle(
-      new Request("https://api.nekomimi-ramen.com/orders/events", { signal: abort.signal, headers: { origin } }),
-    );
-    expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toContain("text/event-stream");
-    expect(response.headers.get("access-control-allow-origin")).toBe(origin);
-    const reader = response.body!.getReader();
-    const read = async () => new TextDecoder().decode((await reader.read()).value);
-    try {
-      expect(await read()).toContain("event: refresh");
-      await update("cooking");
-      let changed = false;
-      for (let attempts = 0; attempts < 2; attempts += 1) {
-        if ((await read()).includes("event: refresh")) {
-          changed = true;
-          break;
-        }
-      }
-      expect(changed).toBe(true);
-    } finally {
-      abort.abort();
-      await reader.cancel();
-    }
   });
 });

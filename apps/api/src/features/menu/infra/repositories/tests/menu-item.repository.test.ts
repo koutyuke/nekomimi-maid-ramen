@@ -10,11 +10,12 @@ import type { MenuCategory } from "../../../domain/menu-item";
 
 const db = drizzle(env.DB);
 
-const listInDisplayOrder = () =>
+const listMenuItems = () =>
   Effect.runPromise(
     Effect.gen(function* () {
       const repository = yield* MenuItemRepository;
-      return yield* repository.listInDisplayOrder();
+      const snapshot = yield* repository.findMany();
+      return snapshot.data.map(({ menuItem }) => menuItem);
     }).pipe(Effect.provide(MenuItemRepositoryLive.pipe(Layer.provide(makeDatabaseLive(env.DB))))),
   );
 
@@ -63,7 +64,7 @@ describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
       { menuItemId: "item-gyoza", allergenId: "allergen-egg" },
     ]);
 
-    const items = await listInDisplayOrder();
+    const items = await listMenuItems();
 
     expect(items).toHaveLength(1);
     expect(items[0]?.containedAllergens.map((allergen) => allergen.name).toSorted()).toEqual(["卵", "小麦"]);
@@ -77,7 +78,7 @@ describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
         menuItemRow({ id: "item-cola", name: "コーラ", price: 300, displayOrder: 3, category: "drink" }),
       ]);
 
-    const items = await listInDisplayOrder();
+    const items = await listMenuItems();
 
     expect(items.map((item) => item.name)).toEqual(["ラーメン", "コーラ"]);
     expect(items.map((item) => item.containedAllergens.length)).toEqual([0, 0]);
@@ -91,7 +92,7 @@ describe("SPEC-VIS-002 商品と特定原材料の読み出し", () => {
         menuItemRow({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1, category: "main" }),
       ]);
 
-    const items = await listInDisplayOrder();
+    const items = await listMenuItems();
 
     expect(items.map((item) => item.name)).toEqual(["ラーメン", "コーラ"]);
   });

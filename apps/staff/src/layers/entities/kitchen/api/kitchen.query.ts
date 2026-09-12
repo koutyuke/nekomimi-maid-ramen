@@ -7,7 +7,10 @@ export const kitchenQueries = {
   list: (businessDate: string) =>
     queryOptions({
       queryKey: [...kitchenQueryScopes.all(), "list", businessDate],
-      queryFn: () => getKitchenOrders(businessDate),
+      queryFn: ({ signal }) => getKitchenOrders(businessDate, signal),
+      select: (snapshot) => snapshot.data,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
       staleTime: 0,
       retry: false,
     }),

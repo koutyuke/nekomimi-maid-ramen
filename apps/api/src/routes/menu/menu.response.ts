@@ -36,3 +36,13 @@ export const presentMenu = (entries: ReadonlyArray<MenuEntry>): MenuResponse => 
     containedAllergens: menuItem.containedAllergens.map((allergen) => ({ id: allergen.id, name: allergen.name })),
   })),
 });
+
+export const StaffMenuResponse = Schema.Struct({
+  revision: Schema.Int.pipe(Schema.nonNegative()),
+  items: Schema.Array(
+    Schema.Struct({
+      ...MenuResponse.fields.items.value.fields,
+      quantity: Schema.Int.pipe(Schema.nonNegative()).annotations({ description: "現在の在庫残数" }),
+    }),
+  ),
+});

@@ -13,6 +13,13 @@
       "custom_domain": true,
     },
   ],
+  "durable_objects": {
+    "bindings": [{ "name": "STAFF_UPDATES", "class_name": "WebSocketHub" }],
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["StaffUpdates"] },
+    { "tag": "v2", "renamed_classes": [{ "from": "StaffUpdates", "to": "WebSocketHub" }] },
+  ],
   "d1_databases": [
     {
       "binding": "DB",
