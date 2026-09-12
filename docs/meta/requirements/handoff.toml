@@ -4,9 +4,9 @@ domain_code = "HAND"
 
 [[requirements]]
 id = "REQ-HAND-001"
-title = "完成した注文を番号で照合できる"
+title = "当日の注文を一覧で確認できる"
 kind = "functional"
-statement = "受け渡し担当者は、完成した注文を注文番号で識別し、内容を確認できる。"
+statement = "受け渡し担当者は、当日の未取消注文を注文ごとに確認し、受け渡し可能、調理対応中、完了に区別して優先順に処理できる。"
 reason = "別の来場者へ商品を渡すことを防ぐため。"
 priority = "must"
 status = "draft"
@@ -18,10 +18,22 @@ sources = []
 id = "REQ-HAND-002"
 title = "受け渡し済みに更新できる"
 kind = "functional"
-statement = "受け渡し担当者は、商品を渡した注文を受け渡し済みに更新し、同じ注文の二重受け渡しを防止できる。"
+statement = "受け渡し担当者は、全明細が完成した未取消の注文について、受け渡し日時を注文単位で一度だけ記録できる。同時操作や再送で日時を上書きしない。"
 reason = "同じ注文の商品を複数回渡すことを防ぐため。"
 priority = "must"
 status = "draft"
 specs = ["SPEC-HAND-002"]
+depends_on = ["REQ-HAND-001", "REQ-HAND-003"]
+sources = []
+
+[[requirements]]
+id = "REQ-HAND-003"
+title = "ドリンクの調理状況を更新できる"
+kind = "functional"
+statement = "受け渡し担当者は、未受け渡しの注文に含まれるドリンクについて、商品ごとの調理状況を許可された順序で更新できる。mainとサイドは受け渡し画面から更新できない。"
+reason = "受け渡し担当者がドリンクを準備し、全商品が揃った注文を受け渡せるようにするため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-HAND-003"]
 depends_on = ["REQ-HAND-001"]
 sources = []

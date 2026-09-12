@@ -4,9 +4,9 @@ domain_code = "KIT"
 
 [[requirements]]
 id = "REQ-KIT-001"
-title = "確定した注文を確認できる"
+title = "担当する当日注文を確認できる"
 kind = "functional"
-statement = "調理担当者は、確定した注文の番号、商品、数量、現在の調理状況を確認できる。"
+statement = "調理担当者は、当日の未取消注文からmainとサイドの商品を担当範囲で絞り、注文番号、商品、数量、明細ごとの調理状況、選択範囲の対応状況を作業の優先順で確認できる。"
 reason = "未確定の注文を調理せず、会計から調理への伝達漏れを減らすため。"
 priority = "must"
 status = "draft"
@@ -16,9 +16,9 @@ sources = []
 
 [[requirements]]
 id = "REQ-KIT-002"
-title = "調理状況を更新できる"
+title = "担当商品の調理状況を更新できる"
 kind = "functional"
-statement = "調理担当者は、許可された順序で注文の調理状況を更新できる。"
+statement = "調理担当者は、mainとサイドについて、同じ商品の全数量を一つの明細として、許可された順序で明細ごとの調理状況を更新できる。"
 reason = "調理と受け渡しの担当者が同じ進行状況を確認できるようにするため。"
 priority = "must"
 status = "draft"

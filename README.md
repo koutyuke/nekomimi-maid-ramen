@@ -114,7 +114,9 @@ pnpm --filter @nekomimi/api db:seed:remote
 | 開発 | `http://localhost:4321`      | `http://localhost:5173`            | `http://localhost:8787`          |
 | 本番 | `https://nekomimi-ramen.com` | `https://staff.nekomimi-ramen.com` | `https://api.nekomimi-ramen.com` |
 
-スタッフの入口は`/`、注文は`/sales`、管理は`/admin`である。未認証で注文・管理画面へアクセスすると`/`へ戻り、ログインを案内する。公開ホストの`/staff`以下は、`/staff`の接頭辞を除いてスタッフホストへ302転送する。
+スタッフの入口は`/`、注文は`/sales`、調理は`/kitchen`、受け渡しは`/handoff`、管理は`/admin`である。未認証で注文・調理・受け渡し・管理画面へアクセスすると`/`へ戻り、ログインを案内する。公開ホストの`/staff`以下は、`/staff`の接頭辞を除いてスタッフホストへ302転送する。
+
+Staff以上の担当者は「調理」から確定注文の商品と数量を確認し、「調理を開始」「完成」で状態を進める。着手を取り消す場合は「未調理に戻す」を使う。他端末の変更はSSEで自動反映する。通信断や更新の競合では表示を確認し、「再読み込み」で最新の一覧を取得してから操作する。取り消し済みの注文は表示されない。
 
 公開メニューのGETは認証不要で、公開ホストと、このプロジェクトの`nekomimi-ramen-web`・`nekomimi-ramen-staff`の`koutyuke.workers.dev`プレビューから閲覧できる。許可リストは`apps/api/src/core/http/origins.ts`、CORSの適用は`apps/api/src/plugins/cors/cors.plugin.ts`で管理する。認証と業務操作は、本番ではスタッフ側の送信元だけを許可する。開発ではポート変更に対応するため、`localhost`と`127.0.0.1`のHTTPをポートを問わず許可する。
 
