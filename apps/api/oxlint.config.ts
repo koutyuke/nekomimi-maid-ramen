@@ -2,7 +2,7 @@ import { defineConfig } from "oxlint";
 
 import baseConfig from "../../oxlint.config.ts";
 
-const featurePath = "**/{menu,operations,orders,staff}";
+const featurePath = "**/{menu,operations,orders,realtime,staff}";
 
 const coreModuleImports = {
   group: ["**/core/{adapters,infra}/*/**", "!**/core/{adapters,infra}/*/index", "!**/core/{adapters,infra}/*/index.ts"],
@@ -53,6 +53,7 @@ const coreAdapterImports = {
 export default defineConfig({
   extends: [baseConfig],
   plugins: [],
+  jsPlugins: ["./lint-rules/use-case-gen.mjs"],
   rules: {
     "no-restricted-imports": [
       "error",
@@ -72,6 +73,10 @@ export default defineConfig({
   ignorePatterns: ["dist/**", ".wrangler/**", "worker-configuration.d.ts", "drizzle/**"],
   // 同じルールのオプションは後続のoverrideで置き換わるため、共通制限も各設定に含める。
   overrides: [
+    {
+      files: ["src/features/*/application/use-cases/*.ts"],
+      rules: { "nekomimi/use-case-gen": "error" },
+    },
     {
       files: ["src/routes/**", "src/plugins/**"],
       rules: {
