@@ -258,6 +258,5 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
           }),
       }),
     getSession,
-    getStaff: (headers) => getSession(headers).pipe(Effect.map(Option.map((session) => session.staff))),
   });
 };

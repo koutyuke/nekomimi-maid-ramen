@@ -9,7 +9,6 @@ export const authenticationGatewayMock = (staff: Staff | null = null) =>
     request: () => Effect.succeed(new Response(null, { status: 501 })),
     callback: () => Effect.succeed(new Response(null, { status: 501 })),
     logout: () => Effect.succeed(new Response(null, { status: 501 })),
-    getStaff: () => Effect.succeed(Option.fromNullable(staff)),
     getSession: () =>
       Effect.succeed(
         staff

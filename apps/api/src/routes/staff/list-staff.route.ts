@@ -6,9 +6,11 @@ import { listStaff, Staff } from "../../features/staff/public";
 import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
-export type ListStaffRouteRequirements = Effect.Effect.Context<ReturnType<typeof listStaff>> | StaffAccessRequirements;
+export type ListStaffRouteRequirements =
+  | Effect.Effect.Context<ReturnType<typeof listStaff>>
+  | StaffAccessPluginRequirements;
 
 export const listStaffRoute = (run: EffectRunner<ListStaffRouteRequirements>, origin: string) =>
   new Elysia()

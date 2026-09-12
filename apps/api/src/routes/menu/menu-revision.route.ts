@@ -7,11 +7,11 @@ import { getMenuRevision } from "../../features/menu/public";
 import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
 export type MenuRevisionRequirements =
   | Effect.Effect.Context<ReturnType<typeof getMenuRevision>>
-  | StaffAccessRequirements;
+  | StaffAccessPluginRequirements;
 
 export const menuRevisionRoute = (run: EffectRunner<MenuRevisionRequirements>, origin: string) =>
   new Elysia()

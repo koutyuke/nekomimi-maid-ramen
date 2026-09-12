@@ -20,7 +20,7 @@ import {
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../../features/staff/testing";
 import type { AppRequirements } from "../../../bootstrap/create-app";
 import type { Stock } from "../../../features/menu/testing";
-import type { StaffAccessRequirements } from "../../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../../plugins/staff-access";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 
@@ -29,7 +29,7 @@ const appWith = (
     Exclude<
       AppRequirements,
       | Layer.Layer.Success<typeof realtimeMock>
-      | StaffAccessRequirements
+      | StaffAccessPluginRequirements
       | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>
       | Layer.Layer.Success<ReturnType<typeof orderOperationsMock>>
     >

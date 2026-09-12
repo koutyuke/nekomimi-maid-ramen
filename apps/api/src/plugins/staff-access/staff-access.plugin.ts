@@ -7,9 +7,9 @@ import { canOperate, getCurrentStaff } from "../../features/staff/public";
 import { isTrustedOrigin } from "../../shared/http";
 import type { EffectRunner } from "../../core/adapters/elysia";
 
-export type StaffAccessRequirements = Effect.Effect.Context<ReturnType<typeof getCurrentStaff>>;
+export type StaffAccessPluginRequirements = Effect.Effect.Context<ReturnType<typeof getCurrentStaff>>;
 
-export const staffAccessPlugin = (run: EffectRunner<StaffAccessRequirements>, origin: string) =>
+export const staffAccessPlugin = (run: EffectRunner<StaffAccessPluginRequirements>, origin: string) =>
   new Elysia({ name: "staff-access" }).macro({
     staffRole: (required: "Staff" | "Admin") => ({
       resolve: async ({ request, status }) => {

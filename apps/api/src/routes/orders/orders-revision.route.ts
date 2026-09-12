@@ -7,11 +7,11 @@ import { getOrdersRevision } from "../../features/orders/public";
 import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
 export type OrdersRevisionRequirements =
   | Effect.Effect.Context<ReturnType<typeof getOrdersRevision>>
-  | StaffAccessRequirements;
+  | StaffAccessPluginRequirements;
 
 export const ordersRevisionRoute = (run: EffectRunner<OrdersRevisionRequirements>, origin: string) =>
   new Elysia()

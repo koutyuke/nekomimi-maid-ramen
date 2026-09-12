@@ -118,6 +118,8 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 リポジトリの複数件取得は`findMany`とする。取得条件を受け取る場合は条件に一致する全件を返し、条件を省略した場合は、そのリポジトリが取得対象とする集合の全件を返す。`OrderRepository.findMany`は取消済みを除外し、営業日を指定するとその日に絞る。`StaffRepository.findMany`はGoogleアカウントの登録を完了した利用者を返す。条件を使わないリポジトリには条件引数を設けない。ユースケースの一覧提供は`listMenu`や`listOrders`のように表す。
 
+`AuthenticationGateway`はセッション取得を`getSession`にまとめる。担当者だけを必要とする呼び出し元は、`getCurrentStaff`ユースケースを使う。このユースケースがセッションから担当者を取り出し、未認証を`Option.none()`として保つ。`StaffAccessPluginRequirements`は`staffAccessPlugin`が要求する依存型を表す。
+
 ### 機能の公開面
 
 機能の外から読めるのは`features/{機能}/public.ts`だけである。ここへ載せるのは、他機能のアダプターや経路が必要とする`inbound`ポート、HTTPの境界で使うユースケースと型、業務エラーである。コマンドやリポジトリなど永続化の詳細や機能内の接続に使う`outbound`ポートは公開面へ載せない。

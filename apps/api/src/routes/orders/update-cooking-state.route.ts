@@ -8,11 +8,11 @@ import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import { CookingStateResponse, KitchenConflictResponse } from "./orders.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
 export type UpdateCookingStateRequirements =
   | Effect.Effect.Context<ReturnType<typeof updateCookingState>>
-  | StaffAccessRequirements;
+  | StaffAccessPluginRequirements;
 
 export const updateCookingStateRoute = (run: EffectRunner<UpdateCookingStateRequirements>, origin: string) =>
   new Elysia()

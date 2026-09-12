@@ -6,11 +6,11 @@ import { updateStaffRole, EditableStaffRole, Staff } from "../../features/staff/
 import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
 export type UpdateStaffRoleRouteRequirements =
   | Effect.Effect.Context<ReturnType<typeof updateStaffRole>>
-  | StaffAccessRequirements;
+  | StaffAccessPluginRequirements;
 
 export const updateStaffRoleRoute = (run: EffectRunner<UpdateStaffRoleRouteRequirements>, origin: string) =>
   new Elysia()
