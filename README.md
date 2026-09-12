@@ -205,6 +205,23 @@ Google Cloudの戻り先は、共有パッケージで定義した環境別のAP
 
 `nekomimi-ramen.com`、`staff.nekomimi-ramen.com`、`api.nekomimi-ramen.com` の Custom Domain 割り当ては、初回の配備時に `wrangler` が作成する。
 
+### OAuthの本番公開
+
+公開ページは`https://nekomimi-ramen.com/privacy`と`https://nekomimi-ramen.com/terms`で配信する。Google Auth Platformの設定変更と実アカウントでの確認は、ページの配備後にGoogle Cloudプロジェクトの管理権限を持つ開発担当者が行う。
+
+1. 未認証でホームページと両ページへアクセスし、本文と導線を確認する。掲載内容が`SPEC-SYS-007`と`SPEC-OPS-004`に一致し、問い合わせメールを受信できることを確認する。
+2. 対象プロジェクトのGoogle Auth Platformの「ブランディング」で、承認済みドメインに`nekomimi-ramen.com`を登録する。ホームページは`https://nekomimi-ramen.com`、プライバシーポリシーは`https://nekomimi-ramen.com/privacy`、利用規約は`https://nekomimi-ramen.com/terms`を設定する。表示名は「猫耳メイドラーメン」とする。
+3. ユーザーサポートメールに、選択可能な`ac25302@gm.ibaraki-ct.ac.jp`を設定する。このアドレスを選べない場合は、選択できる管理アカウントまたは管理するGoogleグループのメールアドレスを用意し、公開窓口との差を確認する。デベロッパーの連絡先には管理担当者が確認できるメールを設定する。
+4. 「データアクセス」で要求スコープが`openid`・`email`・`profile`だけであること、「クライアント」で戻り先が上記のAPIコールバックであることを確認する。
+5. 「対象」でExternalを維持してアプリを本番公開し、ブランディングの確認を申請する。対象ドメインの所有権確認を求められた場合は、プロジェクトの所有者または編集者がGoogle Search Consoleで確認する。Googleからの指摘は管理担当者が修正し、確認結果を確認する。
+6. テストユーザーに未登録の`gm.ibaraki-ct.ac.jp`アカウントでログインを完了する。学校外の管理するテスト用アカウントでは、Google側の認証を通過してもアプリが拒否することを確認する。ロールの付与は引き続き必要である。
+
+本番公開またはブランド確認が完了しない場合は、テスト状態での運用条件を維持し、必要な担当者をテストユーザーへ登録する。事前登録不要の運用が確認できるまでは、`REQ-SYS-009`を`accepted`にしない。
+
+スタッフ情報の削除期限は2027年3月31日である。開発担当者は[運用仕様の削除手順](docs/specs/operations.md#spec-ops-004-スタッフの個人情報を削除する)に従い、新規ログインを停止して保存情報を削除する。
+
+設定の根拠は[Googleのブランディング設定](https://support.google.com/cloud/answer/15549049)、[確認要件](https://support.google.com/cloud/answer/13464321)、[OAuth 2.0ポリシー](https://developers.google.com/identity/protocols/oauth2/policies)である。
+
 ## 文書
 
 要件と仕様は [`docs/`](docs/README.md) にある。

@@ -1,0 +1,56 @@
+<h1>プライバシーポリシー</h1>
+<p>猫耳メイドラーメン運営チーム（以下「運営」）は、公開サイトとスタッフ機能で扱う情報を次のとおり取り扱う。</p>
+
+<section aria-labelledby="visitors">
+  <h2 id="visitors">来場者の情報</h2>
+  <p>公開サイトの閲覧に登録やログインは不要である。注文は店頭で受け付け、注文・調理・受け渡しのために来場者の氏名、連絡先、アカウントを収集しない。</p>
+</section>
+
+<section aria-labelledby="google">
+  <h2 id="google">Googleログインで取得する情報と利用目的</h2>
+  <p>スタッフのログインでは、Googleからアカウントの識別子（sub）、メールアドレス、表示名、メール確認状態、所属ドメインを取得する。本人の識別、学校アカウントであることの確認、スタッフの表示と業務権限の管理に使用する。</p>
+  <p>要求する権限はopenid・email・profileに限る。Gmailのメール本文やGoogle Driveのファイルは取得しない。</p>
+</section>
+
+<section aria-labelledby="storage">
+  <h2 id="storage">アプリに保存する情報</h2>
+  <ul class="list-disc space-y-2 pl-6">
+    <li>プロフィール：メールアドレスと表示名</li>
+    <li>利用者と権限の管理：Googleの識別子、アプリ内の利用者ID、ロール、メール確認状態</li>
+    <li>認証アカウント：認証プロバイダー、認証アカウントの識別子、利用者との対応</li>
+    <li>ログイン状態：セッションの識別子、認証用トークン、有効期限</li>
+    <li>上記の各記録の登録・更新日時</li>
+    <li>ログイン途中の照合情報とその有効期限</li>
+  </ul>
+  <p>Googleのアクセストークン・リフレッシュトークン・IDトークン、プロフィール画像、IPアドレス、ブラウザー情報（User-Agent）は、アプリの認証データベースには保存しない。</p>
+  <p>運営の権限を持つ担当者が、業務に必要な範囲で名前、メールアドレス、ロールを確認する。本番環境の管理と削除は開発担当者が行う。</p>
+</section>
+
+<section aria-labelledby="retention">
+  <h2 id="retention">保持期間と削除方法</h2>
+  <p>スタッフのプロフィールと認証情報は、最長で2027年3月31日まで保存し、同日までに開発担当者が削除する。不要になった情報は期限前でも削除する。</p>
+  <p>セッションはログインから12時間で失効する。ログアウトするとその端末のセッションを失効させる。有効期限切れと、保存したデータの削除は別である。</p>
+  <p>本人からの削除依頼は、下記の問い合わせ先で受け付ける。対象の学校メールアドレスからの返信で本人確認を行い、確認後14日以内を目安に対応し、完了を知らせる。削除後はスタッフ機能を利用できなくなる。</p>
+  <p>削除対象は、プロフィール、利用者と権限の情報、関連する認証アカウントとセッション、運営が作成したこれらの複製である。運用終了時には新規ログインを停止し、ログイン途中の照合情報も削除する。</p>
+  <p>Cloudflare D1の復旧用履歴には、削除した情報が追加で最大30日残ることがある。通常の業務には利用せず、保存期間の経過で消去される。復旧する場合は削除済みの情報を再削除してから利用を再開する。</p>
+</section>
+
+<section aria-labelledby="browser">
+  <h2 id="browser">Cookieとブラウザー内の保存</h2>
+  <p>スタッフ機能では、ログイン処理の照合とセッションの維持のためにCookieを使用する。公開サイトではテーマの選択をブラウザーのlocalStorageへ保存する。テーマの保存値を個人の識別には使用しない。</p>
+</section>
+
+<section aria-labelledby="services">
+  <h2 id="services">利用する外部サービス</h2>
+  <p>Googleをスタッフ認証に、Cloudflare WorkersをサイトとAPIの配信に、Cloudflare D1をデータ保存に使用する。各サービスは、通信時のIPアドレスなどの技術情報を各社の方針に従って取り扱う。アプリの認証データベースに保存しない情報でも、配信基盤の通信処理やアクセスログで扱われる場合がある。</p>
+  <ul class="list-disc pl-6">
+    <li><a class="inline-flex min-h-11 items-center" href="https://policies.google.com/privacy?hl=ja">Googleのプライバシーポリシー</a></li>
+    <li><a class="inline-flex min-h-11 items-center" href="https://www.cloudflare.com/privacypolicy/">Cloudflareのプライバシーポリシー</a></li>
+  </ul>
+</section>
+
+<section aria-labelledby="contact">
+  <h2 id="contact">問い合わせ先</h2>
+  <p>猫耳メイドラーメン運営チーム</p>
+  <a class="inline-flex min-h-11 items-center break-all" href="mailto:ac25302@gm.ibaraki-ct.ac.jp">ac25302@gm.ibaraki-ct.ac.jp</a>
+</section>
