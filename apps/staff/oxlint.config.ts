@@ -28,7 +28,7 @@ const restrictedImports = (patterns: readonly unknown[]) =>
       paths: [{ name: "@nekomimi/api", allowImportNames: ["App"], message: "APIから読むのはApp型だけである。" }],
       patterns,
     },
-  ] as const;
+  ] satisfies ["error", unknown];
 
 export default defineConfig({
   extends: [baseConfig],
