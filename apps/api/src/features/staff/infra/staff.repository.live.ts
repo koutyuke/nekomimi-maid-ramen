@@ -18,6 +18,19 @@ export const makeStaffRepositoryLive = (ownerEmail: string) =>
         role: resolveRole(row.role, row.email, ownerEmail),
       });
       return StaffRepository.of({
+        findSession: (id) =>
+          database.run("通知先セッションの確認", async (db) => {
+            const [row] = await db
+              .select({
+                staff: fields,
+                sessionId: Database.tables.sessions.id,
+                expiresAt: Database.tables.sessions.expiresAt,
+              })
+              .from(Database.tables.sessions)
+              .innerJoin(users, eq(users.id, Database.tables.sessions.userId))
+              .where(eq(Database.tables.sessions.id, id));
+            return Option.map(Option.fromNullable(row), (session) => ({ ...session, staff: present(session.staff) }));
+          }),
         list: () =>
           database.run("利用者の一覧取得", async (db) => {
             const rows = await db

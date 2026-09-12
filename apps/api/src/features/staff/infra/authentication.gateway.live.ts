@@ -158,6 +158,34 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
     },
   });
 
+  const getSession = (headers: Headers) =>
+    Effect.tryPromise({
+      try: async () => {
+        const session = await auth.api.getSession({
+          headers,
+          query: { disableCookieCache: true },
+        });
+        if (!session) {
+          return Option.none();
+        }
+        return Option.some({
+          sessionId: session.session.id,
+          expiresAt: session.session.expiresAt,
+          staff: {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.name,
+            role: resolveRole(session.user.role, session.user.email, config.ownerEmail),
+          },
+        });
+      },
+      catch: () =>
+        new PersistenceError({
+          operation: "セッションの確認",
+          cause: new Error("Session lookup failed"),
+        }),
+    });
+
   return AuthenticationGateway.of({
     request: (request) =>
       Effect.tryPromise({
@@ -229,28 +257,7 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
             cause: new Error("Authentication failed"),
           }),
       }),
-    getStaff: (headers) =>
-      Effect.tryPromise({
-        try: async () => {
-          const session = await auth.api.getSession({
-            headers,
-            query: { disableCookieCache: true },
-          });
-          if (!session) {
-            return Option.none();
-          }
-          return Option.some({
-            id: session.user.id,
-            email: session.user.email,
-            name: session.user.name,
-            role: resolveRole(session.user.role, session.user.email, config.ownerEmail),
-          });
-        },
-        catch: () =>
-          new PersistenceError({
-            operation: "セッションの確認",
-            cause: new Error("Session lookup failed"),
-          }),
-      }),
+    getSession,
+    getStaff: (headers) => getSession(headers).pipe(Effect.map(Option.map((session) => session.staff))),
   });
 };
