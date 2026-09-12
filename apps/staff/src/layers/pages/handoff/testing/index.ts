@@ -1,0 +1,60 @@
+import type { HandoffPageUIProps } from "../ui/handoff-page/handoff-page.ui";
+
+export const handoffPageFixture: HandoffPageUIProps = {
+  access: "allowed",
+  loading: false,
+  failed: false,
+  connected: true,
+  pending: false,
+  error: null,
+  message: null,
+  orders: [
+    {
+      id: "order-1",
+      businessDate: "2026-10-24",
+      orderNumber: 1,
+      cookingState: "completed",
+      cancelledAt: null,
+      handedOffAt: null,
+      confirmedAt: "2026-10-24T01:00:00.000Z",
+      lines: [
+        { menuItemId: "ramen", name: "ラーメン", quantity: 2, category: "main", cookingState: "completed" },
+        { menuItemId: "tea", name: "烏龍茶", quantity: 1, category: "drink", cookingState: "completed" },
+      ],
+    },
+    {
+      id: "order-2",
+      businessDate: "2026-10-24",
+      orderNumber: 2,
+      cookingState: "cooking",
+      cancelledAt: null,
+      handedOffAt: null,
+      confirmedAt: "2026-10-24T01:01:00.000Z",
+      lines: [
+        { menuItemId: "ramen", name: "ラーメン", quantity: 1, category: "main", cookingState: "completed" },
+        { menuItemId: "cola", name: "コーラ", quantity: 1, category: "drink", cookingState: "unstarted" },
+      ],
+    },
+    {
+      id: "order-3",
+      businessDate: "2026-10-24",
+      orderNumber: 3,
+      cookingState: "unstarted",
+      cancelledAt: null,
+      handedOffAt: null,
+      confirmedAt: "2026-10-24T01:02:00.000Z",
+      lines: [{ menuItemId: "gyoza", name: "餃子", quantity: 1, category: "side", cookingState: "unstarted" }],
+    },
+    {
+      id: "order-4",
+      businessDate: "2026-10-24",
+      orderNumber: 4,
+      cookingState: "completed",
+      cancelledAt: null,
+      handedOffAt: "2026-10-24T01:10:00.000Z",
+      confirmedAt: "2026-10-24T01:03:00.000Z",
+      lines: [{ menuItemId: "tea", name: "烏龍茶", quantity: 1, category: "drink", cookingState: "completed" }],
+    },
+  ],
+  actions: { onComplete: () => {}, onRetry: () => {}, onUpdate: () => {} },
+};

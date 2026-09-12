@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
+import { Route as AuthenticatedHandoffRouteImport } from './routes/_authenticated.handoff'
+import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated.kitchen'
 import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated.sales'
 
 const IndexRoute = IndexRouteImport.update({
@@ -28,6 +30,16 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedHandoffRoute = AuthenticatedHandoffRouteImport.update({
+  id: '/handoff',
+  path: '/handoff',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
+  id: '/kitchen',
+  path: '/kitchen',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
@@ -37,11 +49,15 @@ const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/handoff': typeof AuthenticatedHandoffRoute
+  '/kitchen': typeof AuthenticatedKitchenRoute
   '/sales': typeof AuthenticatedSalesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/handoff': typeof AuthenticatedHandoffRoute
+  '/kitchen': typeof AuthenticatedKitchenRoute
   '/sales': typeof AuthenticatedSalesRoute
 }
 export interface FileRoutesById {
@@ -49,18 +65,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/handoff': typeof AuthenticatedHandoffRoute
+  '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
   '/_authenticated/sales': typeof AuthenticatedSalesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/sales'
+  fullPaths: '/' | '/admin' | '/handoff' | '/kitchen' | '/sales'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/sales'
+  to: '/' | '/admin' | '/handoff' | '/kitchen' | '/sales'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/admin'
+    | '/_authenticated/handoff'
+    | '/_authenticated/kitchen'
     | '/_authenticated/sales'
   fileRoutesById: FileRoutesById
 }
@@ -92,6 +112,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/handoff': {
+      id: '/_authenticated/handoff'
+      path: '/handoff'
+      fullPath: '/handoff'
+      preLoaderRoute: typeof AuthenticatedHandoffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/kitchen': {
+      id: '/_authenticated/kitchen'
+      path: '/kitchen'
+      fullPath: '/kitchen'
+      preLoaderRoute: typeof AuthenticatedKitchenRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/sales': {
       id: '/_authenticated/sales'
       path: '/sales'
@@ -104,11 +138,15 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedHandoffRoute: typeof AuthenticatedHandoffRoute
+  AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
   AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedHandoffRoute: AuthenticatedHandoffRoute,
+  AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
   AuthenticatedSalesRoute: AuthenticatedSalesRoute,
 }
 
