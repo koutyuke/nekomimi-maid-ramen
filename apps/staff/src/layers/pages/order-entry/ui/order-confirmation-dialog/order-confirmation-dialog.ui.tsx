@@ -1,7 +1,7 @@
 import { Alert, Button, Group, Modal, Stack, Text, Title } from "@mantine/core";
 
-import { yen } from "../lib/format-yen";
-import type { DraftLine, Receipt, calculateCheckout } from "../model/checkout";
+import { yen } from "../../lib/format-yen";
+import type { DraftLine, Receipt, calculateCheckout } from "../../model/checkout";
 
 type OrderConfirmationDialogUIProps = {
   opened: boolean;

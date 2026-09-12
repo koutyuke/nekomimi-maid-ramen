@@ -1,7 +1,7 @@
 import { Button, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 
-import { yen } from "../lib/format-yen";
-import type { calculateCheckout } from "../model/checkout";
+import { yen } from "../../lib/format-yen";
+import type { calculateCheckout } from "../../model/checkout";
 
 type CheckoutPaymentUIProps = {
   checkout: ReturnType<typeof calculateCheckout>;
@@ -11,9 +11,11 @@ type CheckoutPaymentUIProps = {
   confirmed: boolean;
   pending: boolean;
   uncertain: boolean;
-  menuLoading: boolean;
-  menuFailed: boolean;
-  actions: { onReceived: (value: string) => void; onConfirm: () => void };
+  canSubmit: boolean;
+  actions: {
+    onReceived: (value: string) => void;
+    onConfirm: () => void;
+  };
 };
 
 export const CheckoutPaymentUI = ({
@@ -24,9 +26,8 @@ export const CheckoutPaymentUI = ({
   confirmed,
   pending,
   uncertain,
-  menuLoading,
-  menuFailed,
-  actions,
+  canSubmit,
+  actions: { onReceived, onConfirm },
 }: CheckoutPaymentUIProps) => {
   const hundreds = received === "" ? "" : String(Number(received) / 100);
   return (
@@ -65,7 +66,7 @@ export const CheckoutPaymentUI = ({
               size="md"
               px="xs"
               disabled={locked}
-              onClick={() => actions.onReceived(String(Number(received) + amount))}
+              onClick={() => onReceived(String(Number(received) + amount))}
             >
               +{yen(amount)}
             </Button>
@@ -79,19 +80,12 @@ export const CheckoutPaymentUI = ({
               variant="default"
               disabled={locked}
               aria-label={`受取金額に${digit}を入力`}
-              onClick={() => actions.onReceived(String(Number(hundreds + digit) * 100))}
+              onClick={() => onReceived(String(Number(hundreds + digit) * 100))}
             >
               {digit}
             </Button>
           ))}
-          <Button
-            size="lg"
-            px="xs"
-            color="red"
-            variant="light"
-            disabled={locked}
-            onClick={() => actions.onReceived("")}
-          >
+          <Button size="lg" px="xs" color="red" variant="light" disabled={locked} onClick={() => onReceived("")}>
             クリア
           </Button>
           <Button
@@ -99,7 +93,7 @@ export const CheckoutPaymentUI = ({
             variant="default"
             disabled={locked}
             aria-label="受取金額に0を入力"
-            onClick={() => actions.onReceived(String(Number(hundreds + "0") * 100))}
+            onClick={() => onReceived(String(Number(hundreds + "0") * 100))}
           >
             0
           </Button>
@@ -108,34 +102,25 @@ export const CheckoutPaymentUI = ({
             variant="light"
             disabled={locked}
             aria-label="1桁削除"
-            onClick={() => actions.onReceived(hundreds.length > 1 ? String(Number(hundreds.slice(0, -1)) * 100) : "")}
+            onClick={() => onReceived(hundreds.length > 1 ? String(Number(hundreds.slice(0, -1)) * 100) : "")}
           >
             ⌫
           </Button>
         </SimpleGrid>
-        {received !== "" && checkout.total !== null && checkout.change === null ? (
+        {received !== "" && checkout.total !== null && checkout.change === null && (
           <Text c="red">受取金額が不足しています。</Text>
-        ) : null}
+        )}
         <Text aria-live="polite" fw={700} size="xl">
           お釣り：{checkout.change === null ? "—" : yen(checkout.change)}
         </Text>
-        {unavailable ? <Text c="red">販売できない商品の個数を0にして確認してください。</Text> : null}
-        {!confirmed ? (
-          <>
-            <Text size="sm">現金とお釣りのやり取りを終えてから確定してください。</Text>
-            <Button
-              size="lg"
-              fullWidth
-              loading={pending}
-              disabled={
-                pending || (!uncertain && (checkout.change === null || unavailable || menuLoading || menuFailed))
-              }
-              onClick={actions.onConfirm}
-            >
-              {uncertain ? "同じ注文の結果を再確認" : "注文を確定"}
-            </Button>
-          </>
-        ) : null}
+
+        {unavailable && <Text c="red">在庫が不足している商品の選択数を減らすか、商品を外してください。</Text>}
+        {!confirmed && <Text size="sm">現金とお釣りのやり取りを終えてから確定してください。</Text>}
+        {confirmed && <Text size="sm">注文が確定されました。別の注文をする場合は読み込み直してください。</Text>}
+
+        <Button size="lg" fullWidth loading={pending} disabled={!canSubmit || confirmed} onClick={onConfirm}>
+          {uncertain ? "同じ注文の結果を再確認" : "注文を確定"}
+        </Button>
       </Stack>
     </Paper>
   );
