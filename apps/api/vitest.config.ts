@@ -12,7 +12,7 @@ export default defineConfig({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
       main: "./testing/setup/worker-entry.ts",
-      miniflare: { bindings: { TEST_MIGRATIONS: migrations, TEST_SEED_SQL: seedSql } },
+      miniflare: { d1Databases: ["MIGRATION_DB"], bindings: { TEST_MIGRATIONS: migrations, TEST_SEED_SQL: seedSql } },
     }),
   ],
   test: {

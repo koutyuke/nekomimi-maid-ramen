@@ -3,34 +3,40 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../../app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
-import { stockFixture } from "../../../features/inventory/testing";
+import {
+  inventoryAvailabilityFacadeMock,
+  menuItemFixture,
+  menuItemRepositoryMock,
+  stockFixture,
+} from "../../../features/menu/testing";
 import {
   failingOrderRepositoryMock,
+  orderOperationsMock,
   orderPricingGatewayMock,
   orderRepositoryMock,
   orderStockAvailabilityGatewayMock,
-} from "../../../features/sales/testing";
-import { staffRepositoryMock, authenticationGatewayMock, staffFixture } from "../../../features/system-wide/testing";
-import {
-  menuItemAvailabilityGatewayMock,
-  menuItemFixture,
-  menuItemRepositoryMock,
-} from "../../../features/visitor-information/testing";
+} from "../../../features/orders/testing";
+import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../../features/staff/testing";
 import type { AppRequirements } from "../../../app";
-import type { Stock } from "../../../features/inventory/testing";
+import type { Stock } from "../../../features/menu/testing";
 import type { StaffAccessRequirements } from "../../../plugins/staff-access";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 
 const appWith = (
   layers: Layer.Layer<
-    Exclude<AppRequirements, StaffAccessRequirements | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>>
+    Exclude<
+      AppRequirements,
+      | StaffAccessRequirements
+      | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>
+      | Layer.Layer.Success<ReturnType<typeof orderOperationsMock>>
+    >
   >,
 ) =>
   createApp({
     origin: "https://staff.nekomimi-ramen.com",
     runtime: ManagedRuntime.make(
-      Layer.mergeAll(layers, authenticationGatewayMock(staffFixture), staffRepositoryMock()),
+      Layer.mergeAll(layers, orderOperationsMock(), authenticationGatewayMock(staffFixture), staffRepositoryMock()),
     ),
     aot: false,
   });
@@ -41,7 +47,7 @@ const sellingApp = (stocks: ReadonlyArray<Stock>) =>
       orderPricingGatewayMock([ramen]),
       orderStockAvailabilityGatewayMock(stocks),
       orderRepositoryMock(),
-      menuItemAvailabilityGatewayMock([]),
+      inventoryAvailabilityFacadeMock([]),
       menuItemRepositoryMock([]),
     ),
   );
@@ -133,7 +139,7 @@ describe("SPEC-OPS-002 保存先が失敗したときの注文確定応答", () 
         failingOrderRepositoryMock(
           new PersistenceError({ operation: "注文の確定", cause: new Error("D1_CONNECTION_LOST") }),
         ),
-        menuItemAvailabilityGatewayMock([]),
+        inventoryAvailabilityFacadeMock([]),
         menuItemRepositoryMock([]),
       ),
     );

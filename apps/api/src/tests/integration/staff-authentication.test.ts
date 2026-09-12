@@ -6,12 +6,11 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vites
 
 import { createApp } from "../../app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
-import { InventoryLayer } from "../../features/inventory/layer";
-import { SalesLayer } from "../../features/sales/layer";
-import { StaffRepository } from "../../features/system-wide/application/ports/outbound/staff.repository";
-import { makeSystemWideLayer } from "../../features/system-wide/layer";
-import { updateStaffRole, Staff } from "../../features/system-wide/public";
-import { VisitorInformationLayer } from "../../features/visitor-information/layer";
+import { MenuLayer } from "../../features/menu/layer";
+import { makeOrdersLayer } from "../../features/orders/layer";
+import { StaffRepository } from "../../features/staff/application/ports/outbound/staff.repository";
+import { makeStaffLayer } from "../../features/staff/layer";
+import { updateStaffRole, Staff } from "../../features/staff/public";
 
 const apiOrigin = "https://api.nekomimi-ramen.com";
 const origin = "https://staff.nekomimi-ramen.com";
@@ -28,11 +27,10 @@ const config = {
   secret: "test-only-auth-secret-with-at-least-32-characters",
   ownerEmail: `owner@${domain}`,
 };
-const inventoryAndVisitor = Layer.merge(InventoryLayer, VisitorInformationLayer.pipe(Layer.provide(InventoryLayer)));
 const appLayer = Layer.mergeAll(
-  inventoryAndVisitor,
-  SalesLayer.pipe(Layer.provide(inventoryAndVisitor)),
-  makeSystemWideLayer(env.DB, config),
+  MenuLayer,
+  makeOrdersLayer(config.ownerEmail).pipe(Layer.provide(MenuLayer)),
+  makeStaffLayer(env.DB, config),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 const runtime = ManagedRuntime.make(appLayer);
 const app = createApp({ origin, runtime, aot: false });
@@ -478,5 +476,77 @@ describe("SPEC-SYS-008 保存失敗と未登録の利用者", () => {
     const response = await listStaff(owner.cookie);
     expect(await response.json()).toEqual({ staff: [owner.staff] });
     expect((await changeRole(owner.cookie, "incomplete", "Staff")).status).toBe(404);
+  });
+});
+
+describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
+  const kitchen = (cookie: string, path = "/orders?businessDate=2026-10-24", body?: unknown, requestOrigin = origin) =>
+    handle(
+      new Request(`${apiOrigin}${path}`, {
+        method: body === undefined ? "GET" : "PATCH",
+        headers: { cookie, origin: requestOrigin, "content-type": "application/json" },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      }),
+    );
+  it.each(["anonymous", "None"])("%sは一覧・通知・更新を利用できない", async (role) => {
+    const cookie = role === "None" ? (await loggedInStaff()).cookie : "";
+    const status = role === "None" ? 403 : 401;
+    expect((await kitchen(cookie)).status).toBe(status);
+    expect((await kitchen(cookie, "/orders/events")).status).toBe(status);
+    expect((await kitchen(cookie, "/orders/missing/lines/ramen/cooking-state", { to: "cooking" })).status).toBe(status);
+    expect((await kitchen(cookie, "/orders?businessDate=2026-10-24")).status).toBe(status);
+    expect(
+      (
+        await handle(
+          new Request(`${apiOrigin}/orders/missing/handoff`, {
+            method: "POST",
+            headers: { cookie, origin },
+          }),
+        )
+      ).status,
+    ).toBe(status);
+  });
+  it("認証済みでも信頼できない送信元からは更新できない", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    expect((await kitchen(owner.cookie)).status).toBe(200);
+    expect(
+      (
+        await kitchen(
+          owner.cookie,
+          "/orders/missing/lines/ramen/cooking-state",
+          { to: "cooking" },
+          "https://attacker.example",
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await handle(
+          new Request(`${apiOrigin}/orders/missing/handoff`, {
+            method: "POST",
+            headers: { cookie: owner.cookie, origin: "https://attacker.example" },
+          }),
+        )
+      ).status,
+    ).toBe(403);
+  });
+  it("接続中に権限を失ったら通知を止める", async () => {
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const staff = await loggedInStaff();
+    await changeRole(owner.cookie, staff.staff.id, "Staff");
+    const abort = new AbortController();
+    const response = await handle(
+      new Request(`${apiOrigin}/orders/events`, { headers: { cookie: staff.cookie, origin }, signal: abort.signal }),
+    );
+    const reader = response.body!.getReader();
+    try {
+      expect(new TextDecoder().decode((await reader.read()).value)).toContain("event: refresh");
+      await changeRole(owner.cookie, staff.staff.id, "None");
+      expect(new TextDecoder().decode((await reader.read()).value)).toContain("event: access-denied");
+      expect((await reader.read()).done).toBe(true);
+    } finally {
+      abort.abort();
+      await reader.cancel();
+    }
   });
 });

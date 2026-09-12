@@ -2,7 +2,7 @@ import { defineConfig } from "oxlint";
 
 import baseConfig from "../../oxlint.config.ts";
 
-const featurePath = "**/{inventory,visitor-information,sales,kitchen,handoff,operations,system-wide}";
+const featurePath = "**/{menu,operations,orders,staff}";
 
 const coreModuleImports = {
   group: ["**/core/{adapters,infra}/*/**", "!**/core/{adapters,infra}/*/index", "!**/core/{adapters,infra}/*/index.ts"],
@@ -36,19 +36,18 @@ const productionTestDirectories = {
 
 const featureBoundaryImports = {
   group: [
-    featurePath,
     `${featurePath}/**`,
     `!${featurePath}/public`,
     `!${featurePath}/public.ts`,
     `!${featurePath}/testing`,
     `!${featurePath}/testing/index`,
   ],
-  message: "他の業務領域は公開面(`features/{領域}/public`)または`features/{領域}/testing`から読む。",
+  message: "他の機能は公開面(`features/{機能}/public`)または`features/{機能}/testing`から読む。",
 };
 
 const coreAdapterImports = {
   group: ["**/core/adapters/**"],
-  message: "`core/adapters`はルートハンドラのための処理であり、業務領域から読まない。",
+  message: "`core/adapters`はルートハンドラのための処理であり、機能から読まない。",
 };
 
 export default defineConfig({
@@ -85,7 +84,7 @@ export default defineConfig({
               routeImplementationImports,
               {
                 group: featureBoundaryImports.group,
-                message: "業務領域は公開面(`features/{領域}/public`)から読む。",
+                message: "機能は公開面(`features/{機能}/public`)から読む。",
               },
               layerImports,
             ],
@@ -112,8 +111,8 @@ export default defineConfig({
               sharedModuleImports,
               routeImplementationImports,
               {
-                group: [featurePath, `${featurePath}/**`, `!${featurePath}/public`, `!${featurePath}/public.ts`],
-                message: "業務領域は公開面(`features/{領域}/public`)から読む。",
+                group: [`${featurePath}/**`, `!${featurePath}/public`, `!${featurePath}/public.ts`],
+                message: "機能は公開面(`features/{機能}/public`)から読む。",
               },
               layerImports,
               productionTestImports,
@@ -157,7 +156,7 @@ export default defineConfig({
               },
               {
                 group: ["**/features/**"],
-                message: "`core`は業務領域を読まない。共有する定義は`core`側へ置く。",
+                message: "`core`は機能を読まない。共有する定義は`core`側へ置く。",
               },
               productionTestImports,
               productionTestDirectories,
@@ -195,8 +194,8 @@ export default defineConfig({
               coreModuleImports,
               sharedModuleImports,
               {
-                group: [featurePath, `${featurePath}/**`],
-                message: "アプリケーションとドメインは他の業務領域を読まない。領域間の接続はアダプターで行う。",
+                group: [`${featurePath}/**`],
+                message: "アプリケーションとドメインは他の機能を読まない。機能間の接続はアダプターで行う。",
               },
               {
                 group: ["**/*.live", "**/infra/**"],
@@ -219,27 +218,27 @@ export default defineConfig({
           {
             paths: [
               {
-                name: "../../inventory/testing",
+                name: "../../menu/testing",
                 message: "本番コードからテスト用の入口を読まない。",
               },
               {
-                name: "../../sales/testing",
+                name: "../../operations/testing",
                 message: "本番コードからテスト用の入口を読まない。",
               },
               {
-                name: "../../visitor-information/testing",
+                name: "../../orders/testing",
                 message: "本番コードからテスト用の入口を読まない。",
               },
               {
-                name: "../../../inventory/testing",
+                name: "../../../menu/testing",
                 message: "本番コードからテスト用の入口を読まない。",
               },
               {
-                name: "../../../sales/testing",
+                name: "../../../operations/testing",
                 message: "本番コードからテスト用の入口を読まない。",
               },
               {
-                name: "../../../visitor-information/testing",
+                name: "../../../orders/testing",
                 message: "本番コードからテスト用の入口を読まない。",
               },
             ],
@@ -292,8 +291,8 @@ export default defineConfig({
               coreModuleImports,
               sharedModuleImports,
               {
-                group: [featurePath, `${featurePath}/**`],
-                message: "公開面は自領域の契約だけを公開し、他領域や内部実装を読まない。",
+                group: [`${featurePath}/**`],
+                message: "公開面は自機能の契約だけを公開し、他機能や内部実装を読まない。",
               },
               {
                 group: ["**/*.live", "**/infra/**", "**/layer"],
@@ -323,7 +322,6 @@ export default defineConfig({
               sharedModuleImports,
               {
                 group: [
-                  featurePath,
                   `${featurePath}/**`,
                   "!./adapters/**",
                   "!./application/**",
@@ -332,7 +330,7 @@ export default defineConfig({
                   "!./public",
                   "!./public.ts",
                 ],
-                message: "layerは自領域の実装を組み立て、他領域は公開面から読む。",
+                message: "layerは自機能の実装を組み立て、他機能は公開面から読む。",
               },
               {
                 group: layerImports.group,
@@ -367,7 +365,7 @@ export default defineConfig({
               sharedModuleImports,
               {
                 group: featureBoundaryImports.group,
-                message: "テスト用コードも他領域の公開面またはtesting入口だけを読む。",
+                message: "テスト用コードも他機能の公開面またはtesting入口だけを読む。",
               },
             ],
           },
