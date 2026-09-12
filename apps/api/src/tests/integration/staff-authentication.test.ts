@@ -5,7 +5,6 @@ import { Effect, Layer, ManagedRuntime, Option, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../../bootstrap/create-app";
-import { makeRunner } from "../../core/adapters/elysia";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { connectWebSocketHub } from "../../core/infra/websocket";
 import { MenuLayer } from "../../features/menu/layer";
@@ -14,7 +13,6 @@ import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { StaffRepository } from "../../features/staff/application/ports/outbound/staff.repository";
 import { makeStaffLayer } from "../../features/staff/layer";
 import { updateStaffRole, Staff } from "../../features/staff/public";
-import { upgradeWebSocketRoute } from "../../routes/realtime/upgrade-websocket.route";
 
 const apiOrigin = "https://api.nekomimi-ramen.com";
 const origin = "https://staff.nekomimi-ramen.com";
@@ -40,13 +38,13 @@ const appLayer = Layer.mergeAll(
   makeStaffLayer(env.DB, config),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 const runtime = ManagedRuntime.make(appLayer);
-const app = createApp({ origin, runtime, aot: false });
-const handle = (request: Request) =>
-  new URL(request.url).pathname === "/staff/events"
-    ? upgradeWebSocketRoute(makeRunner(runtime), origin, request, (sessionId) =>
-        connectWebSocketHub(env.STAFF_UPDATES, sessionId),
-      )
-    : app.handle(request);
+const app = createApp({
+  origin,
+  runtime,
+  upgradeWebSocket: (sessionId) => connectWebSocketHub(env.STAFF_UPDATES, sessionId),
+  aot: false,
+});
+const handle = (request: Request) => app.handle(request);
 const session = async (cookie: string) => {
   const response = await handle(new Request(`${apiOrigin}/auth/session`, { headers: { cookie } }));
   const result = Schema.decodeUnknownSync(Schema.Struct({ staff: Schema.NullOr(Staff) }))(await response.json());

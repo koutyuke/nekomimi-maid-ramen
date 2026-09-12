@@ -1,7 +1,7 @@
 import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { realtimeMock } from "../../../../testing/realtime";
+import { realtimeMock, upgradeWebSocketMock } from "../../../../testing/realtime";
 import { createApp } from "../../../bootstrap/create-app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import {
@@ -36,6 +36,7 @@ const appWith = (
   >,
 ) =>
   createApp({
+    upgradeWebSocket: upgradeWebSocketMock,
     origin: "https://staff.nekomimi-ramen.com",
     runtime: ManagedRuntime.make(
       Layer.mergeAll(

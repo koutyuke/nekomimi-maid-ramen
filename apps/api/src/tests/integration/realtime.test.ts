@@ -4,7 +4,6 @@ import { Effect, Layer, ManagedRuntime, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../bootstrap/create-app";
-import { makeRunner } from "../../core/adapters/elysia";
 import { PersistenceError } from "../../core/domain/persistence-error";
 import { Revision } from "../../core/domain/revision";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
@@ -16,7 +15,6 @@ import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { failingUpdateNotifierMock } from "../../features/realtime/testing";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
 import { ConfirmedOrderResponse } from "../../routes/orders/orders.response";
-import { upgradeWebSocketRoute } from "../../routes/realtime/upgrade-websocket.route";
 
 const db = drizzle(env.DB);
 const origin = "https://staff.nekomimi-ramen.com";
@@ -32,7 +30,8 @@ const runtime = (realtime = realtimeLive, staff = staffFixture) =>
     ).pipe(Layer.provide(makeDatabaseLive(env.DB))),
   );
 const live = runtime();
-const app = createApp({ origin, runtime: live, aot: false });
+const upgradeWebSocket = (sessionId: string) => connectWebSocketHub(env.STAFF_UPDATES, sessionId);
+const app = createApp({ origin, runtime: live, upgradeWebSocket, aot: false });
 const request = (path: string, init?: RequestInit) => {
   const headers = new Headers(init?.headers);
   if (!headers.has("origin")) {
@@ -43,11 +42,7 @@ const request = (path: string, init?: RequestInit) => {
     ...init,
     headers,
   });
-  return path === "/staff/events"
-    ? upgradeWebSocketRoute(makeRunner(live), origin, input, (sessionId) =>
-        connectWebSocketHub(env.STAFF_UPDATES, sessionId),
-      )
-    : app.handle(input);
+  return app.handle(input);
 };
 const revisions = async () => {
   const response = Schema.Struct({ revision: Revision });
@@ -171,7 +166,7 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     );
     const failedNotificationRuntime = runtime(failing);
     try {
-      const failingApp = createApp({ origin, runtime: failedNotificationRuntime, aot: false });
+      const failingApp = createApp({ origin, runtime: failedNotificationRuntime, upgradeWebSocket, aot: false });
       const response = await failingApp.handle(
         new Request("https://api.nekomimi-ramen.com/staff/orders", {
           method: "POST",
@@ -257,5 +252,23 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
         },
       ),
     );
+  });
+
+  it("通常のGETは切り替えを要求し、接続先の障害は内部情報を含まない503を返す", async () => {
+    expect((await request("/staff/events")).status).toBe(426);
+    const unavailable = createApp({
+      origin,
+      runtime: live,
+      aot: false,
+      upgradeWebSocket: () => Promise.reject(new Error("PRIVATE_CONNECTION_FAILURE")),
+    });
+    const response = await unavailable.handle(
+      new Request("https://api.nekomimi-ramen.com/staff/events", {
+        headers: { origin, upgrade: "websocket" },
+      }),
+    );
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ code: "sync_unavailable" });
+    expect(response.headers.get("access-control-allow-origin")).toBe(origin);
   });
 });

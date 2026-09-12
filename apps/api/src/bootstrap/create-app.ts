@@ -1,10 +1,9 @@
 import { openapi } from "@elysia/openapi";
 import { JSONSchema, Schema } from "effect";
 import { Elysia } from "elysia";
-import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import type { ManagedRuntime } from "effect";
 
-import { makeRunner } from "../core/adapters/elysia";
+import { cloudflareAdapter, makeRunner } from "../core/adapters/elysia";
 import { corsPlugin } from "../plugins/cors/cors.plugin";
 import { googleCallbackRoute } from "../routes/auth/google-callback.route";
 import { googleRoute } from "../routes/auth/google.route";
@@ -18,37 +17,39 @@ import { confirmOrderRoutes } from "../routes/orders/confirm-orders.route";
 import { listOrdersRoute } from "../routes/orders/list-orders.route";
 import { ordersRevisionRoute } from "../routes/orders/orders-revision.route";
 import { updateCookingStateRoute } from "../routes/orders/update-cooking-state.route";
+import { upgradeWebSocketRoute } from "../routes/realtime/upgrade-websocket.route";
 import { listStaffRoute } from "../routes/staff/list-staff.route";
 import { updateStaffRoleRoute } from "../routes/staff/update-staff-role.route";
-import type { StaffAccessRequirements } from "../plugins/staff-access";
 import type { MenuRouteRequirements } from "../routes/menu/menu.route";
 import type { CompleteHandoffRequirements } from "../routes/orders/complete-handoff.route";
 import type { OrderRouteRequirements } from "../routes/orders/confirm-orders.route";
 import type { ListOrdersRequirements } from "../routes/orders/list-orders.route";
 import type { UpdateCookingStateRequirements } from "../routes/orders/update-cooking-state.route";
+import type { UpgradeWebSocket, UpgradeWebSocketRequirements } from "../routes/realtime/upgrade-websocket.route";
 import type { ListStaffRouteRequirements } from "../routes/staff/list-staff.route";
 import type { UpdateStaffRoleRouteRequirements } from "../routes/staff/update-staff-role.route";
 
 export type AppRequirements =
+  | UpgradeWebSocketRequirements
   | CompleteHandoffRequirements
   | ListOrdersRequirements
   | UpdateCookingStateRequirements
   | MenuRouteRequirements
   | OrderRouteRequirements
-  | StaffAccessRequirements
   | ListStaffRouteRequirements
   | UpdateStaffRoleRouteRequirements;
 
 export type AppDependencies = {
   origin: string;
+  upgradeWebSocket: UpgradeWebSocket;
   runtime: ManagedRuntime.ManagedRuntime<AppRequirements, never>;
   aot?: boolean;
 };
 
-export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
+export const createApp = ({ origin, runtime, upgradeWebSocket, aot = true }: AppDependencies) => {
   const run = makeRunner(runtime);
 
-  const app = new Elysia({ adapter: CloudflareAdapter, aot })
+  const app = new Elysia({ adapter: cloudflareAdapter, aot })
     // Plugins
     .use(corsPlugin(origin))
     .use(
@@ -67,6 +68,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
             { name: "受け渡し", description: "完成注文の照合と受け渡し日時の記録" },
             { name: "調理", description: "確定注文の確認と調理状況の更新" },
             { name: "注文", description: "会計担当者が確定する注文" },
+            { name: "同期", description: "スタッフ画面間の変更通知" },
           ],
         },
         mapJsonSchema: { effect: JSONSchema.make },
@@ -101,6 +103,7 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
     })
 
     // Routes
+    .use(upgradeWebSocketRoute(run, origin, upgradeWebSocket))
     .use(menuRevisionRoute(run, origin))
     .use(ordersRevisionRoute(run, origin))
     .use(staffMenuRoute(run, origin))

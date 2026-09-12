@@ -5,7 +5,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Layer, ManagedRuntime, Schema } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { realtimeMock } from "../../../testing/realtime";
+import { realtimeMock, upgradeWebSocketMock } from "../../../testing/realtime";
 import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";
@@ -15,6 +15,7 @@ import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "..
 const db = drizzle(env.DB);
 const origin = "https://staff.nekomimi-ramen.com";
 const app = createApp({
+  upgradeWebSocket: upgradeWebSocketMock,
   origin,
   aot: false,
   runtime: ManagedRuntime.make(

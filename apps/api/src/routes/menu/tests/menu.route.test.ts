@@ -1,7 +1,7 @@
 import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { realtimeMock } from "../../../../testing/realtime";
+import { realtimeMock, upgradeWebSocketMock } from "../../../../testing/realtime";
 import { createApp } from "../../../bootstrap/create-app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import { failingMenuItemRepositoryMock } from "../../../features/menu/testing";
@@ -30,7 +30,12 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
         orderRepositoryMock(),
       ),
     );
-    const app = createApp({ origin: "https://staff.nekomimi-ramen.com", runtime, aot: false });
+    const app = createApp({
+      upgradeWebSocket: upgradeWebSocketMock,
+      origin: "https://staff.nekomimi-ramen.com",
+      runtime,
+      aot: false,
+    });
 
     const response = await app.handle(
       new Request("https://api.nekomimi-ramen.com/menu", {
