@@ -1,5 +1,6 @@
 import {
   Alert,
+  Anchor,
   Avatar,
   Button,
   Container,
@@ -211,6 +212,24 @@ export const StaffPageUI = ({ staff, loading, failed, actionFailed, busy, loginF
           <NavigationSection navigations={publicNavigations} role={staff.role} title="一般ページ" />
         </>
       ) : null}
+      <Group component="nav" aria-label="規約とポリシー" gap="lg">
+        <Anchor
+          href={new URL("/privacy", getSiteBaseURL(import.meta.env.PROD)).href}
+          mih={44}
+          display="inline-flex"
+          style={{ alignItems: "center" }}
+        >
+          プライバシーポリシー
+        </Anchor>
+        <Anchor
+          href={new URL("/terms", getSiteBaseURL(import.meta.env.PROD)).href}
+          mih={44}
+          display="inline-flex"
+          style={{ alignItems: "center" }}
+        >
+          利用規約
+        </Anchor>
+      </Group>
     </Stack>
   </Container>
 );

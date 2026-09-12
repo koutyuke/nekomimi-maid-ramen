@@ -97,3 +97,15 @@ status = "draft"
 specs = ["SPEC-SYS-007", "SPEC-OPS-004"]
 depends_on = []
 sources = ["DEC-SYS-007"]
+
+[[requirements]]
+id = "REQ-SYS-009"
+title = "公開された利用条件を確認してGoogleログインできる"
+kind = "functional"
+statement = "来場者とスタッフは未認証でもプライバシーポリシーと利用規約を読め、学校の担当者はGoogleのテストユーザーへの事前登録なしでログインできる。"
+reason = "情報の取り扱いを説明し、担当者追加時の事前登録漏れによるログイン不能を防ぐため。"
+priority = "must"
+status = "draft"
+specs = ["SPEC-SYS-010"]
+depends_on = ["REQ-SYS-006", "REQ-SYS-007"]
+sources = ["DEC-SYS-002", "DEC-SYS-007"]
