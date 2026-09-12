@@ -66,7 +66,7 @@ IDトークンの`hd`クレームで判定するのは、認可リクエスト�
 
 ## 影響
 
-- 保持するプロフィールと認証情報は[`SPEC-SYS-007`](../../specs/system-wide.md)に従う。保持期間と削除は[`Q-OPS-003`](../questions/Q-OPS-003-data-retention.md)で決定する。
+- 保持するプロフィールと認証情報は[`SPEC-SYS-007`](../../specs/system-wide.md)に従う。保持期間と削除は[`DEC-SYS-007`](DEC-SYS-007-personal-data-handling.md)に従う。
 - ログインにはGoogleへ到達できる通信が必要である。当日の失敗を避けるため、全担当者は営業開始前にログインする。
 - 在庫の修正と、確定した注文の取り消しはAdmin以上に限る。操作内容は[在庫仕様](../../specs/inventory.md)と[注文・会計仕様](../../specs/sales.md)で定義する。
 - 権限を誤って失った場合の回復はOwnerが行う。
