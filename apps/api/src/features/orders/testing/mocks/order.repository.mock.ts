@@ -34,6 +34,7 @@ export const orderRepositoryMock = (options: OrderRepositoryMockOptions = {}) =>
       ),
     findByRequestId: (requestId) =>
       Effect.sync(() => Option.fromNullable(confirmed.find((order) => order.requestId === requestId))),
+    getRevision: () => Effect.die("Unexpected revision lookup"),
     list: () => Effect.die("Unexpected order listing"),
   });
   const confirmation = Layer.succeed(OrderConfirmationCommand, {
@@ -52,6 +53,7 @@ export const failingOrderRepositoryMock = (error: PersistenceError) =>
     Layer.succeed(OrderRepository, {
       findLine: () => Effect.fail(error),
       findByRequestId: () => Effect.fail(error),
+      getRevision: () => Effect.fail(error),
       list: () => Effect.fail(error),
     }),
     Layer.succeed(OrderConfirmationCommand, { execute: () => Effect.fail(error) }),

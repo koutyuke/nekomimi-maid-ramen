@@ -1,6 +1,7 @@
 import { Effect, Layer } from "effect";
 
 import { CompleteHandoffCommand } from "../application/ports/outbound/complete-handoff.command";
+import { OrderUpdatesGateway } from "../application/ports/outbound/order-updates.gateway";
 import { UpdateCookingStateCommand } from "../application/ports/outbound/update-cooking-state.command";
 
 export { orderFixture, orderLineFixture } from "./fixtures/order.fixture";
@@ -14,6 +15,9 @@ export type { ConfirmOutcome, OrderRepositoryMockOptions } from "./mocks/order.r
 
 export const orderOperationsMock = () =>
   Layer.mergeAll(
+    orderUpdatesGatewayMock,
     Layer.succeed(UpdateCookingStateCommand, { execute: () => Effect.die("Unexpected cooking state update") }),
     Layer.succeed(CompleteHandoffCommand, { execute: () => Effect.die("Unexpected handoff completion") }),
   );
+
+export const orderUpdatesGatewayMock = Layer.succeed(OrderUpdatesGateway, { notify: () => Effect.void });

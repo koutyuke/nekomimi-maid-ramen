@@ -10,6 +10,7 @@ import {
   LineQuantity,
 } from "../../../domain/order";
 import {
+  orderUpdatesGatewayMock,
   orderFixture,
   orderLineFixture,
   orderPricingGatewayMock,
@@ -37,6 +38,7 @@ const environment = (options: {
   readonly orders?: OrderRepositoryMockOptions;
 }) =>
   Layer.mergeAll(
+    orderUpdatesGatewayMock,
     orderPricingGatewayMock([ramen, gyoza]),
     options.stockSnapshots === undefined
       ? orderStockAvailabilityGatewayMock(options.stocks)

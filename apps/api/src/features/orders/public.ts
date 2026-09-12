@@ -4,3 +4,4 @@ export { listOrders } from "./application/use-cases/list-orders";
 export { updateCookingState } from "./application/use-cases/update-cooking-state";
 export { CookingState, InvalidOrderInput, LineQuantity, Order, OutOfStock, UnknownMenuItem } from "./domain/order";
 export type { OperationalOrder, OrderStockShortage } from "./domain/order";
+export { getOrdersRevision } from "./application/use-cases/get-orders-revision";

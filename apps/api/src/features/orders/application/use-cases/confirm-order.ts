@@ -15,6 +15,7 @@ import {
 import { OrderConfirmationCommand } from "../ports/outbound/order-confirmation.command";
 import { OrderPricingGateway } from "../ports/outbound/order-pricing.gateway";
 import { OrderStockAvailabilityGateway } from "../ports/outbound/order-stock-availability.gateway";
+import { OrderUpdatesGateway } from "../ports/outbound/order-updates.gateway";
 import { OrderRepository } from "../ports/outbound/order.repository";
 import type { Price } from "../../../../core/domain/money";
 import type { Order, OrderDraft } from "../../domain/order";
@@ -44,18 +45,13 @@ const decodeInput = (input: ConfirmOrderInput) =>
 
 const newOrderId = Effect.sync(() => OrderId.make(crypto.randomUUID()));
 
-export const confirmOrder = (
-  input: ConfirmOrderInput,
-): Effect.Effect<
-  Order,
-  InvalidOrderInput | OutOfStock | PersistenceError | UnknownMenuItem,
-  OrderConfirmationCommand | OrderPricingGateway | OrderRepository | OrderStockAvailabilityGateway
-> =>
+export const confirmOrder = (input: ConfirmOrderInput) =>
   Effect.gen(function* () {
     const pricingGateway = yield* OrderPricingGateway;
     const stockAvailabilityGateway = yield* OrderStockAvailabilityGateway;
     const orderRepository = yield* OrderRepository;
     const orderConfirmationCommand = yield* OrderConfirmationCommand;
+    const updates = yield* OrderUpdatesGateway;
 
     const validatedInput = yield* decodeInput(input);
     const alreadyConfirmed = yield* orderRepository.findByRequestId(validatedInput.requestId);
@@ -100,10 +96,14 @@ export const confirmOrder = (
       confirmedAt,
     };
 
-    return yield* orderConfirmationCommand.execute(draft).pipe(
+    const result = yield* orderConfirmationCommand.execute(draft).pipe(
       Effect.catchTag("DuplicateConfirmation", () => reloadConfirmed(validatedInput.requestId)),
       Effect.catchTag("ConfirmationLostStockRace", () => reportShortagesAfterRace(validatedInput)),
     );
+
+    yield* updates.notify(["menu", "orders"]);
+
+    return result;
   });
 
 const reloadConfirmed = (requestId: ConfirmationRequestId): Effect.Effect<Order, PersistenceError, OrderRepository> =>
