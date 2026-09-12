@@ -16,7 +16,7 @@ type StaffMenuEntry = Snapshot<
 export const listStaffMenu = (): Effect.Effect<StaffMenuEntry, PersistenceError, MenuItemRepository> =>
   Effect.gen(function* () {
     const repository = yield* MenuItemRepository;
-    const { data, revision } = yield* repository.list();
+    const { data, revision } = yield* repository.findMany();
     return {
       revision,
       data: data.map(({ menuItem, quantity }) => ({

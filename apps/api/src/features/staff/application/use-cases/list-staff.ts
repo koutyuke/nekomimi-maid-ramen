@@ -10,5 +10,5 @@ export const listStaff = (actor: Staff) =>
       return yield* new StaffForbidden();
     }
     const repository = yield* StaffRepository;
-    return yield* repository.list();
+    return yield* repository.findMany();
   });

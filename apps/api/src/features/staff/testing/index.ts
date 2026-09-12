@@ -22,7 +22,7 @@ export const staffFixture: Staff = { id: "staff-1", email: "staff@gm.ibaraki-ct.
 
 export const staffRepositoryMock = () =>
   Layer.succeed(StaffRepository, {
-    list: () => Effect.die("Unexpected staff listing"),
+    findMany: () => Effect.die("Unexpected staff listing"),
     find: () => Effect.die("Unexpected staff lookup"),
     findSession: () => Effect.die("Unexpected session lookup"),
     updateRole: () => Effect.die("Unexpected role change"),

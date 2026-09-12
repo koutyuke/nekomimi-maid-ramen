@@ -10,7 +10,7 @@ export type MenuInventoryEntry = { readonly menuItem: MenuItem; readonly quantit
 export class MenuItemRepository extends Context.Tag("MenuItemRepository")<
   MenuItemRepository,
   {
-    readonly list: () => Effect.Effect<Snapshot<readonly MenuInventoryEntry[]>, PersistenceError>;
+    readonly findMany: () => Effect.Effect<Snapshot<readonly MenuInventoryEntry[]>, PersistenceError>;
     readonly getRevision: () => Effect.Effect<number, PersistenceError>;
   }
 >() {}

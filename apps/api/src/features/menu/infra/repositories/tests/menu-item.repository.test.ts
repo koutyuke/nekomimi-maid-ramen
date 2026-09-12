@@ -14,7 +14,7 @@ const listMenuItems = () =>
   Effect.runPromise(
     Effect.gen(function* () {
       const repository = yield* MenuItemRepository;
-      const snapshot = yield* repository.list();
+      const snapshot = yield* repository.findMany();
       return snapshot.data.map(({ menuItem }) => menuItem);
     }).pipe(Effect.provide(MenuItemRepositoryLive.pipe(Layer.provide(makeDatabaseLive(env.DB))))),
   );

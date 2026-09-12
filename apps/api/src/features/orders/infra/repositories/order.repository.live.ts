@@ -89,7 +89,7 @@ export const OrderRepositoryLive = Layer.effect(
 
           return row.revision;
         }),
-      list: (lookup) =>
+      findMany: (lookup) =>
         database
           .run("注文の一覧取得", (db) =>
             db.batch([

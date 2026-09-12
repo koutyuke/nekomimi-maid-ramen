@@ -8,7 +8,7 @@ import type { StaffSession } from "./authentication.gateway";
 export class StaffRepository extends Context.Tag("StaffRepository")<
   StaffRepository,
   {
-    readonly list: () => Effect.Effect<ReadonlyArray<Staff>, PersistenceError>;
+    readonly findMany: () => Effect.Effect<ReadonlyArray<Staff>, PersistenceError>;
     readonly find: (id: string) => Effect.Effect<Option.Option<Staff>, PersistenceError>;
     readonly findSession: (id: string) => Effect.Effect<Option.Option<StaffSession>, PersistenceError>;
     readonly updateRole: (

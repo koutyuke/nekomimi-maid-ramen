@@ -41,7 +41,7 @@ export const MenuItemRepositoryLive = Layer.effect(
     const database = yield* Database;
 
     const service = {
-      list: () =>
+      findMany: () =>
         database
           .run("商品の一覧取得", (db) =>
             db.batch([

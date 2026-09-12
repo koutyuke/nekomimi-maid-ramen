@@ -13,7 +13,7 @@ const repositoryWith = (cookingState: CookingState) =>
     findByRequestId: () => Effect.succeedNone,
     findLine: () => Effect.succeedSome(orderLineFixture("ramen", 1, 500, cookingState)),
     getRevision: () => Effect.succeed(0),
-    list: () => Effect.succeed({ data: [], revision: 0 }),
+    findMany: () => Effect.succeed({ data: [], revision: 0 }),
   });
 
 describe("SPEC-KIT-002 調理状況の遷移判定", () => {

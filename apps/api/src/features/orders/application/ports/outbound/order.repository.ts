@@ -19,6 +19,6 @@ export class OrderRepository extends Context.Tag("OrderRepository")<
       requestId: ConfirmationRequestId,
     ) => Effect.Effect<Option.Option<Order>, PersistenceError>;
     readonly getRevision: () => Effect.Effect<number, PersistenceError>;
-    readonly list: (lookup?: OrderLookup) => Effect.Effect<Snapshot<readonly OperationalOrder[]>, PersistenceError>;
+    readonly findMany: (lookup?: OrderLookup) => Effect.Effect<Snapshot<readonly OperationalOrder[]>, PersistenceError>;
   }
 >() {}

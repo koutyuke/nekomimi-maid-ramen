@@ -7,7 +7,7 @@ import type { Stock } from "../../domain/stock";
 
 export const menuItemRepositoryMock = (menuItems: readonly MenuItem[], stocks: readonly Stock[] = []) =>
   Layer.succeed(MenuItemRepository, {
-    list: () =>
+    findMany: () =>
       Effect.succeed({
         data: menuItems.map((menuItem) => ({
           menuItem,
@@ -19,4 +19,4 @@ export const menuItemRepositoryMock = (menuItems: readonly MenuItem[], stocks: r
   });
 
 export const failingMenuItemRepositoryMock = (error: PersistenceError) =>
-  Layer.succeed(MenuItemRepository, { list: () => Effect.fail(error), getRevision: () => Effect.fail(error) });
+  Layer.succeed(MenuItemRepository, { findMany: () => Effect.fail(error), getRevision: () => Effect.fail(error) });

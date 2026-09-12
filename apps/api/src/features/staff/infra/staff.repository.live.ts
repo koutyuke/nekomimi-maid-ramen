@@ -31,7 +31,7 @@ export const makeStaffRepositoryLive = (ownerEmail: string) =>
               .where(eq(Database.tables.sessions.id, id));
             return Option.map(Option.fromNullable(row), (session) => ({ ...session, staff: present(session.staff) }));
           }),
-        list: () =>
+        findMany: () =>
           database.run("利用者の一覧取得", async (db) => {
             const rows = await db
               .select(fields)

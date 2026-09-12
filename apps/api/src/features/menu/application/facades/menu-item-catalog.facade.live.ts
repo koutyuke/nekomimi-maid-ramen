@@ -12,7 +12,7 @@ export const MenuItemCatalogFacadeLive = Layer.effect(
       findPrices: (menuItemIds) => {
         const requestedIds = new Set(menuItemIds);
 
-        return repository.list().pipe(
+        return repository.findMany().pipe(
           Effect.map(({ data }) =>
             data.flatMap(({ menuItem }) =>
               requestedIds.has(menuItem.id)

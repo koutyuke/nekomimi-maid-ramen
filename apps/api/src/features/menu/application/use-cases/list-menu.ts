@@ -12,7 +12,7 @@ export type MenuEntry = {
 export const listMenu = (): Effect.Effect<readonly MenuEntry[], PersistenceError, MenuItemRepository> =>
   Effect.gen(function* () {
     const repository = yield* MenuItemRepository;
-    const snapshot = yield* repository.list();
+    const snapshot = yield* repository.findMany();
     return snapshot.data.map(({ menuItem, quantity }) => ({
       menuItem,
       sellable: quantity > 0,
