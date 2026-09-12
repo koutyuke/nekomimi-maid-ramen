@@ -21,6 +21,7 @@ requirements = [
   "REQ-KIT-002",
   "REQ-HAND-001",
   "REQ-HAND-002",
+  "REQ-HAND-003",
   "REQ-OPS-001",
   "REQ-OPS-002",
   "REQ-OPS-003",

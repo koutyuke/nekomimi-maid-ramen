@@ -32,7 +32,9 @@ export const receiptFixture = {
     orderNumber: 42,
     totalAmount: 1000,
     cookingState: "unstarted" as const,
-    lines: [{ menuItemId: "item-ramen", quantity: 2, unitPrice: 500, subtotal: 1000 }],
+    lines: [
+      { menuItemId: "item-ramen", quantity: 2, unitPrice: 500, subtotal: 1000, cookingState: "unstarted" as const },
+    ],
   },
   names: { "item-ramen": "ラーメン" },
   received: 2000,

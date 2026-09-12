@@ -3,7 +3,7 @@ import { Elysia } from "elysia";
 import type { Effect } from "effect";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { canOperate, getCurrentStaff } from "../../features/system-wide/public";
+import { canOperate, getCurrentStaff } from "../../features/staff/public";
 import { isTrustedOrigin } from "../../shared/http";
 import type { EffectRunner } from "../../core/adapters/elysia";
 

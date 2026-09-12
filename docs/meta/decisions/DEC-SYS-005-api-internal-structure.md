@@ -14,7 +14,7 @@ evidence: []
 
 ## 結論
 
-APIの内部を業務領域で縦割りにし、領域の中を層で分ける。エラー処理、型定義、依存の解決はEffect(`effect`、3.22系)で行う。
+APIの内部を変更単位となる業務概念で縦割りにし、その中を層で分ける。エラー処理、型定義、依存の解決はEffect(`effect`、3.22系)で行う。
 
 APIを追加・変更するときは、[ファイルの切り方](#ファイルの切り方)で処理の置き場所を決め、[HTTPの境界](#httpの境界)と[権限を伴う更新](#権限を伴う更新)で入力・応答・保存時の条件を確認する。
 
@@ -27,27 +27,27 @@ apps/api/
 │   │   └── adapters/    Effectをルートハンドラへ繋ぐ処理
 │   ├── shared/          特定の領域やレイヤーに属さないもの
 │   │   └── http/        API共通のHTTP方針。入口は`index.ts`
-│   ├── features/        業務領域ごと(inventory、visitor-information、…)
-│   │   └── {領域}/
+│   ├── features/        変更単位となる業務概念ごと(orders、menu、staff、…)
+│   │   └── {機能}/
 │   │       ├── domain/       概念ごとに1ファイル(stock.ts、menu-item.ts、…)
 │   │       ├── application/
 │   │       │   ├── ports/
-│   │       │   │   ├── inbound/   領域が外部へ提供する契約
-│   │       │   │   └── outbound/  領域が外部へ要求する契約
+│   │       │   │   ├── inbound/   機能が外部へ提供する契約
+│   │       │   │   └── outbound/  機能が外部へ要求する契約
 │   │       │   ├── facades/       inboundポートの実装
 │   │       │   └── use-cases/     業務処理
-│   │       ├── adapters/     接続先の領域ごとに置く他領域との接続
+│   │       ├── adapters/     接続先の機能ごとに置く他機能との接続
 │   │       ├── infra/        保存先を使うcommands、repositories
 │   │       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
-│   │       ├── public.ts     この領域の公開面
-│   │       └── layer.ts      この領域の実装を組み立てる
+│   │       ├── public.ts     この機能の公開面
+│   │       └── layer.ts      この機能の実装を組み立てる
 │   ├── routes/
 │   │   └── {経路}/
 │   │       ├── {操作}.route.ts     経路の定義
 │   │       ├── {経路}.response.ts  応答の形と組み立て
 │   │       └── tests/
 │   ├── tests/
-│   │   └── integration/     APIの入口から複数領域と保存先を通す統合テスト
+│   │   └── integration/     APIの入口から複数機能と保存先を通す統合テスト
 │   ├── app.ts           経路の合成。画面が読む型の正本
 │   └── index.ts         Workerの入口。実装の解決はここだけで行う
 └── testing/
@@ -55,7 +55,7 @@ apps/api/
     └── setup/           テスト環境の入口と初期化
 ```
 
-領域の名前は[ドキュメント管理](../../documentation-management.md)の業務領域に合わせる。
+一つの集約とライフサイクルを同じ担当者・保存先で扱う操作は、一つの機能へまとめる。注文確定、調理状況、受け渡しは`features/orders`に置く。商品情報と商品別在庫はメニュー表示と注文確定が一緒に参照するため`features/menu`に置き、モデル、リポジトリ、Facadeは分ける。認証とロール管理は同じ利用者を扱うため`features/staff`に置く。仕様書は利用者の業務を追えるよう、[ドキュメント管理](../../documentation-management.md)の業務領域ごとに分けたままとする。
 
 ### coreとsharedの公開入口
 
@@ -76,22 +76,22 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ### ファイルの切り方
 
-`domain`のファイルは種類ではなく概念で切る。エンティティ、そのエンティティだけが使うバリューオブジェクト、業務判定の関数を同じファイルへ入れる。バリューオブジェクトを独立したファイルへ出すのは、同じ領域の2つ以上のエンティティが使うときだけである。2つ以上の領域が使うものは`core/domain`へ置く。
+`domain`のファイルは種類ではなく概念で切る。エンティティ、そのエンティティだけが使うバリューオブジェクト、業務判定の関数を同じファイルへ入れる。バリューオブジェクトを独立したファイルへ出すのは、同じ機能の2つ以上のエンティティが使うときだけである。2つ以上の機能が使うものは`core/domain`へ置く。
 
-ルートはHTTPメソッドとパスの組み合わせごとに`{操作}.route.ts`へ分ける。同じ対象を扱っていても、一覧取得と更新は別ファイルにする。ルートには入力の検証、ユースケースの呼び出し、HTTP応答への変換を置き、業務規則や保存先の操作は各領域へ置く。
+ルートはHTTPメソッドとパスの組み合わせごとに`{操作}.route.ts`へ分ける。同じ対象を扱っていても、一覧取得と更新は別ファイルにする。ルートには入力の検証、ユースケースの呼び出し、HTTP応答への変換を置き、業務規則や保存先の操作は各機能へ置く。
 
 ユースケースは一つの業務目的ごとに`application/use-cases/{操作}.ts`へ分ける。ファイル名に`.usecase`は付けない。一覧取得とロール更新のように独立した操作は分け、同じ操作の補助関数は必要に応じて同じファイルに置く。ルートの数に合わせて業務処理を複製せず、同じ業務目的には同じユースケースを使う。
 
 スタッフ管理では、次の単位で分ける。パスは`apps/api/src/`からの相対パスである。
 
-| エンドポイント          | ルート                                    | ユースケース                                                      |
-| ----------------------- | ----------------------------------------- | ----------------------------------------------------------------- |
-| `GET /staff`            | `routes/staff/list-staff.route.ts`        | `features/system-wide/application/use-cases/list-staff.ts`        |
-| `PATCH /staff/:id/role` | `routes/staff/update-staff-role.route.ts` | `features/system-wide/application/use-cases/update-staff-role.ts` |
+| エンドポイント          | ルート                                    | ユースケース                                                |
+| ----------------------- | ----------------------------------------- | ----------------------------------------------------------- |
+| `GET /staff`            | `routes/staff/list-staff.route.ts`        | `features/staff/application/use-cases/list-staff.ts`        |
+| `PATCH /staff/:id/role` | `routes/staff/update-staff-role.route.ts` | `features/staff/application/use-cases/update-staff-role.ts` |
 
-業務領域の内側にバレルを作らない。
+機能の内側にバレルを作らない。
 
-`infra/commands`には、ユースケースを単位として状態を変更する保存先の実装を置く。一つの原子的な操作で複数の表を更新する実装も、その操作を所有する領域へ置く。ファイル名は`{操作}.command.live.ts`とする。ここでいうコマンドは保存先を操作する`outbound`ポートであり、入力CommandとそのHandlerに相当するユースケースは`application`へ置く。`infra/repositories`には、集約またはエンティティを単位とする汎用的な永続化を置き、ファイル名は`{対象}.repository.live.ts`とする。`adapters`には、他領域が公開するポートを自領域の出力ポートへ適合させる実装を置く。
+`infra/commands`には、ユースケースを単位として状態を変更する保存先の実装を置く。一つの原子的な操作で複数の表を更新する実装も、その操作を所有する機能へ置く。ファイル名は`{操作}.command.live.ts`とする。ここでいうコマンドは保存先を操作する`outbound`ポートであり、入力CommandとそのHandlerに相当するユースケースは`application`へ置く。`infra/repositories`には、集約またはエンティティを単位とする汎用的な永続化を置き、ファイル名は`{対象}.repository.live.ts`とする。`adapters`には、他機能が公開するポートを自機能の出力ポートへ適合させる実装を置く。
 
 ### ルートの組み立てとコメント
 
@@ -103,7 +103,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 | `// Endpoints` | そのファイルで直接定義するエンドポイント | `.get("/health", ...)`、`.patch("/staff/:id/role", ...)` |
 | `// Routes`    | 別ファイルで定義したルートの登録         | `.use(listStaffRoute(...))`                              |
 
-`app.ts`では共通プラグイン、直接定義するエンドポイント、各領域のルートの順に並べる。`/`と`/health`は`app.ts`に直接定義する。各`.route.ts`では必要なプラグインを登録してから、一つのエンドポイントを定義する。
+`app.ts`では共通プラグイン、直接定義するエンドポイント、各機能のルートの順に並べる。`/`と`/health`は`app.ts`に直接定義する。各`.route.ts`では必要なプラグインを登録してから、一つのエンドポイントを定義する。
 
 ハンドラーはエンドポイントへ渡す処理関数を指すため、エンドポイント定義全体の見出しには`// Endpoints`を使う。これらの区分以外のコメントは日本語で、コードだけでは分からない判断理由や制約を補う。
 
@@ -117,37 +117,37 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 一覧取得の`list`と全件取得を表す`findAll`は、取得対象や絞り込みの意味に合わせて選ぶ。`StaffRepository.list`はGoogleアカウントの登録を完了した利用者の一覧を返す。ポートのメソッド名を変更するときは、具象実装、呼び出し元、テスト用実装も同時に揃える。
 
-### 領域の公開面
+### 機能の公開面
 
-領域の外から読めるのは`features/{領域}/public.ts`だけである。ここへ載せるのは、他領域のアダプターや経路が必要とする`inbound`ポート、HTTPの境界で使うユースケースと型、業務エラーである。コマンドやリポジトリなど永続化の詳細や領域内の接続に使う`outbound`ポートは公開面へ載せない。
+機能の外から読めるのは`features/{機能}/public.ts`だけである。ここへ載せるのは、他機能のアダプターや経路が必要とする`inbound`ポート、HTTPの境界で使うユースケースと型、業務エラーである。コマンドやリポジトリなど永続化の詳細や機能内の接続に使う`outbound`ポートは公開面へ載せない。
 
-たとえば在庫領域は`InventoryAvailabilityFacade`とその要求・不足のDTOを公開し、`StockRepository`、`Stock`、`isSellable`は領域内に閉じる。来場者向け情報領域は`MenuItemCatalogFacade`を公開し、`MenuItemRepository`とメニュー表示専用の`MenuItemAvailabilityGateway`は領域内に閉じる。販売領域は注文確定のユースケースとHTTP境界で必要な型を公開し、`OrderConfirmationCommand`、`OrderRepository`、`OrderPricingGateway`、`OrderStockAvailabilityGateway`は領域内に閉じる。
+たとえばメニュー機能は`InventoryAvailabilityFacade`、`MenuItemCatalogFacade`とそのDTOを公開し、`StockRepository`、`MenuItemRepository`、`Stock`、`MenuItem`は機能内に閉じる。注文機能は注文のユースケースとHTTP境界で必要な型を公開し、コマンド、リポジトリ、ゲートウェイは機能内に閉じる。
 
 `layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
 
-テスト用の`fixtures`と`mocks`は`features/{領域}/testing/index.ts`を入口とする。
+テスト用の`fixtures`と`mocks`は`features/{機能}/testing/index.ts`を入口とする。
 
 ### テストの配置
 
-一つの概念、層、経路に閉じるテストは対象の隣の`tests/`へ置く。保存先へ一括保存するコマンドの契約テストは`apps/api/src/features/{領域}/infra/commands/tests/`へ置く。APIの入口から複数の業務領域と実際の保存先を組み合わせるテストは`apps/api/src/tests/integration/`へ置き、必要な`layer.ts`を組み立てる。Workerの入口を含む公開境界全体を外側から検証するテストは`apps/api/src/tests/e2e/`へ置く。テストランナーの入口と初期化は`apps/api/testing/setup/`へ置き、テスト実行時の型宣言は`apps/api/testing/env.d.ts`へ置く。
+一つの概念、層、経路に閉じるテストは対象の隣の`tests/`へ置く。保存先へ一括保存するコマンドの契約テストは`apps/api/src/features/{機能}/infra/commands/tests/`へ置く。APIの入口から複数の機能と実際の保存先を組み合わせるテストは`apps/api/src/tests/integration/`へ置き、必要な`layer.ts`を組み立てる。Workerの入口を含む公開境界全体を外側から検証するテストは`apps/api/src/tests/e2e/`へ置く。テストランナーの入口と初期化は`apps/api/testing/setup/`へ置き、テスト実行時の型宣言は`apps/api/testing/env.d.ts`へ置く。
 
 権限制御、状態遷移、永続化、エラー処理の変更は、期待する挙動を表す失敗するテストを先に置く。仕様との対応は`describe`の題名に仕様IDを含めて示す。ファイル分割や命名変更だけなら、型チェック、リンター、既存の関連テストで参照先と挙動を確認し、ファイルごとにテストを増やさない。
 
 ### 応答の形
 
-応答の形と組み立ては経路の隣(`routes/{経路}/{経路}.response.ts`)へ置く。応答はHTTPの契約であり、業務領域の知識ではない。
+応答の形と組み立ては経路の隣(`routes/{経路}/{経路}.response.ts`)へ置く。応答はHTTPの契約であり、機能の知識ではない。
 
 ### 依存の向き
 
-`shared`は`src/core`、`features`、`routes`、`plugins`を読まない。`core`は`features`を読まない。`domain`は自領域の`domain`と`core/domain`を参照する。`application`は自領域の`application/ports`、`application/facades`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には領域が外部へ提供する契約を置き、`application/ports/outbound`には領域が外部の保存先や別領域へ要求する契約を置く。`adapters`は自領域の`outbound`ポートとドメイン、および相手領域の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自領域の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
+`shared`は`src/core`、`features`、`routes`、`plugins`を読まない。`core`は`features`を読まない。`domain`は自機能の`domain`と`core/domain`を参照する。`application`は自機能の`application/ports`、`application/facades`、`application/use-cases`、`domain`、`core/domain`を参照する。`application/ports/inbound`には機能が外部へ提供する契約を置き、`application/ports/outbound`には機能が外部の保存先や別機能へ要求する契約を置く。`adapters`は自機能の`outbound`ポートとドメイン、および相手機能の`public.ts`が公開する`inbound`ポートを参照し、`infra`を読まない。`infra`は自機能の`outbound`ポートとドメイン、および`core/domain`と`core/infra`を参照して、保存先を使う具象実装を提供する。
 
-`public.ts`は自領域の契約と型を公開し、内部のコマンドやリポジトリなど永続化の詳細、`layer.ts`、テスト用コードを参照しない。`layer.ts`は自領域の`adapters`、`infra`、`application`、`domain`、`public.ts`を組み立て、他領域の`layer.ts`を参照しない。複数の表を一つの操作として更新する実装は、その操作を所有する領域の`infra/commands`へ置き、自領域の内部ポートとドメイン、および`core/infra`を参照する。`routes`は領域の`public.ts`、`core/domain`、`core/adapters`を参照し、テストファイルでは`testing/index.ts`を利用できる。
+`public.ts`は自機能の契約と型を公開し、内部のコマンドやリポジトリなど永続化の詳細、`layer.ts`、テスト用コードを参照しない。`layer.ts`は自機能の`adapters`、`infra`、`application`、`domain`、`public.ts`を組み立て、他機能の`layer.ts`を参照しない。複数の表を一つの操作として更新する実装は、その操作を所有する機能の`infra/commands`へ置き、自機能の内部ポートとドメイン、および`core/infra`を参照する。`routes`は機能の`public.ts`、`core/domain`、`core/adapters`を参照し、テストファイルでは`testing/index.ts`を利用できる。
 
 ユースケースは`Effect.Effect<成功値, エラー, 要求する依存>`を返す関数として書く。この型が契約であるため、ユースケースのインターフェースを別ファイルへ置かない。
 
 ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
-この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`shared`から`core`と上位の機能を、`core`から`features`の読み込みを禁止し、`routes`から領域の内側への読み込みを禁止する。`core`と`shared`の技術モジュールは公開入口からだけ読む。`features`全体へのoverrideで、領域名を含む読み込み先を公開面(`features/{領域}/public.ts`)と`testing`入口(`features/{領域}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
+この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`shared`から`core`と上位の機能を、`core`から`features`の読み込みを禁止し、`routes`から機能の内側への読み込みを禁止する。`core`と`shared`の技術モジュールは公開入口からだけ読む。`features`全体へのoverrideで、機能名を含む読み込み先を公開面(`features/{機能}/public.ts`)と`testing`入口(`features/{機能}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
 ### 型定義
 
@@ -193,7 +193,7 @@ Effectを使うのは、エラーと依存を関数の型に載せるためで�
 
 安定版の3.22系を使う。4.0系は`Schema`が書き直されており、この文書の時点でリリース候補である。出店日までの期間で、未安定の版へ追随する余地はない。
 
-業務領域で縦割りにするのは、一つの業務の変更で読む範囲を一箇所へ収めるためである。層で縦割りにすると、在庫の仕様を一つ変えるために表定義、保存処理、業務処理、応答の4箇所を別々のディレクトリで探すことになる。仕様が[業務領域ごと](../../documentation-management.md)にまとまっているため、実装も同じ切り方にすると仕様と実装を対応させて読める。
+業務概念で縦割りにするのは、一つの変更で読む範囲を一箇所へ収めるためである。層で縦割りにすると、在庫の仕様を一つ変えるために表定義、保存処理、業務処理、応答の4箇所を別々のディレクトリで探すことになる。一方、同じ注文の確定、調理、受け渡しを別機能にすると、共通する注文モデル、読み出し、経路を重複させる。文書は利用者の業務別、実装は一緒に変更する概念別に分ける。
 
 ユースケースのインターフェースを別ファイルへ置かないのは、`Effect`の型が成功値、エラー、依存のすべてを表すためである。同じ内容をインターフェースとして再宣言すると、実装を変えるたびに二箇所を直すことになり、ずれても検出できない。
 
@@ -215,4 +215,4 @@ Repositoryは、保存先の形式をドメインモデルへ変換する役割�
 - 新しい表を追加する場所は`src/core/infra/drizzle/schema.ts`だけである。
 - テストでは`main`をテスト専用の入口へ差し替える。Elysiaの事前コンパイルはWorkerの起動時にしか行えず、本番の入口をテストランナー内で読み込むと拒否される。
 - `no-underscore-dangle`は`_tag`を許可する。Effectのタグ付きエラーはこの名前で種類を判別する。
-- 新しい業務領域を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他領域と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/oxlint.config.ts`の業務領域パターンへ領域を加え、`src/index.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する領域の`infra/commands`に実装と契約テストを置く。
+- 新しい機能を追加する手順は、`domain`、必要な`application/ports/inbound`と`application/ports/outbound`、`application/use-cases`、他機能と接続する`adapters`、保存先を使う`infra`、`public.ts`、`layer.ts`を作り、`apps/api/oxlint.config.ts`の機能パターンへ名前を加え、`src/index.ts`の`Layer.mergeAll`へ加えることである。複数の表を一つの状態変更として保存する場合は、その操作を所有する機能の`infra/commands`に実装と契約テストを置く。

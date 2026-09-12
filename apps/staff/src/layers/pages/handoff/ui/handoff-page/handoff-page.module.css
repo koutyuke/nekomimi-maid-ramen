@@ -1,0 +1,99 @@
+/*
+  受け渡しカウンターは、立ったまま手元のスマートフォンで読む。
+  紙に手書きした注文番号と照らし合わせる画面なので、番号を最も大きく扱う。
+  状態は色だけで伝えず、番号札の塗り、状態名、操作ボタンの有無でも区別する。
+*/
+.page {
+  --handoff-ready: #0b6e4f;
+  --handoff-ready-soft: #e2f2ea;
+  --handoff-waiting: #8a4b12;
+  --handoff-waiting-soft: #fbeedc;
+  --handoff-done: #5f6b78;
+  --handoff-done-soft: #ebedf0;
+  --handoff-indigo: #1f4d6b;
+  --handoff-danger: #a51c1c;
+  --handoff-line: #dde1e6;
+  --handoff-muted: #56636f;
+
+  min-height: 100dvh;
+  background-color: #f1f2f4;
+}
+
+.card {
+  border-color: var(--handoff-line);
+}
+
+.card[data-status="completed"] {
+  background-color: var(--handoff-done-soft);
+}
+
+/* 桁が増えても番号の位置がずれないよう等幅数字にする。 */
+.number {
+  min-width: 4rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.625rem;
+  font-size: 2.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.number[data-status="ready"] {
+  background-color: var(--handoff-ready);
+  color: #fff;
+}
+
+.number[data-status="drinkPending"],
+.number[data-status="preparing"] {
+  background-color: var(--handoff-waiting-soft);
+  color: var(--handoff-waiting);
+}
+
+.number[data-status="completed"] {
+  background-color: #dfe3e7;
+  color: var(--handoff-done);
+}
+
+.status {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.status[data-status="ready"] {
+  color: var(--handoff-ready);
+}
+
+.status[data-status="drinkPending"],
+.status[data-status="preparing"] {
+  color: var(--handoff-waiting);
+}
+
+.status[data-status="completed"] {
+  color: var(--handoff-done);
+}
+
+.line {
+  border-color: var(--handoff-line);
+  background-color: #fff;
+}
+
+/* 操作できる行だけ地色を変え、押す場所を先に見つけられるようにする。 */
+.line[data-actionable="true"] {
+  border-color: #c8d5de;
+  background-color: #f5f9fb;
+}
+
+/* 画面の地色が薄い灰なので、通知は下地を塗り、枠線で境界を立てる。 */
+.notice {
+  --alert-bg: var(--handoff-waiting-soft);
+  --alert-color: var(--handoff-waiting);
+  --alert-bd: 1px solid #ecd6b6;
+}
+
+.alarm {
+  --alert-bg: #fceded;
+  --alert-color: var(--handoff-danger);
+  --alert-bd: 1px solid #f2cfcf;
+}

@@ -11,16 +11,26 @@ import { googleRoute } from "./routes/auth/google.route";
 import { logoutRoute } from "./routes/auth/logout.route";
 import { sessionRoute } from "./routes/auth/session.route";
 import { menuRoutes } from "./routes/menu/menu.route";
-import { orderRoutes } from "./routes/orders/orders.route";
+import { completeHandoffRoute } from "./routes/orders/complete-handoff.route";
+import { confirmOrderRoutes } from "./routes/orders/confirm-orders.route";
+import { listOrdersRoute } from "./routes/orders/list-orders.route";
+import { streamOrdersRoute } from "./routes/orders/stream-orders.route";
+import { updateCookingStateRoute } from "./routes/orders/update-cooking-state.route";
 import { listStaffRoute } from "./routes/staff/list-staff.route";
 import { updateStaffRoleRoute } from "./routes/staff/update-staff-role.route";
 import type { StaffAccessRequirements } from "./plugins/staff-access";
 import type { MenuRouteRequirements } from "./routes/menu/menu.route";
-import type { OrderRouteRequirements } from "./routes/orders/orders.route";
+import type { CompleteHandoffRequirements } from "./routes/orders/complete-handoff.route";
+import type { OrderRouteRequirements } from "./routes/orders/confirm-orders.route";
+import type { ListOrdersRequirements } from "./routes/orders/list-orders.route";
+import type { UpdateCookingStateRequirements } from "./routes/orders/update-cooking-state.route";
 import type { ListStaffRouteRequirements } from "./routes/staff/list-staff.route";
 import type { UpdateStaffRoleRouteRequirements } from "./routes/staff/update-staff-role.route";
 
 export type AppRequirements =
+  | CompleteHandoffRequirements
+  | ListOrdersRequirements
+  | UpdateCookingStateRequirements
   | MenuRouteRequirements
   | OrderRouteRequirements
   | StaffAccessRequirements
@@ -52,6 +62,8 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
             { name: "認証", description: "担当者のGoogle認証とセッション管理" },
             { name: "ロール管理", description: "利用者の一覧とロールの付与・剥奪" },
             { name: "メニュー", description: "来店者へ提供するメニュー情報" },
+            { name: "受け渡し", description: "完成注文の照合と受け渡し日時の記録" },
+            { name: "調理", description: "確定注文の確認と調理状況の更新" },
             { name: "注文", description: "会計担当者が確定する注文" },
           ],
         },
@@ -87,12 +99,16 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
     })
 
     // Routes
+    .use(streamOrdersRoute(run, origin))
+    .use(listOrdersRoute(run, origin))
+    .use(updateCookingStateRoute(run, origin))
+    .use(completeHandoffRoute(run, origin))
     .use(menuRoutes(run))
     .use(sessionRoute(run))
     .use(googleRoute(run))
     .use(googleCallbackRoute(run))
     .use(logoutRoute(run))
-    .use(orderRoutes(run, origin))
+    .use(confirmOrderRoutes(run, origin))
     .use(listStaffRoute(run, origin))
     .use(updateStaffRoleRoute(run, origin));
 

@@ -1,16 +1,23 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-export const menuItems = sqliteTable("menu_items", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  price: integer("price").notNull(),
-  category: text("category").notNull(),
-  displayOrder: integer("display_order").notNull(),
-  allergenCheckState: text("allergen_check_state").notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-});
+export const menuItems = sqliteTable(
+  "menu_items",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    description: text("description"),
+    price: integer("price").notNull(),
+    category: text("category", { enum: ["main", "side", "drink"] }).notNull(),
+    displayOrder: integer("display_order").notNull(),
+    allergenCheckState: text("allergen_check_state", { enum: ["unchecked", "checked"] }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    check("menu_items_category", sql`${table.category} in ('main', 'side', 'drink')`),
+    check("menu_items_allergen_check_state", sql`${table.allergenCheckState} in ('unchecked', 'checked')`),
+  ],
+);
 
 export const allergens = sqliteTable(
   "allergens",
@@ -55,7 +62,8 @@ export const orders = sqliteTable(
     orderNumber: integer("order_number").notNull(),
     requestId: text("request_id").notNull(),
     totalAmount: integer("total_amount").notNull(),
-    cookingState: text("cooking_state").notNull(),
+    handedOffAt: integer("handed_off_at", { mode: "timestamp_ms" }),
+    cancelledAt: integer("cancelled_at", { mode: "timestamp_ms" }),
     confirmedAt: integer("confirmed_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
@@ -77,10 +85,14 @@ export const orderLines = sqliteTable(
       .references(() => menuItems.id),
     quantity: integer("quantity").notNull(),
     unitPrice: integer("unit_price").notNull(),
+    cookingState: text("cooking_state", { enum: ["unstarted", "cooking", "completed"] })
+      .notNull()
+      .default("unstarted"),
   },
   (table) => [
     primaryKey({ columns: [table.orderId, table.menuItemId] }),
     check("order_lines_quantity_range", sql`${table.quantity} between 1 and 10`),
+    check("order_lines_cooking_state", sql`${table.cookingState} in ('unstarted', 'cooking', 'completed')`),
   ],
 );
 

@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import type { Effect } from "effect";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { logout } from "../../features/system-wide/public";
+import { logout } from "../../features/staff/public";
 import type { EffectRunner } from "../../core/adapters/elysia";
 
 export type LogoutRouteRequirements = Effect.Effect.Context<ReturnType<typeof logout>>;

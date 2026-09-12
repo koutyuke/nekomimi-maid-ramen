@@ -38,7 +38,7 @@ GoogleのOAuthアプリは「テスト」状態で運用し、担当者のアカ
 
 認証とセッション管理はBetter Auth 1.7.3、保存は既存のD1とDrizzle ORMを使う。利用者をGoogleの`sub`で識別し、メールアドレスだけでは既存のアカウントへ結び付けない。[Googleの仕様](https://developers.google.com/identity/openid-connect/openid-connect)はメールアドレスが変更され得るため`sub`による識別を求めている。
 
-Better Authとの接続は`features/system-wide/infra`へ閉じ、経路は同領域の公開するユースケースを通す。ロールの規則は同領域の`domain`、全表の定義は既存どおり`core/infra/drizzle/schema.ts`に置く。利用者とロールを経路へ渡す処理は`routes/auth`が担い、販売などの業務領域は認証ライブラリへ依存しない。
+Better Authとの接続は`features/staff/infra`へ閉じ、経路は同機能の公開するユースケースを通す。ロールの規則は同機能の`domain`、全表の定義は既存どおり`core/infra/drizzle/schema.ts`に置く。利用者とロールを経路へ渡す処理は`routes/auth`が担い、販売などの業務領域は認証ライブラリへ依存しない。
 
 - Googleのコールバックでは、Better Authの`verifyGoogleIdToken`で署名・発行者・宛先・期限を検証してから、`hd`の完全一致とメール確認済みを要求する。`/auth/google/callback`をBetter Auth内部の経路へ接続する。
 - `Owner`は`OWNER_EMAIL`で指定した利用者の実効ロールとし、DBのロール列には保存しない。DBへ保存するロールは`Admin`、`Staff`、`None`に限る。

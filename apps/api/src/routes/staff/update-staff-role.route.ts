@@ -2,7 +2,7 @@ import { Effect, Schema } from "effect";
 import { Elysia } from "elysia";
 
 import { logAndDie } from "../../core/adapters/elysia";
-import { updateStaffRole, EditableStaffRole, Staff } from "../../features/system-wide/public";
+import { updateStaffRole, EditableStaffRole, Staff } from "../../features/staff/public";
 import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";

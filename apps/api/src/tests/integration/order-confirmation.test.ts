@@ -6,19 +6,16 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
-import { InventoryLayer } from "../../features/inventory/layer";
-import { SalesLayer } from "../../features/sales/layer";
-import { staffRepositoryMock, authenticationGatewayMock, staffFixture } from "../../features/system-wide/testing";
-import { VisitorInformationLayer } from "../../features/visitor-information/layer";
+import { MenuLayer } from "../../features/menu/layer";
+import { makeOrdersLayer } from "../../features/orders/layer";
+import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
 
 const db = drizzle(env.DB);
 
-const VisitorWithInventoryLayer = VisitorInformationLayer.pipe(Layer.provide(InventoryLayer));
-const InventoryAndVisitorLayer = Layer.mergeAll(InventoryLayer, VisitorWithInventoryLayer);
-const SalesWithInventoryLayer = SalesLayer.pipe(Layer.provide(InventoryAndVisitorLayer));
+const OrdersLayer = makeOrdersLayer("").pipe(Layer.provide(MenuLayer));
 const AppLayer = Layer.mergeAll(
-  InventoryAndVisitorLayer,
-  SalesWithInventoryLayer,
+  MenuLayer,
+  OrdersLayer,
   authenticationGatewayMock(staffFixture),
   staffRepositoryMock(),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));

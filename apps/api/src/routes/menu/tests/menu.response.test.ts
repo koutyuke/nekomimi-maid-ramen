@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allergenFixture, menuItemFixture } from "../../../features/visitor-information/testing";
+import { allergenFixture, menuItemFixture } from "../../../features/menu/testing";
 import { presentMenu } from "../menu.response";
 
 describe("SPEC-VIS-004 特定原材料の確認状態", () => {

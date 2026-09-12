@@ -19,17 +19,20 @@ const open = (path: string) => {
 };
 
 describe("SPEC-SYS-006 未認証時のスタッフ画面への案内", () => {
-  it.each(["/admin", "/sales"])("%sからログイン画面へ戻し、業務データを取得しない", async (path) => {
-    const fetch = vi.fn(async (input: RequestInfo | URL) => {
-      expect(input instanceof Request ? input.url : input.toString()).toContain("/auth/session");
-      return Response.json({ staff: null });
-    });
-    vi.stubGlobal("fetch", fetch);
-    const router = open(path);
-    await screen.findByRole("button", { name: "Googleでログイン" });
-    expect(router.state.location.pathname).toBe("/");
-    expect(screen.queryByText("権限がありません")).toBeNull();
-  });
+  it.each(["/admin", "/sales", "/kitchen", "/handoff"])(
+    "%sからログイン画面へ戻し、業務データを取得しない",
+    async (path) => {
+      const fetch = vi.fn(async (input: RequestInfo | URL) => {
+        expect(input instanceof Request ? input.url : input.toString()).toContain("/auth/session");
+        return Response.json({ staff: null });
+      });
+      vi.stubGlobal("fetch", fetch);
+      const router = open(path);
+      await screen.findByRole("button", { name: "Googleでログイン" });
+      expect(router.state.location.pathname).toBe("/");
+      expect(screen.queryByText("権限がありません")).toBeNull();
+    },
+  );
   it("認証の通信失敗でログイン画面へ飛ばさず、再試行後に未認証と判定する", async () => {
     let failed = true;
     vi.stubGlobal(

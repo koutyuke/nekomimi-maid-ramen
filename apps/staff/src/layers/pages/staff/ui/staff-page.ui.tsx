@@ -46,6 +46,18 @@ const staffNavigations: readonly Navigation[] = [
     roles: ["Owner", "Admin", "Staff"],
   },
   {
+    href: "/kitchen",
+    label: "調理",
+    description: "確定した注文を確認し、調理状況を更新する",
+    roles: ["Owner", "Admin", "Staff"],
+  },
+  {
+    href: "/handoff",
+    label: "受け渡し",
+    description: "注文番号と商品を照合し、受け渡しを記録する",
+    roles: ["Owner", "Admin", "Staff"],
+  },
+  {
     href: "/admin",
     label: "管理ページ",
     description: "スタッフや商品の管理ページ",

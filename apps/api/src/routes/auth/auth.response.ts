@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { Staff } from "../../features/system-wide/public";
+import { Staff } from "../../features/staff/public";
 
 export const SessionResponse = Schema.Struct({
   staff: Schema.NullOr(Staff).annotations({ description: "認証中の担当者。未認証の場合はnull" }),
