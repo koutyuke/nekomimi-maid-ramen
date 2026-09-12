@@ -2,7 +2,7 @@ import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { realtimeMock } from "../../../../testing/realtime";
-import { createApp } from "../../../app";
+import { createApp } from "../../../bootstrap/create-app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import {
   inventoryAvailabilityFacadeMock,
@@ -18,7 +18,7 @@ import {
   orderStockAvailabilityGatewayMock,
 } from "../../../features/orders/testing";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../../features/staff/testing";
-import type { AppRequirements } from "../../../app";
+import type { AppRequirements } from "../../../bootstrap/create-app";
 import type { Stock } from "../../../features/menu/testing";
 import type { StaffAccessRequirements } from "../../../plugins/staff-access";
 

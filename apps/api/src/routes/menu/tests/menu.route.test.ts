@@ -2,7 +2,7 @@ import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { realtimeMock } from "../../../../testing/realtime";
-import { createApp } from "../../../app";
+import { createApp } from "../../../bootstrap/create-app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import { failingMenuItemRepositoryMock } from "../../../features/menu/testing";
 import {

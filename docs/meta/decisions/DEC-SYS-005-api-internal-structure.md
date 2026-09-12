@@ -48,7 +48,8 @@ apps/api/
 │   │       └── tests/
 │   ├── tests/
 │   │   └── integration/     APIの入口から複数機能と保存先を通す統合テスト
-│   ├── app.ts           経路の合成。画面が読む型の正本
+│   ├── bootstrap/       アプリの組み立て
+│   │   └── create-app.ts 経路の合成。画面が読む型の正本
 │   └── index.ts         Workerの入口。実装の解決はここだけで行う
 └── testing/
     ├── env.d.ts         テスト実行時だけ使う型宣言
@@ -95,7 +96,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ### ルートの組み立てとコメント
 
-`app.ts`と各`.route.ts`では、登録する処理のまとまりを次の英語コメントで区切る。該当する処理がある区分だけを書き、区分の間に空行を入れる。
+`bootstrap/create-app.ts`と各`.route.ts`では、登録する処理のまとまりを次の英語コメントで区切る。該当する処理がある区分だけを書き、区分の間に空行を入れる。
 
 | コメント       | 対象                                     | 例                                                       |
 | -------------- | ---------------------------------------- | -------------------------------------------------------- |
@@ -103,7 +104,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 | `// Endpoints` | そのファイルで直接定義するエンドポイント | `.get("/health", ...)`、`.patch("/staff/:id/role", ...)` |
 | `// Routes`    | 別ファイルで定義したルートの登録         | `.use(listStaffRoute(...))`                              |
 
-`app.ts`では共通プラグイン、直接定義するエンドポイント、各機能のルートの順に並べる。`/`と`/health`は`app.ts`に直接定義する。各`.route.ts`では必要なプラグインを登録してから、一つのエンドポイントを定義する。
+`bootstrap/create-app.ts`では共通プラグイン、直接定義するエンドポイント、各機能のルートの順に並べる。`/`と`/health`は`bootstrap/create-app.ts`に直接定義する。各`.route.ts`では必要なプラグインを登録してから、一つのエンドポイントを定義する。
 
 ハンドラーはエンドポイントへ渡す処理関数を指すため、エンドポイント定義全体の見出しには`// Endpoints`を使う。これらの区分以外のコメントは日本語で、コードだけでは分からない判断理由や制約を補う。
 
@@ -123,7 +124,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 たとえばメニュー機能は`InventoryAvailabilityFacade`、`MenuItemCatalogFacade`とそのDTOを公開し、`StockRepository`、`MenuItemRepository`、`Stock`、`MenuItem`は機能内に閉じる。注文機能は注文のユースケースとHTTP境界で必要な型を公開し、コマンド、リポジトリ、ゲートウェイは機能内に閉じる。
 
-`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
+`layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`bootstrap/create-app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
 
 テスト用の`fixtures`と`mocks`は`features/{機能}/testing/index.ts`を入口とする。
 
@@ -145,7 +146,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 ユースケースは`Effect.Effect<成功値, エラー, 要求する依存>`を返す関数として書く。この型が契約であるため、ユースケースのインターフェースを別ファイルへ置かない。
 
-ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
+ポートは`Context.Tag`で宣言し、実装は`Layer`として与える。`bootstrap/create-app.ts`が受け取るのはポートを解決した`ManagedRuntime`であり、`index.ts`だけが`Layer`から組み立てる。
 
 この向きの主要な境界は`apps/api/oxlint.config.ts`の`no-restricted-imports`で検査する。`routes`、`application`、`domain`から`*.live`と`infra`配下の読み込みを禁止し、`adapters`から`infra`、`infra`から`adapters`と`application`の実装を読めないようにする。`shared`から`core`と上位の機能を、`core`から`features`の読み込みを禁止し、`routes`から機能の内側への読み込みを禁止する。`core`と`shared`の技術モジュールは公開入口からだけ読む。`features`全体へのoverrideで、機能名を含む読み込み先を公開面(`features/{機能}/public.ts`)と`testing`入口(`features/{機能}/testing`)に限り、`features`から`core/adapters`を読めないようにする。`public.ts`、`layer.ts`、本番コードから`tests`と`testing`を読めないようにし、テストコードからはテスト用の入口を読めるようにする。
 
@@ -175,9 +176,9 @@ TypeScriptの`enum`は使わない。`tsconfig.base.json`の`erasableSyntaxOnly`
 
 ルートの検証はEffect Schemaで書き、`Schema.standardSchemaV1`でElysiaへ渡す。Elysia 1.4はStandard Schemaに対応しており、TypeBoxと同じように型推論が働く。
 
-公開する型にブランドを出さない。画面は`@nekomimi/api`から`app.ts`の型を読むため、ブランドを出すと画面側も`effect`を型依存として持つことになる。`Schema.Literal`による列挙はブランドを持たないためそのまま公開する。ブランド付きのバリューオブジェクトへの変換は`application`層で行う。
+公開する型にブランドを出さない。画面は`@nekomimi/api`から`bootstrap/create-app.ts`の型を読むため、ブランドを出すと画面側も`effect`を型依存として持つことになる。`Schema.Literal`による列挙はブランドを持たないためそのまま公開する。ブランド付きのバリューオブジェクトへの変換は`application`層で行う。
 
-各エンドポイントの`detail`に一意な`operationId`、操作を要約する`summary`、分類用の`tags`を付ける。権限や更新条件など、型だけでは伝わらない利用条件は`description`へ書く。入力・応答の意味はスキーマの注釈で補い、実装が返す成功・失敗の応答と揃える。API全体の情報とタグの説明は`app.ts`で管理する。
+各エンドポイントの`detail`に一意な`operationId`、操作を要約する`summary`、分類用の`tags`を付ける。権限や更新条件など、型だけでは伝わらない利用条件は`description`へ書く。入力・応答の意味はスキーマの注釈で補い、実装が返す成功・失敗の応答と揃える。API全体の情報とタグの説明は`bootstrap/create-app.ts`で管理する。
 
 ### 権限を伴う更新
 
@@ -197,7 +198,7 @@ Effectを使うのは、エラーと依存を関数の型に載せるためで�
 
 ユースケースのインターフェースを別ファイルへ置かないのは、`Effect`の型が成功値、エラー、依存のすべてを表すためである。同じ内容をインターフェースとして再宣言すると、実装を変えるたびに二箇所を直すことになり、ずれても検出できない。
 
-`app.ts`が`ManagedRuntime`だけを受け取るのは、画面が読む型にD1とDrizzleの型定義を漏らさないためである。`app.ts`が保存先の実装を参照すると、画面側の型検査にWorkers固有の型定義が必要になる([`DEC-SYS-004`](DEC-SYS-004-development-environment.md))。ポートの型は公開面の契約と領域の値だけで構成されるため、保存先の実装を各領域の`infra`へ置き、`src/index.ts`で`Layer`を解決することでこの境界を保てる。
+`bootstrap/create-app.ts`が`ManagedRuntime`だけを受け取るのは、画面が読む型にD1とDrizzleの型定義を漏らさないためである。`bootstrap/create-app.ts`が保存先の実装を参照すると、画面側の型検査にWorkers固有の型定義が必要になる([`DEC-SYS-004`](DEC-SYS-004-development-environment.md))。ポートの型は公開面の契約と領域の値だけで構成されるため、保存先の実装を各領域の`infra`へ置き、`src/index.ts`で`Layer`を解決することでこの境界を保てる。
 
 Repositoryは、保存先の形式をドメインモデルへ変換する役割だけを見ればアダプターである。しかし、現在の具象実装はDrizzleの問い合わせAPIと表定義へ直接依存しており、これらをInterface Adaptersより外側のFrameworks & Driversに分類すると、アダプターから外側へのソースコード依存が生じる。Drizzleの問い合わせ能力を技術非依存の契約として再定義すると、ORMの抽象を複製するか、Repositoryポートとほぼ同じ契約を追加することになる。この分離に独立した変更理由がないため、Drizzleを使うRepositoryとコマンドの具象実装全体を`infra`に置く。
 

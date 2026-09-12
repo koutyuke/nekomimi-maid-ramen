@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Effect, Layer, ManagedRuntime, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { createApp } from "../../app";
+import { createApp } from "../../bootstrap/create-app";
 import { makeRunner } from "../../core/adapters/elysia";
 import { PersistenceError } from "../../core/domain/persistence-error";
 import { Revision } from "../../core/domain/revision";
@@ -16,7 +16,7 @@ import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { failingUpdateNotifierMock } from "../../features/realtime/testing";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
 import { ConfirmedOrderResponse } from "../../routes/orders/orders.response";
-import { connectStaffUpdates } from "../../routes/realtime/connect-updates.route";
+import { upgradeWebSocketRoute } from "../../routes/realtime/upgrade-websocket.route";
 
 const db = drizzle(env.DB);
 const origin = "https://staff.nekomimi-ramen.com";
@@ -44,7 +44,7 @@ const request = (path: string, init?: RequestInit) => {
     headers,
   });
   return path === "/staff/sync/events"
-    ? connectStaffUpdates(makeRunner(live), origin, input, (sessionId) =>
+    ? upgradeWebSocketRoute(makeRunner(live), origin, input, (sessionId) =>
         connectWebSocketHub(env.STAFF_UPDATES, sessionId),
       )
     : app.handle(input);

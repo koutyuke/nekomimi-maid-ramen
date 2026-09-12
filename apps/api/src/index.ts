@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { Layer, ManagedRuntime } from "effect";
 
-import { createApp } from "./app";
+import { createApp } from "./bootstrap/create-app";
 import { makeRunner } from "./core/adapters/elysia";
 import { makeDatabaseLive } from "./core/infra/drizzle";
 import { WebSocketHub as BaseWebSocketHub, connectWebSocketHub } from "./core/infra/websocket";
@@ -10,7 +10,7 @@ import { makeOrdersLayer } from "./features/orders/layer";
 import { makeRealtimeLayer } from "./features/realtime/layer";
 import { makeStaffLayer } from "./features/staff/layer";
 import { canReceiveUpdates } from "./features/staff/public";
-import { connectStaffUpdates } from "./routes/realtime/connect-updates.route";
+import { upgradeWebSocketRoute } from "./routes/realtime/upgrade-websocket.route";
 import { getAPIBaseURL, getStaffBaseURL } from "@nekomimi/core/http";
 
 const production = env.ENVIRONMENT !== "development";
@@ -54,6 +54,6 @@ const run = makeRunner(runtime);
 export default {
   fetch: (request: Request) =>
     new URL(request.url).pathname === "/staff/sync/events"
-      ? connectStaffUpdates(run, origin, request, (sessionId) => connectWebSocketHub(env.STAFF_UPDATES, sessionId))
+      ? upgradeWebSocketRoute(run, origin, request, (sessionId) => connectWebSocketHub(env.STAFF_UPDATES, sessionId))
       : app.fetch(request),
 } satisfies ExportedHandler<Env>;

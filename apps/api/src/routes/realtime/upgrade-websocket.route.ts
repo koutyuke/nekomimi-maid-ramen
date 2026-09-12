@@ -8,11 +8,11 @@ import type { EffectRunner } from "../../core/adapters/elysia";
 import type { StaffAccessRequirements } from "../../plugins/staff-access";
 
 // Workersの101応答をHTTP応答の再構築に通すとwebSocketを失うため、入口から直接返す。
-export const connectStaffUpdates = (
+export const upgradeWebSocketRoute = (
   run: EffectRunner<StaffAccessRequirements>,
   origin: string,
   request: Request,
-  connect: (sessionId: string) => Promise<Response>,
+  upgradeWebSocket: (sessionId: string) => Promise<Response>,
 ) =>
   run(
     logAndDie(
@@ -31,7 +31,7 @@ export const connectStaffUpdates = (
           return new Response(null, { status: 426 });
         }
         return yield* Effect.tryPromise({
-          try: () => connect(session.value.sessionId),
+          try: () => upgradeWebSocket(session.value.sessionId),
           catch: (cause) => new PersistenceError({ operation: "変更通知への接続", cause }),
         });
       }),

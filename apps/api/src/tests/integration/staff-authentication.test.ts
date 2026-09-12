@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Effect, Layer, ManagedRuntime, Option, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createApp } from "../../app";
+import { createApp } from "../../bootstrap/create-app";
 import { makeRunner } from "../../core/adapters/elysia";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { connectWebSocketHub } from "../../core/infra/websocket";
@@ -14,7 +14,7 @@ import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { StaffRepository } from "../../features/staff/application/ports/outbound/staff.repository";
 import { makeStaffLayer } from "../../features/staff/layer";
 import { updateStaffRole, Staff } from "../../features/staff/public";
-import { connectStaffUpdates } from "../../routes/realtime/connect-updates.route";
+import { upgradeWebSocketRoute } from "../../routes/realtime/upgrade-websocket.route";
 
 const apiOrigin = "https://api.nekomimi-ramen.com";
 const origin = "https://staff.nekomimi-ramen.com";
@@ -43,7 +43,7 @@ const runtime = ManagedRuntime.make(appLayer);
 const app = createApp({ origin, runtime, aot: false });
 const handle = (request: Request) =>
   new URL(request.url).pathname === "/staff/sync/events"
-    ? connectStaffUpdates(makeRunner(runtime), origin, request, (sessionId) =>
+    ? upgradeWebSocketRoute(makeRunner(runtime), origin, request, (sessionId) =>
         connectWebSocketHub(env.STAFF_UPDATES, sessionId),
       )
     : app.handle(request);
