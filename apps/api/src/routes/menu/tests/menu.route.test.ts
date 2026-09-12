@@ -1,9 +1,10 @@
 import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
+import { realtimeMock } from "../../../../testing/realtime";
 import { createApp } from "../../../app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
-import { failingInventoryAvailabilityFacadeMock, menuItemRepositoryMock } from "../../../features/menu/testing";
+import { failingMenuItemRepositoryMock } from "../../../features/menu/testing";
 import {
   orderOperationsMock,
   orderPricingGatewayMock,
@@ -14,16 +15,16 @@ import { authenticationGatewayMock, staffRepositoryMock } from "../../../feature
 
 describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () => {
   it("失敗を500として返し、内部の情報を応答へ出さない", async () => {
-    const failingAvailability = failingInventoryAvailabilityFacadeMock(
+    const failingMenu = failingMenuItemRepositoryMock(
       new PersistenceError({ operation: "在庫の一覧取得", cause: new Error("D1_CONNECTION_LOST") }),
     );
     const runtime = ManagedRuntime.make(
       Layer.mergeAll(
+        realtimeMock,
         orderOperationsMock(),
         authenticationGatewayMock(),
         staffRepositoryMock(),
-        menuItemRepositoryMock([]),
-        failingAvailability,
+        failingMenu,
         orderPricingGatewayMock([]),
         orderStockAvailabilityGatewayMock([]),
         orderRepositoryMock(),
