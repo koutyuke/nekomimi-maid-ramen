@@ -4,7 +4,7 @@ import { Layer, ManagedRuntime } from "effect";
 import { createApp } from "./app";
 import { makeRunner } from "./core/adapters/elysia";
 import { makeDatabaseLive } from "./core/infra/drizzle";
-import { RealtimeHub, connectRealtime } from "./core/infra/realtime";
+import { WebSocketHub as BaseWebSocketHub, connectWebSocketHub } from "./core/infra/websocket";
 import { MenuLayer } from "./features/menu/layer";
 import { makeOrdersLayer } from "./features/orders/layer";
 import { makeRealtimeLayer } from "./features/realtime/layer";
@@ -42,7 +42,7 @@ const AppLayer = Layer.mergeAll(
 
 const runtime = ManagedRuntime.make(AppLayer);
 
-export class StaffUpdates extends RealtimeHub {
+export class WebSocketHub extends BaseWebSocketHub {
   constructor(ctx: DurableObjectState, bindings: Env) {
     super(ctx, bindings, (sessionId) => runtime.runPromise(canReceiveUpdates(sessionId)));
   }
@@ -54,6 +54,6 @@ const run = makeRunner(runtime);
 export default {
   fetch: (request: Request) =>
     new URL(request.url).pathname === "/staff/sync/events"
-      ? connectStaffUpdates(run, origin, request, (sessionId) => connectRealtime(env.STAFF_UPDATES, sessionId))
+      ? connectStaffUpdates(run, origin, request, (sessionId) => connectWebSocketHub(env.STAFF_UPDATES, sessionId))
       : app.fetch(request),
 } satisfies ExportedHandler<Env>;

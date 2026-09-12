@@ -8,7 +8,7 @@ import { makeRunner } from "../../core/adapters/elysia";
 import { PersistenceError } from "../../core/domain/persistence-error";
 import { Revision } from "../../core/domain/revision";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
-import { connectRealtime } from "../../core/infra/realtime";
+import { connectWebSocketHub } from "../../core/infra/websocket";
 import { MenuLayer } from "../../features/menu/layer";
 import { makeOrdersLayer } from "../../features/orders/layer";
 import { confirmOrder } from "../../features/orders/public";
@@ -44,7 +44,9 @@ const request = (path: string, init?: RequestInit) => {
     headers,
   });
   return path === "/staff/sync/events"
-    ? connectStaffUpdates(makeRunner(live), origin, input, (sessionId) => connectRealtime(env.STAFF_UPDATES, sessionId))
+    ? connectStaffUpdates(makeRunner(live), origin, input, (sessionId) =>
+        connectWebSocketHub(env.STAFF_UPDATES, sessionId),
+      )
     : app.handle(input);
 };
 const revisions = async () => {

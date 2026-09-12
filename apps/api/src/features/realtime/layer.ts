@@ -2,7 +2,7 @@ import { Layer } from "effect";
 
 import { UpdateNotifierFacadeLive } from "./application/facades/update-notifier.facade.live";
 import { makeUpdatePublisherGatewayLive } from "./infra/update-publisher.gateway.live";
-import type { RealtimeHub } from "../../core/infra/realtime";
+import type { WebSocketHub } from "../../core/infra/websocket";
 
-export const makeRealtimeLayer = (namespace: DurableObjectNamespace<RealtimeHub>) =>
+export const makeRealtimeLayer = (namespace: DurableObjectNamespace<WebSocketHub>) =>
   Layer.mergeAll(UpdateNotifierFacadeLive.pipe(Layer.provide(makeUpdatePublisherGatewayLive(namespace))));

@@ -7,7 +7,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vites
 import { createApp } from "../../app";
 import { makeRunner } from "../../core/adapters/elysia";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
-import { connectRealtime } from "../../core/infra/realtime";
+import { connectWebSocketHub } from "../../core/infra/websocket";
 import { MenuLayer } from "../../features/menu/layer";
 import { makeOrdersLayer } from "../../features/orders/layer";
 import { makeRealtimeLayer } from "../../features/realtime/layer";
@@ -44,7 +44,7 @@ const app = createApp({ origin, runtime, aot: false });
 const handle = (request: Request) =>
   new URL(request.url).pathname === "/staff/sync/events"
     ? connectStaffUpdates(makeRunner(runtime), origin, request, (sessionId) =>
-        connectRealtime(env.STAFF_UPDATES, sessionId),
+        connectWebSocketHub(env.STAFF_UPDATES, sessionId),
       )
     : app.handle(request);
 const session = async (cookie: string) => {

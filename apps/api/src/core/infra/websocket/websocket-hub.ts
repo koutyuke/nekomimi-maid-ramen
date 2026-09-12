@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 
 import type { ResourceRevisions } from "../../domain/revision";
 
-export class RealtimeHub extends DurableObject<Env> {
+export class WebSocketHub extends DurableObject<Env> {
   private readonly authorize: (sessionId: string) => Promise<boolean>;
 
   constructor(ctx: DurableObjectState, env: Env, authorize: (sessionId: string) => Promise<boolean>) {
@@ -70,11 +70,11 @@ export class RealtimeHub extends DurableObject<Env> {
   }
 }
 
-export const getRealtimeHub = (namespace: DurableObjectNamespace<RealtimeHub>) =>
+export const getWebSocketHub = (namespace: DurableObjectNamespace<WebSocketHub>) =>
   namespace.getByName("nekomimi-maid-ramen");
 
-export const connectRealtime = (namespace: DurableObjectNamespace<RealtimeHub>, sessionId: string) =>
-  getRealtimeHub(namespace).fetch(
+export const connectWebSocketHub = (namespace: DurableObjectNamespace<WebSocketHub>, sessionId: string) =>
+  getWebSocketHub(namespace).fetch(
     new Request("https://realtime.internal/", {
       headers: { upgrade: "websocket", "x-session-id": sessionId },
     }),

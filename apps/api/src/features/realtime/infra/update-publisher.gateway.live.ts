@@ -3,11 +3,11 @@ import { Effect, Layer } from "effect";
 
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import { Database } from "../../../core/infra/drizzle";
-import { getRealtimeHub } from "../../../core/infra/realtime";
+import { getWebSocketHub } from "../../../core/infra/websocket";
 import { UpdatePublisherGateway } from "../application/ports/outbound/update-publisher.gateway";
-import type { RealtimeHub } from "../../../core/infra/realtime";
+import type { WebSocketHub } from "../../../core/infra/websocket";
 
-export const makeUpdatePublisherGatewayLive = (namespace: DurableObjectNamespace<RealtimeHub>) =>
+export const makeUpdatePublisherGatewayLive = (namespace: DurableObjectNamespace<WebSocketHub>) =>
   Layer.effect(
     UpdatePublisherGateway,
     Effect.gen(function* () {
@@ -27,7 +27,7 @@ export const makeUpdatePublisherGatewayLive = (namespace: DurableObjectNamespace
               return Object.fromEntries(rows.map(({ scope, revision }) => [scope, revision]));
             });
             yield* Effect.tryPromise({
-              try: () => getRealtimeHub(namespace).publish(revisions),
+              try: () => getWebSocketHub(namespace).publish(revisions),
               catch: (cause) => new PersistenceError({ operation: "変更通知", cause }),
             });
           }),
