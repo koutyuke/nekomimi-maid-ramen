@@ -3,29 +3,25 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
+import { TestWebSocket } from "../../../../testing/websocket";
 import { handoffPageFixture } from "../testing";
 import { useHandoff } from "./use-handoff";
 
-class TestEventSource extends EventTarget {
-  static instances: TestEventSource[] = [];
-  close = vi.fn();
-  constructor() {
-    super();
-    TestEventSource.instances.push(this);
-  }
-}
-
 afterEach(() => {
   vi.unstubAllGlobals();
-  TestEventSource.instances = [];
+  TestWebSocket.instances = [];
 });
 
 const setup = (role = "Staff") => {
+  let revision = 1;
   let orders = handoffPageFixture.orders;
   let conflict = false;
   let hold: Promise<void> | undefined;
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : String(input);
+    if (url.endsWith("/staff/orders/revision")) {
+      return Response.json({ revision });
+    }
     if (url.endsWith("/auth/session")) {
       return Response.json({ staff: { id: "staff-1", role, name: "担当者", email: "staff@example.com" } });
     }
@@ -42,12 +38,12 @@ const setup = (role = "Staff") => {
     }
     if (/\/orders\?businessDate=\d{4}-\d{2}-\d{2}$/.test(url)) {
       await hold;
-      return Response.json({ orders });
+      return Response.json({ orders, revision });
     }
     throw new Error(`Unexpected request: ${url}`);
   });
   vi.stubGlobal("fetch", fetch);
-  vi.stubGlobal("EventSource", TestEventSource);
+  vi.stubGlobal("WebSocket", TestWebSocket);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const hook = renderHook(() => useHandoff(), {
     wrapper: ({ children }: { children: ReactNode }) => (
@@ -73,7 +69,7 @@ const setup = (role = "Staff") => {
 const connect = async (hook: ReturnType<typeof setup>) => {
   await waitFor(() => expect(hook.result.current.orders).toHaveLength(4));
   act(() => {
-    TestEventSource.instances[0]!.dispatchEvent(new Event("refresh"));
+    TestWebSocket.instances[0]!.open();
   });
   await waitFor(() => expect(hook.result.current.connected && !hook.result.current.pending).toBe(true));
 };
@@ -85,7 +81,7 @@ describe("SPEC-HAND-001 当日の注文一覧", () => {
     const businessDate = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
     expect(
       hook.fetch.mock.calls.some(([input]) =>
-        (input instanceof Request ? input.url : String(input)).endsWith(`/orders?businessDate=${businessDate}`),
+        (input instanceof Request ? input.url : String(input)).endsWith(`/staff/orders?businessDate=${businessDate}`),
       ),
     ).toBe(true);
     hook.unmount();
@@ -94,13 +90,31 @@ describe("SPEC-HAND-001 当日の注文一覧", () => {
   it("権限がなければ一覧取得も通知接続も始めない", async () => {
     const hook = setup("None");
     await waitFor(() => expect(hook.result.current.access).toBe("denied"));
-    expect(TestEventSource.instances).toHaveLength(0);
+    expect(TestWebSocket.instances).toHaveLength(0);
     expect(hook.fetch).toHaveBeenCalledTimes(1);
     hook.unmount();
   });
 });
 
 describe("SPEC-HAND-002 SPEC-HAND-003 更新の再確認と通信断", () => {
+  it("ドリンクの更新中も別の注文は受け渡せ、同じドリンクへの連打は送信しない", async () => {
+    const hook = setup();
+    await connect(hook);
+    const order = handoffPageFixture.orders[1]!;
+    const release = hook.hold();
+    act(() => {
+      hook.result.current.actions.onUpdate(order, order.lines[1]!, "cooking");
+      hook.result.current.actions.onUpdate(order, order.lines[1]!, "cooking");
+    });
+    await waitFor(() => expect(hook.result.current.pendingLines).toEqual([{ orderId: order.id, menuItemId: "cola" }]));
+    expect(hook.result.current.pending).toBe(false);
+    expect(hook.fetch.mock.calls.filter(([, init]) => init?.method === "PATCH")).toHaveLength(1);
+    act(() => hook.result.current.actions.onComplete(handoffPageFixture.orders[0]!));
+    await waitFor(() => expect(hook.fetch.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1));
+    release();
+    await waitFor(() => expect(hook.result.current.pendingLines).toEqual([]));
+    hook.unmount();
+  });
   it("選んだドリンクの識別子と変更先を送る", async () => {
     const hook = setup();
     await connect(hook);
@@ -111,39 +125,23 @@ describe("SPEC-HAND-002 SPEC-HAND-003 更新の再確認と通信断", () => {
       expect(hook.fetch.mock.calls.some(([, init]) => init?.method?.toUpperCase() === "PATCH")).toBe(true),
     );
     const [url, init] = hook.fetch.mock.calls.find(([, options]) => options?.method?.toUpperCase() === "PATCH")!;
-    expect(url instanceof Request ? url.url : String(url)).toContain("/orders/order-2/lines/cola/cooking-state");
+    expect(url instanceof Request ? url.url : String(url)).toContain("/staff/orders/order-2/lines/cola/cooking-state");
     expect(init?.body).toBe(JSON.stringify({ to: "cooking" }));
     hook.unmount();
   });
 
-  it("切断中と再接続後の取得中は更新を送らない", async () => {
+  it("WebSocketだけの切断では受け渡しを止めない", async () => {
     const hook = setup();
     await connect(hook);
-    const source = TestEventSource.instances[0]!;
-    act(() => {
-      source.dispatchEvent(new Event("error"));
-    });
+    const source = TestWebSocket.instances[0]!;
+    act(() => source.disconnect());
     act(() => hook.result.current.actions.onComplete(handoffPageFixture.orders[0]!));
-    const release = hook.hold();
-    act(() => {
-      source.dispatchEvent(new Event("refresh"));
-    });
-    await waitFor(() => expect(hook.result.current.pending).toBe(true));
-    act(() =>
-      hook.result.current.actions.onUpdate(
-        handoffPageFixture.orders[1]!,
-        handoffPageFixture.orders[1]!.lines[1]!,
-        "cooking",
-      ),
+    await waitFor(() =>
+      expect(hook.fetch.mock.calls.some(([, init]) => init?.method?.toUpperCase() === "POST")).toBe(true),
     );
-    expect(
-      hook.fetch.mock.calls.some(([, init]) => ["POST", "PATCH"].includes(init?.method?.toUpperCase() ?? "")),
-    ).toBe(false);
-    release();
     hook.unmount();
     expect(source.close).toHaveBeenCalledOnce();
   });
-
   it("競合後は自動再送せず、他端末が記録した受け渡し日時を取得する", async () => {
     const hook = setup();
     await connect(hook);

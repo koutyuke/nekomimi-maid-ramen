@@ -1,7 +1,8 @@
 import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { createApp } from "../../../app";
+import { realtimeMock, upgradeWebSocketMock } from "../../../../testing";
+import { createApp } from "../../../bootstrap/create-app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import {
   inventoryAvailabilityFacadeMock,
@@ -17,9 +18,9 @@ import {
   orderStockAvailabilityGatewayMock,
 } from "../../../features/orders/testing";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../../features/staff/testing";
-import type { AppRequirements } from "../../../app";
+import type { AppRequirements } from "../../../bootstrap/create-app";
 import type { Stock } from "../../../features/menu/testing";
-import type { StaffAccessRequirements } from "../../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../../plugins/staff-access";
 
 const ramen = menuItemFixture({ id: "item-ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 
@@ -27,16 +28,24 @@ const appWith = (
   layers: Layer.Layer<
     Exclude<
       AppRequirements,
-      | StaffAccessRequirements
+      | Layer.Layer.Success<typeof realtimeMock>
+      | StaffAccessPluginRequirements
       | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>
       | Layer.Layer.Success<ReturnType<typeof orderOperationsMock>>
     >
   >,
 ) =>
   createApp({
+    upgradeWebSocket: upgradeWebSocketMock,
     origin: "https://staff.nekomimi-ramen.com",
     runtime: ManagedRuntime.make(
-      Layer.mergeAll(layers, orderOperationsMock(), authenticationGatewayMock(staffFixture), staffRepositoryMock()),
+      Layer.mergeAll(
+        realtimeMock,
+        layers,
+        orderOperationsMock(),
+        authenticationGatewayMock(staffFixture),
+        staffRepositoryMock(),
+      ),
     ),
     aot: false,
   });
@@ -54,7 +63,7 @@ const sellingApp = (stocks: ReadonlyArray<Stock>) =>
 
 const confirm = (app: ReturnType<typeof appWith>, body: unknown) =>
   app.handle(
-    new Request("https://api.nekomimi-ramen.com/orders", {
+    new Request("https://api.nekomimi-ramen.com/staff/orders", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "https://staff.nekomimi-ramen.com" },
       body: JSON.stringify(body),

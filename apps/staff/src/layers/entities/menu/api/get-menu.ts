@@ -1,13 +1,15 @@
-import { api } from "../../../shared/api";
+import { api, ReadError } from "../../../shared/api";
+import type { Snapshot } from "../../../shared/api";
 import type { MenuItem } from "../model/menu";
 
-export const getMenu = async (): Promise<readonly MenuItem[]> => {
-  const { data, error } = await api.menu.get();
+export const getMenu = async (signal: AbortSignal): Promise<Snapshot<readonly MenuItem[]>> => {
+  const { data, error } = await api.staff.menu.get({
+    fetch: { signal: AbortSignal.any([signal, AbortSignal.timeout(5_000)]) },
+  });
 
   if (error) {
-    // 応答の内容は来場者へ見せない。画面は取得できなかったことだけを伝える。
-    throw new Error(`メニューの取得に失敗した (status: ${error.status})`);
+    throw new ReadError(error.status, "商品情報を取得できませんでした。");
   }
 
-  return data.items;
+  return { data: data.items, revision: data.revision };
 };

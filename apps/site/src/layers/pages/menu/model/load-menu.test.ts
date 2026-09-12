@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { loadMenu } from "./load-menu";
-import type { MenuItem } from "@nekomimi/core/models";
+import type { MenuItem } from "./menu";
 
 const item: MenuItem = {
   id: "ramen",

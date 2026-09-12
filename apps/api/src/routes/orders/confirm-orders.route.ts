@@ -14,18 +14,20 @@ import {
   RejectedOrderResponse,
 } from "./orders.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
-import type { StaffAccessRequirements } from "../../plugins/staff-access";
+import type { StaffAccessPluginRequirements } from "../../plugins/staff-access";
 
-export type OrderRouteRequirements = Effect.Effect.Context<ReturnType<typeof confirmOrder>> | StaffAccessRequirements;
+export type OrderRouteRequirements =
+  | Effect.Effect.Context<ReturnType<typeof confirmOrder>>
+  | StaffAccessPluginRequirements;
 
-export const confirmOrderRoutes = (run: EffectRunner<OrderRouteRequirements>, origin: string) =>
+export const confirmOrderRoute = (run: EffectRunner<OrderRouteRequirements>, origin: string) =>
   new Elysia()
     // Plugins
     .use(staffAccessPlugin(run, origin))
 
     // Endpoints
     .post(
-      "/orders",
+      "/staff/orders",
       async ({ body, status }) => {
         const outcome = await run(
           logAndDie(

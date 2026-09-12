@@ -24,7 +24,7 @@
     "fmt:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
-    "test": "vitest run",
+    "test": "node lint-rules/use-case-gen.check.mjs && vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -15,7 +15,7 @@ export const makeStaffLayer = (d1: D1Database, config: AuthenticationConfig) =>
           request: () => Effect.succeed(Response.json({ code: "authentication_unavailable" }, { status: 503 })),
           callback: () => Effect.succeed(Response.json({ code: "authentication_unavailable" }, { status: 503 })),
           logout: () => Effect.succeed(Response.json({ code: "authentication_unavailable" }, { status: 503 })),
-          getStaff: () => Effect.succeed(Option.none()),
+          getSession: () => Effect.succeed(Option.none()),
         });
       }
       return makeAuthenticationGateway(d1, config);

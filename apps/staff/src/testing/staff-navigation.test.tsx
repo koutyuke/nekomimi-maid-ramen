@@ -61,7 +61,7 @@ describe("スタッフ画面内の移動", () => {
           });
         }
         if (url.endsWith("/menu")) {
-          return Response.json({ items: [] });
+          return Response.json({ items: [], revision: 1 });
         }
         throw new Error(`Unexpected request: ${url}`);
       }),

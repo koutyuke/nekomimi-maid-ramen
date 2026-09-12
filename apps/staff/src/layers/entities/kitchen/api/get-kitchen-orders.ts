@@ -1,9 +1,12 @@
-import { api } from "../../../shared/api";
+import { api, ReadError } from "../../../shared/api";
 
-export const getKitchenOrders = async (businessDate: string) => {
-  const { data, error } = await api.orders.get({ query: { businessDate } });
+export const getKitchenOrders = async (businessDate: string, signal: AbortSignal) => {
+  const { data, error } = await api.staff.orders.get({
+    query: { businessDate },
+    fetch: { signal: AbortSignal.any([signal, AbortSignal.timeout(5_000)]) },
+  });
   if (error) {
-    throw new Error("調理注文を取得できませんでした。権限と通信状況を確認してください。");
+    throw new ReadError(error.status, "調理注文を取得できませんでした。権限と通信状況を確認してください。");
   }
-  return data.orders;
+  return { data: data.orders, revision: data.revision };
 };

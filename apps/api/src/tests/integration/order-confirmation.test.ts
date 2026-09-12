@@ -4,7 +4,8 @@ import { drizzle } from "drizzle-orm/d1";
 import { Layer, ManagedRuntime } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { createApp } from "../../app";
+import { realtimeMock, upgradeWebSocketMock } from "../../../testing";
+import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";
 import { makeOrdersLayer } from "../../features/orders/layer";
@@ -12,8 +13,9 @@ import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "..
 
 const db = drizzle(env.DB);
 
-const OrdersLayer = makeOrdersLayer("").pipe(Layer.provide(MenuLayer));
+const OrdersLayer = makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayer, realtimeMock)));
 const AppLayer = Layer.mergeAll(
+  realtimeMock,
   MenuLayer,
   OrdersLayer,
   authenticationGatewayMock(staffFixture),
@@ -21,6 +23,7 @@ const AppLayer = Layer.mergeAll(
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 
 const app = createApp({
+  upgradeWebSocket: upgradeWebSocketMock,
   origin: "https://staff.nekomimi-ramen.com",
   runtime: ManagedRuntime.make(AppLayer),
   aot: false,
@@ -28,7 +31,7 @@ const app = createApp({
 
 const confirm = (body: unknown) =>
   app.handle(
-    new Request("https://api.nekomimi-ramen.com/orders", {
+    new Request("https://api.nekomimi-ramen.com/staff/orders", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "https://staff.nekomimi-ramen.com" },
       body: JSON.stringify(body),

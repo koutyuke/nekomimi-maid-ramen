@@ -10,6 +10,10 @@ export const menuQueries = {
   list: () =>
     queryOptions({
       queryKey: [...menuQueryScopes.all(), "list"] as const,
-      queryFn: getMenu,
+      queryFn: ({ signal }) => getMenu(signal),
+      select: (snapshot) => snapshot.data,
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     }),
 };

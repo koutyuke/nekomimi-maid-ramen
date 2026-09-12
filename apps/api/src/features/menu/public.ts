@@ -4,3 +4,5 @@ export { MenuItemCatalogFacade } from "./application/ports/inbound/menu-item-cat
 export type { MenuItemPrice } from "./application/ports/inbound/menu-item-catalog.facade";
 export { AllergenCheckState, MenuCategory } from "./domain/menu-item";
 export { listMenu, type MenuEntry } from "./application/use-cases/list-menu";
+export { listStaffMenu } from "./application/use-cases/list-staff-menu";
+export { getMenuRevision } from "./application/use-cases/get-menu-revision";

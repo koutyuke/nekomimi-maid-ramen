@@ -1,5 +1,5 @@
 import { menuFixture } from "../../../entities/menu/testing";
-import type { OrderEntryPageUIProps } from "../ui/order-entry-page.ui";
+import type { OrderEntryPageUIProps } from "../ui/order-entry-page/order-entry-page.ui";
 
 const noop = () => {};
 export const orderEntryPageFixture: OrderEntryPageUIProps = {
@@ -7,13 +7,15 @@ export const orderEntryPageFixture: OrderEntryPageUIProps = {
   items: menuFixture,
   menuLoading: false,
   menuFailed: false,
+  connected: true,
   lines: menuFixture
     .filter((item) => item.sellable)
     .slice(0, 2)
     .map((item) => ({ item, quantity: "2" })),
   received: "2000",
-  pending: false,
-  uncertain: false,
+  checkout: { total: 1600, change: 400 },
+  shortages: [],
+  submission: { pending: false, uncertain: false, locked: false, canConfirm: true, canSubmit: true },
   result: null,
   previousOrder: null,
   actions: {

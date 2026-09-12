@@ -12,15 +12,20 @@ export const MenuItemCatalogFacadeLive = Layer.effect(
       findPrices: (menuItemIds) => {
         const requestedIds = new Set(menuItemIds);
 
-        return repository
-          .listInDisplayOrder()
-          .pipe(
-            Effect.map((menuItems) =>
-              menuItems.flatMap((menuItem) =>
-                requestedIds.has(menuItem.id) ? [{ menuItemId: menuItem.id, price: menuItem.price }] : [],
-              ),
+        return repository.findMany().pipe(
+          Effect.map(({ data }) =>
+            data.flatMap(({ menuItem }) =>
+              requestedIds.has(menuItem.id)
+                ? [
+                    {
+                      menuItemId: menuItem.id,
+                      price: menuItem.price,
+                    },
+                  ]
+                : [],
             ),
-          );
+          ),
+        );
       },
     });
   }),

@@ -14,15 +14,22 @@ const slicePublicEntryImports = {
 
 type RestrictedImportPattern = ReturnType<typeof upperLayerImports>;
 
-const restrictedImports = (patterns: RestrictedImportPattern[]): ["error", { patterns: RestrictedImportPattern[] }] => [
-  "error",
-  { patterns },
-];
+const restrictedImports = (patterns: RestrictedImportPattern[]) =>
+  [
+    "error",
+    {
+      paths: [{ name: "@nekomimi/api", allowImportNames: ["App"], message: "APIから読むのはApp型だけである。" }],
+      patterns,
+    },
+  ] satisfies ["error", unknown];
 
 export default defineConfig({
   extends: [baseConfig],
   env: { browser: true },
-  rules: { "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }] },
+  rules: {
+    "no-restricted-imports": restrictedImports([]),
+    "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],
+  },
   ignorePatterns: ["dist/**", ".astro/**", ".wrangler/**"],
   overrides: [
     {
