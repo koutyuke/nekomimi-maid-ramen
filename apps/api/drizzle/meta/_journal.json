@@ -22,6 +22,27 @@
       "when": 1788957892085,
       "tag": "0002_steep_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789062475823,
+      "tag": "0003_gigantic_secret_warriors",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789101625407,
+      "tag": "0004_line_cooking_handoff",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789104849854,
+      "tag": "0005_free_black_tarantula",
+      "breakpoints": true
     }
   ]
 }
