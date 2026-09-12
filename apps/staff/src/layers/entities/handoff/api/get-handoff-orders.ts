@@ -1,9 +1,32 @@
-import { api } from "../../../shared/api";
+import { api, ReadError } from "../../../shared/api";
 
-export const getHandoffOrders = async (businessDate: string) => {
-  const { data, error } = await api.orders.get({ query: { businessDate } });
+export const getHandoffOrders = async (businessDate: string, signal: AbortSignal) => {
+  const { data, error } = await api.staff.orders.get({
+    query: {
+      businessDate,
+    },
+    fetch: {
+      signal: AbortSignal.any([signal, AbortSignal.timeout(5_000)]),
+    },
+  });
   if (error) {
-    throw new Error("受け渡し注文を取得できませんでした。権限と通信状況を確認してください。");
+    throw new ReadError(error.status, "受け渡し注文を取得できませんでした。権限と通信状況を確認してください。");
   }
-  return data.orders;
+  return {
+    data: data.orders,
+    revision: data.revision,
+  };
+};
+
+export const getHandoffRevision = async (signal: AbortSignal) => {
+  const { data, error } = await api.staff.orders.revision.get({
+    fetch: {
+      signal,
+    },
+  });
+
+  if (error) {
+    throw new ReadError(error.status, "更新を確認できませんでした。");
+  }
+  return data.revision;
 };

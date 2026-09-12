@@ -10,7 +10,7 @@ export const updateCookingState = async ({
   line: KitchenOrderLine;
   to: CookingState;
 }) => {
-  const endpoint = api.orders({ id: order.id }).lines({ menuItemId: line.menuItemId });
+  const endpoint = api.staff.orders({ id: order.id }).lines({ menuItemId: line.menuItemId });
   const { data, error } = await endpoint["cooking-state"].patch({ to });
   if (error) {
     if (error.status === 409) {
