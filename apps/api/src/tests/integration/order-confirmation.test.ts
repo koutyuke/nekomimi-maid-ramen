@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Layer, ManagedRuntime } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { realtimeMock, upgradeWebSocketMock } from "../../../testing/realtime";
+import { realtimeMock, upgradeWebSocketMock } from "../../../testing";
 import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";

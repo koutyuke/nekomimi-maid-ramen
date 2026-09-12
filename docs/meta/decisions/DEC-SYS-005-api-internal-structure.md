@@ -38,7 +38,7 @@ apps/api/
 │   │       │   └── use-cases/     業務処理
 │   │       ├── adapters/     接続先の機能ごとに置く他機能との接続
 │   │       ├── infra/        保存先を使うcommands、repositories
-│   │       ├── testing/      fixtures、mocks。入口は`testing/index.ts`
+│   │       ├── testing/      fixture、mock。入口は`testing/index.ts`
 │   │       ├── public.ts     この機能の公開面
 │   │       └── layer.ts      この機能の実装を組み立てる
 │   ├── routes/
@@ -52,6 +52,8 @@ apps/api/
 │   │   └── create-app.ts 経路の合成。画面が読む型の正本
 │   └── index.ts         Workerの入口。実装の解決はここだけで行う
 └── testing/
+    ├── index.ts         共通のテスト用コードの公開入口
+    ├── mock/            共通のモック
     ├── env.d.ts         テスト実行時だけ使う型宣言
     └── setup/           テスト環境の入口と初期化
 ```
@@ -128,7 +130,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 `layer.ts`は公開面へ載せない。`layer.ts`は保存先の実装を読むため、公開面へ載せるとルートとユースケースから実装へ到達でき、`bootstrap/create-app.ts`の型にD1とDrizzleの型定義が漏れる。本番コードで`layer.ts`を読むのは`src/index.ts`だけである。
 
-テスト用の`fixtures`と`mocks`は`features/{機能}/testing/index.ts`を入口とする。
+共有するテスト用データは`features/{機能}/testing/fixture/`、モックは`features/{機能}/testing/mock/`へ置く。`features/{機能}/testing/index.ts`は再公開だけを行う入口とし、データやモックの実装を置かない。API共通のモックは`apps/api/testing/mock/`へ置き、`apps/api/testing/index.ts`から公開する。テスト内の呼び出し確認用のスパイや、その試験に閉じるデータはテスト内に置いてよい。
 
 ### テストの配置
 
