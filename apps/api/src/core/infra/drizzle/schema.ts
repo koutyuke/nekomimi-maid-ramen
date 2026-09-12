@@ -1,6 +1,18 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+export const resourceRevisions = sqliteTable(
+  "resource_revisions",
+  {
+    scope: text("scope", { enum: ["menu", "orders"] }).primaryKey(),
+    revision: integer("revision").notNull().default(0),
+  },
+  (table) => [
+    check("resource_revisions_scope", sql`${table.scope} in ('menu', 'orders')`),
+    check("resource_revisions_non_negative", sql`${table.revision} >= 0`),
+  ],
+);
+
 export const menuItems = sqliteTable(
   "menu_items",
   {
