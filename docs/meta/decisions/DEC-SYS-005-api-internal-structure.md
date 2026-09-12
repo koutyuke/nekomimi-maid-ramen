@@ -118,7 +118,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 `GET /staff/events`は`routes/realtime/upgrade-websocket.route.ts`で定義し、`routes/realtime/index.ts`で集約し、他の領域とともに`bootstrap/create-app.ts`で合成する。ルートはOrigin、セッションと権限、Upgradeヘッダーを確認し、注入された接続関数を呼ぶ。`core/adapters/elysia`の`cloudflareAdapter`は、Cloudflare固有の`webSocket`を持つ101応答を再構築せず返し、それ以外の応答をElysiaのCloudflareアダプターへ委ねる。
 
-同期機能の通知方針は`features/realtime/application/use-cases/notify-updates.ts`に置く。`UpdateNotifierFacade`が機能間の入口となり、注文機能は`OrderUpdatesGateway`とアダプターを通じて呼ぶ。注文確定・調理・受け渡しのユースケースが保存後に通知を要求し、同期機能が通知の待ち時間と失敗の扱いを決める。HTTPの経路を通さない呼び出しでも同じ保証を保つ。
+同期機能の通知方針は`features/realtime/application/facades/update-notifier.facade.live.ts`に置く。`UpdateNotifierFacade`が機能間の入口となり、注文機能は`OrderUpdatesGateway`とアダプターを通じて呼ぶ。注文確定・調理・受け渡しのユースケースが保存後に通知を要求する。ファサードは通知の待ち時間を1秒に制限し、失敗を記録して保存済みの業務結果を成功のまま返す。HTTPの経路を通さない呼び出しでも同じ保証を保つ。
 
 `UpdatePublisherGateway`は通知先への出力契約とし、`Response`やWebSocketを契約へ含めない。Durable Objectの接続管理と配信は`core/infra/websocket`、D1のリビジョン取得と配信基盤の呼び出しは`features/realtime/infra/update-publisher.gateway.live.ts`に置く。`bootstrap/websocket-hub.ts`がスタッフ機能の認可判定を注入した`WebSocketHub`クラスを定義し、`index.ts`が公開する。認可のランタイムはコンストラクターのバインディングからスタッフのリポジトリとDBだけを組み立て、HTTP APIのランタイムには依存しない。接続・配信基盤は機能へ依存しない。
 
