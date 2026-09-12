@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TestWebSocket } from "../../../testing/websocket";
-import { ReadError } from "../api";
+import { ReadError } from "./read-error";
 import { subscribeUpdates } from "./subscribe-updates";
 
 let stop: (() => void) | undefined;

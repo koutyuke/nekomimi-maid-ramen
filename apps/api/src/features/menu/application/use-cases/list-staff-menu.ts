@@ -2,7 +2,7 @@ import { Effect } from "effect";
 
 import { MenuItemRepository } from "../ports/outbound/menu-item.repository";
 import type { PersistenceError } from "../../../../core/domain/persistence-error";
-import type { Snapshot } from "../../../../public";
+import type { Snapshot } from "../../../../core/domain/revision";
 import type { MenuItem } from "../../domain/menu-item";
 
 type StaffMenuEntry = Snapshot<

@@ -27,7 +27,11 @@ Astro部品では、表示だけを担う`.ui.astro`をPresenter、副作用と�
 
 Astroを採用するのは、静的な情報提供と独自デザインをスタッフ側のProviderやMantineから分離できるためである。Astro 7.3.2で、見出しを含む静的HTMLとブラウザーからAPIを取得するスクリプトを小規模にビルドできることを確認した。Reactのアイランドは現在のメニュー取得とテーマ切り替えには不要で、標準のDOM操作で足りる。APIクライアントは既存のEden Treatyを利用し、描画時はAPIの文字列をHTMLとして解釈しない。
 
-公開側とスタッフ側のUI・スタイル・Providerは共有しない。`packages/core`では両者が使うURLとメニューの型・分類定数だけを共有する。APIへの依存は型参照に限定する。
+公開側とスタッフ側のUI・スタイル・Providerは共有しない。`packages/core`ではURLと、APIと公開側が使うメニューの分類値・分類型を共有する。
+
+`MenuItem`は各アプリの利用項目に合わせて定義する。スタッフ側は`entities/menu/model`で注文入力に使う項目と在庫残数を持ち、公開側は`pages/menu/model`で商品説明・分類・特定原材料を含む表示用の型を持つ。特定原材料の型と分類の表示名も公開側が所有する。API取得関数の戻り値を各アプリの型へ合わせ、応答との整合性を型検査で確認する。
+
+`@nekomimi/api`が画面へ公開するのは`App`型だけとする。画面からの参照は各アプリの`no-restricted-imports`で検査する。HTTP応答はEden Treatyを通じて参照し、スタッフ側のキャッシュ形式`Snapshot`と通知の対象範囲`ResourceScope`は`shared/api`が所有する。
 
 参考: [Astroのスクリプト処理](https://docs.astro.build/en/guides/client-side-scripts/)、[Cloudflareへの配備](https://docs.astro.build/en/guides/deploy/cloudflare/)。
 
@@ -83,7 +87,7 @@ apps/staff/
 
 `index.ts`へ載せるのは、スライスの外から実際に読むものだけである。外から読まないものは載せず、必要になった時点で追加する。スライスの中では、部品もfixtureも内部のファイルを相対パスで直接読む。
 
-`shared`は基盤ごとに`shared/{基盤}/index.ts`を入口とする。`app`は`main.tsx`が`app/providers`を読み、試験の描画補助とStorybookが`app/styles`を読む。
+`shared`は基盤ごとに`shared/{基盤}/index.ts`を入口とする。通信処理はHTTP・WebSocketともに`shared/api`へ置き、共通の補助関数は`shared/lib`へ置く。日本時間の日付を返す処理は`shared/lib/business-date.ts`に置く。`app`は`main.tsx`が`app/providers`を読み、試験の描画補助とStorybookが`app/styles`を読む。
 
 fixtureは`{層}/{スライス}/testing/index.ts`を入口とし、StorybookとテストからPresenterへ渡す状態をここで作る。本番コードは`testing`を読まない。
 
@@ -143,13 +147,13 @@ export const menuQueries = {
 
 `{領域}QueryScopes`の関数は範囲キーだけを返し、`{領域}Queries`の関数は`queryOptions`だけを返す。キーと`queryOptions`を同じオブジェクトへ混ぜない。
 
-`queryFn`へ渡す取得処理は`entities/{領域}/api/{操作}-{対象}.ts`へ分けて置く。応答をこのアプリが扱う型へ変換し、失敗を投げるところまでをこの関数が担う。
+`queryFn`へ渡す取得処理は`entities/{領域}/api/{操作}-{対象}.ts`へ分けて置く。応答をこのアプリが扱う型へ変換し、失敗を投げるところまでをこの関数が担う。API操作は公開関数ごとにファイルを分け、一覧取得とリビジョン取得を同居させない。その操作専用の非公開ヘルパーと型は同居してよい。Query定義は領域ごとにまとめる。
 
 キャッシュキーをQuery定義の外へ書かない。複数のQueryをまとめて操作するときは`{領域}QueryScopes`を指定し、特定のQueryだけを操作するときは`{領域}Queries.{対象}(...).queryKey`を指定する。
 
 複数の業務領域をまたぐ、画面固有のQuery定義は、その画面の`pages/{画面}/api`または機能の`features/{領域}/api`へ置く。所有者が一つに決まらないものを`entities`へ入れない。
 
-スタッフ向けの一覧はデータとリビジョンを組にしてキャッシュし、`select`で表示用のデータを取り出す。`features/sync-data`がQueryと同期を結び、`shared/realtime`が通知接続・定期照合・再接続を扱う。照合APIの呼び出しは各`entities`が所有し、共通処理へ関数として渡す。同期のために再取得しても、画面内の注文候補や預かり金を初期化しない。
+スタッフ向けの一覧はデータとリビジョンを組にしてキャッシュし、`select`で表示用のデータを取り出す。`features/sync-data/model/use-realtime.ts`が同期状態・認可拒否とQueryの連携を管理し、`shared/api/subscribe-updates.ts`が通知接続・定期照合・再接続を扱う。照合APIの呼び出しは各`entities`が所有し、共通処理へ関数として渡す。同期のために再取得しても、画面内の注文候補や預かり金を初期化しない。
 
 ### 経路
 

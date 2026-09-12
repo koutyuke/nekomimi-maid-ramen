@@ -1,3 +1,3 @@
 export { handoffQueries, handoffQueryScopes } from "./api/handoff.query";
 export type { HandoffOrder, HandoffOrderLine } from "./model/handoff-order";
-export { getHandoffRevision } from "./api/get-handoff-orders";
+export { getHandoffRevision } from "./api/get-handoff-revision";

@@ -6,7 +6,7 @@ import { handoffQueries, handoffQueryScopes } from "../../../entities/handoff";
 import { kitchenQueryScopes, useCookingStateUpdate } from "../../../entities/kitchen";
 import { staffQueries } from "../../../entities/staff";
 import { useRealtime } from "../../../features/sync-data";
-import { currentBusinessDate } from "../../../shared/business-date";
+import { currentBusinessDate } from "../../../shared/lib";
 import { completeHandoff } from "../api/complete-handoff";
 import type { HandoffOrder, HandoffOrderLine } from "../../../entities/handoff";
 import type { CookingState } from "../../../entities/kitchen";

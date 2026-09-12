@@ -5,7 +5,7 @@ import { getKitchenRevision } from "../../../entities/kitchen";
 import { kitchenQueries, kitchenQueryScopes, useCookingStateUpdate } from "../../../entities/kitchen";
 import { staffQueries } from "../../../entities/staff";
 import { useRealtime } from "../../../features/sync-data";
-import { currentBusinessDate } from "../../../shared/business-date";
+import { currentBusinessDate } from "../../../shared/lib";
 import type { KitchenOrder, KitchenOrderLine, CookingState } from "../../../entities/kitchen";
 
 export const useKitchen = () => {

@@ -1,6 +1,7 @@
-import { isAccessDenied } from "../api";
+import { isAccessDenied } from "./read-error";
 import { getAPIBaseURL } from "@nekomimi/core/http";
-import type { ResourceScope } from "@nekomimi/api";
+
+export type ResourceScope = "menu" | "orders";
 
 type Actions = {
   /** 更新通知から参照するリソースの範囲。別の範囲の通知は無視する。 */

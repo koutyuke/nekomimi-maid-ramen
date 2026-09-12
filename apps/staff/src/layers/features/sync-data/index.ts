@@ -1,1 +1,1 @@
-export { useRealtime } from "./use-realtime";
+export { useRealtime } from "./model/use-realtime";

@@ -2,10 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useEffectEvent, useState } from "react";
 import type { QueryKey } from "@tanstack/react-query";
 
-import { staffQueries } from "../../entities/staff";
-import { isAccessDenied } from "../../shared/api";
-import { subscribeUpdates } from "../../shared/realtime";
-import type { Snapshot, ResourceScope } from "@nekomimi/api";
+import { staffQueries } from "../../../entities/staff";
+import { isAccessDenied, subscribeUpdates } from "../../../shared/api";
+import type { Snapshot, ResourceScope } from "../../../shared/api";
 
 type RealtimeOptions = {
   scope: ResourceScope;
