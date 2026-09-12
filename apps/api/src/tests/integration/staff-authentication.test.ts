@@ -5,12 +5,16 @@ import { Effect, Layer, ManagedRuntime, Option, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../../app";
+import { makeRunner } from "../../core/adapters/elysia";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
+import { connectRealtime } from "../../core/infra/realtime";
 import { MenuLayer } from "../../features/menu/layer";
 import { makeOrdersLayer } from "../../features/orders/layer";
+import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { StaffRepository } from "../../features/staff/application/ports/outbound/staff.repository";
 import { makeStaffLayer } from "../../features/staff/layer";
 import { updateStaffRole, Staff } from "../../features/staff/public";
+import { connectStaffUpdates } from "../../routes/realtime/connect-updates.route";
 
 const apiOrigin = "https://api.nekomimi-ramen.com";
 const origin = "https://staff.nekomimi-ramen.com";
@@ -28,13 +32,21 @@ const config = {
   ownerEmail: `owner@${domain}`,
 };
 const appLayer = Layer.mergeAll(
+  makeRealtimeLayer(env.STAFF_UPDATES),
   MenuLayer,
-  makeOrdersLayer(config.ownerEmail).pipe(Layer.provide(MenuLayer)),
+  makeOrdersLayer(config.ownerEmail).pipe(
+    Layer.provide(Layer.mergeAll(MenuLayer, makeRealtimeLayer(env.STAFF_UPDATES))),
+  ),
   makeStaffLayer(env.DB, config),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 const runtime = ManagedRuntime.make(appLayer);
 const app = createApp({ origin, runtime, aot: false });
-const handle = (request: Request) => app.handle(request);
+const handle = (request: Request) =>
+  new URL(request.url).pathname === "/staff/sync/events"
+    ? connectStaffUpdates(makeRunner(runtime), origin, request, (sessionId) =>
+        connectRealtime(env.STAFF_UPDATES, sessionId),
+      )
+    : app.handle(request);
 const session = async (cookie: string) => {
   const response = await handle(new Request(`${apiOrigin}/auth/session`, { headers: { cookie } }));
   const result = Schema.decodeUnknownSync(Schema.Struct({ staff: Schema.NullOr(Staff) }))(await response.json());
@@ -211,7 +223,7 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     await db.insert(Database.tables.stocks).values({ menuItemId: "test-ramen", quantity: 2, updatedAt: new Date() });
     const confirm = (cookie: string, requestId: string) =>
       handle(
-        new Request(`${apiOrigin}/orders`, {
+        new Request(`${apiOrigin}/staff/orders`, {
           method: "POST",
           headers: { cookie, origin, "content-type": "application/json" },
           body: JSON.stringify({ requestId, lines: [{ menuItemId: "test-ramen", quantity: 1 }] }),
@@ -480,7 +492,12 @@ describe("SPEC-SYS-008 保存失敗と未登録の利用者", () => {
 });
 
 describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
-  const kitchen = (cookie: string, path = "/orders?businessDate=2026-10-24", body?: unknown, requestOrigin = origin) =>
+  const kitchen = (
+    cookie: string,
+    path = "/staff/orders?businessDate=2026-10-24",
+    body?: unknown,
+    requestOrigin = origin,
+  ) =>
     handle(
       new Request(`${apiOrigin}${path}`, {
         method: body === undefined ? "GET" : "PATCH",
@@ -492,13 +509,18 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
     const cookie = role === "None" ? (await loggedInStaff()).cookie : "";
     const status = role === "None" ? 403 : 401;
     expect((await kitchen(cookie)).status).toBe(status);
-    expect((await kitchen(cookie, "/orders/events")).status).toBe(status);
-    expect((await kitchen(cookie, "/orders/missing/lines/ramen/cooking-state", { to: "cooking" })).status).toBe(status);
-    expect((await kitchen(cookie, "/orders?businessDate=2026-10-24")).status).toBe(status);
+    expect((await kitchen(cookie, "/staff/sync/events")).status).toBe(status);
+    expect((await kitchen(cookie, "/staff/menu/revision")).status).toBe(status);
+    expect((await kitchen(cookie, "/staff/orders/revision")).status).toBe(status);
+    expect((await kitchen(cookie, "/staff/menu")).status).toBe(status);
+    expect((await kitchen(cookie, "/staff/orders/missing/lines/ramen/cooking-state", { to: "cooking" })).status).toBe(
+      status,
+    );
+    expect((await kitchen(cookie, "/staff/orders?businessDate=2026-10-24")).status).toBe(status);
     expect(
       (
         await handle(
-          new Request(`${apiOrigin}/orders/missing/handoff`, {
+          new Request(`${apiOrigin}/staff/orders/missing/handoff`, {
             method: "POST",
             headers: { cookie, origin },
           }),
@@ -513,7 +535,7 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
       (
         await kitchen(
           owner.cookie,
-          "/orders/missing/lines/ramen/cooking-state",
+          "/staff/orders/missing/lines/ramen/cooking-state",
           { to: "cooking" },
           "https://attacker.example",
         )
@@ -522,7 +544,7 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
     expect(
       (
         await handle(
-          new Request(`${apiOrigin}/orders/missing/handoff`, {
+          new Request(`${apiOrigin}/staff/orders/missing/handoff`, {
             method: "POST",
             headers: { cookie: owner.cookie, origin: "https://attacker.example" },
           }),
@@ -534,19 +556,28 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
     const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
     const staff = await loggedInStaff();
     await changeRole(owner.cookie, staff.staff.id, "Staff");
-    const abort = new AbortController();
     const response = await handle(
-      new Request(`${apiOrigin}/orders/events`, { headers: { cookie: staff.cookie, origin }, signal: abort.signal }),
+      new Request(`${apiOrigin}/staff/sync/events`, {
+        headers: { cookie: staff.cookie, origin, upgrade: "websocket" },
+      }),
     );
-    const reader = response.body!.getReader();
+    expect(response.status).toBe(101);
+    const socket = response.webSocket!;
+    socket.accept();
+    const messages: unknown[] = [];
+    socket.addEventListener("message", (event) => messages.push(event.data));
+    const closed = new Promise<number>((resolve) =>
+      socket.addEventListener("close", (event) => resolve(event.code), { once: true }),
+    );
     try {
-      expect(new TextDecoder().decode((await reader.read()).value)).toContain("event: refresh");
       await changeRole(owner.cookie, staff.staff.id, "None");
-      expect(new TextDecoder().decode((await reader.read()).value)).toContain("event: access-denied");
-      expect((await reader.read()).done).toBe(true);
+      await env.STAFF_UPDATES.getByName("nekomimi-maid-ramen").publish({ orders: 1 });
+      expect(await closed).toBe(1008);
+      expect(messages).toEqual([]);
+      expect((await kitchen(staff.cookie, "/staff/orders/revision")).status).toBe(403);
+      expect((await kitchen(staff.cookie, "/staff/menu")).status).toBe(403);
     } finally {
-      abort.abort();
-      await reader.cancel();
+      socket.close();
     }
   });
 });

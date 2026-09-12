@@ -21,7 +21,7 @@ export const updateCookingStateRoute = (run: EffectRunner<UpdateCookingStateRequ
 
     // Endpoints
     .patch(
-      "/orders/:id/lines/:menuItemId/cooking-state",
+      "/staff/orders/:id/lines/:menuItemId/cooking-state",
       async ({ staff, params, body, status }) => {
         return run(
           logAndDie(

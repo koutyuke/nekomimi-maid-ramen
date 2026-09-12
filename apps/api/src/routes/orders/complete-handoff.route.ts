@@ -20,7 +20,7 @@ export const completeHandoffRoute = (run: EffectRunner<CompleteHandoffRequiremen
 
     // Endpoints
     .post(
-      "/orders/:id/handoff",
+      "/staff/orders/:id/handoff",
       ({ staff, params, status }) =>
         run(
           logAndDie(

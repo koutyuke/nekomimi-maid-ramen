@@ -10,11 +10,13 @@ import { googleCallbackRoute } from "./routes/auth/google-callback.route";
 import { googleRoute } from "./routes/auth/google.route";
 import { logoutRoute } from "./routes/auth/logout.route";
 import { sessionRoute } from "./routes/auth/session.route";
+import { menuRevisionRoute } from "./routes/menu/menu-revision.route";
 import { menuRoutes } from "./routes/menu/menu.route";
+import { staffMenuRoute } from "./routes/menu/staff-menu.route";
 import { completeHandoffRoute } from "./routes/orders/complete-handoff.route";
 import { confirmOrderRoutes } from "./routes/orders/confirm-orders.route";
 import { listOrdersRoute } from "./routes/orders/list-orders.route";
-import { streamOrdersRoute } from "./routes/orders/stream-orders.route";
+import { ordersRevisionRoute } from "./routes/orders/orders-revision.route";
 import { updateCookingStateRoute } from "./routes/orders/update-cooking-state.route";
 import { listStaffRoute } from "./routes/staff/list-staff.route";
 import { updateStaffRoleRoute } from "./routes/staff/update-staff-role.route";
@@ -99,7 +101,9 @@ export const createApp = ({ origin, runtime, aot = true }: AppDependencies) => {
     })
 
     // Routes
-    .use(streamOrdersRoute(run, origin))
+    .use(menuRevisionRoute(run, origin))
+    .use(ordersRevisionRoute(run, origin))
+    .use(staffMenuRoute(run, origin))
     .use(listOrdersRoute(run, origin))
     .use(updateCookingStateRoute(run, origin))
     .use(completeHandoffRoute(run, origin))

@@ -25,7 +25,7 @@ export const confirmOrderRoutes = (run: EffectRunner<OrderRouteRequirements>, or
 
     // Endpoints
     .post(
-      "/orders",
+      "/staff/orders",
       async ({ body, status }) => {
         const outcome = await run(
           logAndDie(

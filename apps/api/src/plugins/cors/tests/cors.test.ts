@@ -8,7 +8,7 @@ const preview = "https://pr-34-nekomimi-ramen-web.koutyuke.workers.dev";
 const app = new Elysia({ aot: false })
   .use(corsPlugin(staffOrigin))
   .get("/menu", () => ({ items: [] }))
-  .post("/orders", () => "ok")
+  .post("/staff/orders", () => "ok")
   .get("/auth/session", () => "ok");
 const request = (origin: string, path = "/menu", method = "GET", headers = {}) =>
   app.handle(new Request(`https://api.nekomimi-ramen.com${path}`, { method, headers: { origin, ...headers } }));
@@ -40,9 +40,9 @@ describe("SPEC-VIS-002 / SPEC-SYS-006 APIの送信元制限", () => {
         "access-control-allow-origin",
       ),
     ).toBeNull();
-    expect((await request(preview, "/orders", "POST")).headers.get("access-control-allow-origin")).toBeNull();
+    expect((await request(preview, "/staff/orders", "POST")).headers.get("access-control-allow-origin")).toBeNull();
     expect((await request(preview, "/auth/session")).headers.get("access-control-allow-origin")).toBeNull();
-    expect((await request(staffOrigin, "/orders", "POST")).headers.get("access-control-allow-origin")).toBe(
+    expect((await request(staffOrigin, "/staff/orders", "POST")).headers.get("access-control-allow-origin")).toBe(
       staffOrigin,
     );
   });

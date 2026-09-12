@@ -1,6 +1,7 @@
 import { Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
+import { realtimeMock } from "../../../../testing/realtime";
 import { createApp } from "../../../app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
 import {
@@ -27,6 +28,7 @@ const appWith = (
   layers: Layer.Layer<
     Exclude<
       AppRequirements,
+      | Layer.Layer.Success<typeof realtimeMock>
       | StaffAccessRequirements
       | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>
       | Layer.Layer.Success<ReturnType<typeof orderOperationsMock>>
@@ -36,7 +38,13 @@ const appWith = (
   createApp({
     origin: "https://staff.nekomimi-ramen.com",
     runtime: ManagedRuntime.make(
-      Layer.mergeAll(layers, orderOperationsMock(), authenticationGatewayMock(staffFixture), staffRepositoryMock()),
+      Layer.mergeAll(
+        realtimeMock,
+        layers,
+        orderOperationsMock(),
+        authenticationGatewayMock(staffFixture),
+        staffRepositoryMock(),
+      ),
     ),
     aot: false,
   });
@@ -54,7 +62,7 @@ const sellingApp = (stocks: ReadonlyArray<Stock>) =>
 
 const confirm = (app: ReturnType<typeof appWith>, body: unknown) =>
   app.handle(
-    new Request("https://api.nekomimi-ramen.com/orders", {
+    new Request("https://api.nekomimi-ramen.com/staff/orders", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "https://staff.nekomimi-ramen.com" },
       body: JSON.stringify(body),

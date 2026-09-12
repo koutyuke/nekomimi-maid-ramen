@@ -13,6 +13,10 @@
       "custom_domain": true,
     },
   ],
+  "durable_objects": {
+    "bindings": [{ "name": "STAFF_UPDATES", "class_name": "StaffUpdates" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["StaffUpdates"] }],
   "d1_databases": [
     {
       "binding": "DB",

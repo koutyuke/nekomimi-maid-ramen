@@ -18,10 +18,16 @@ export const listOrdersRoute = (run: EffectRunner<ListOrdersRequirements>, origi
 
     // Endpoints
     .get(
-      "/orders",
+      "/staff/orders",
       ({ query, set }) => {
         set.headers["cache-control"] = "no-store";
-        return run(logAndDie(listOrders({ businessDate: query.businessDate }).pipe(Effect.map(presentOrders))));
+        return run(
+          logAndDie(
+            listOrders({ businessDate: query.businessDate }).pipe(
+              Effect.map(({ data, revision }) => ({ ...presentOrders(data), revision })),
+            ),
+          ),
+        );
       },
       {
         staffRole: "Staff",
