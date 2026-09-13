@@ -43,34 +43,48 @@ const staffNavigations: readonly Navigation[] = [
   {
     href: "/sales",
     label: "注文・会計",
-    description: "商品と個数を入力し、会計を終えて注文を確定する",
+    description: "注文を入力・確定するページ",
     roles: ["Owner", "Admin", "Staff"],
   },
   {
     href: "/kitchen",
     label: "調理",
-    description: "確定した注文を確認し、調理状況を更新する",
+    description: "確定した注文を確認し、調理状況を更新するページ",
     roles: ["Owner", "Admin", "Staff"],
   },
   {
     href: "/handoff",
     label: "受け渡し",
-    description: "注文番号と商品を照合し、受け渡しを記録する",
+    description: "注文番号と商品を照合し、受け渡しを記録するページ",
     roles: ["Owner", "Admin", "Staff"],
   },
+];
+
+const adminNavigations: readonly Navigation[] = [
   {
-    href: "/admin",
-    label: "管理ページ",
-    description: "スタッフや商品の管理ページ",
+    href: "/staff-management",
+    label: "スタッフ管理",
+    description: "スタッフ一覧と管理を行うページ",
+    roles: ["Owner", "Admin"],
+  },
+  {
+    href: "/inventory-management",
+    label: "在庫管理",
+    description: "商品ごとの在庫確認・管理を行うページ",
     roles: ["Owner", "Admin"],
   },
 ];
 
 const publicNavigations: readonly Navigation[] = [
   {
+    href: new URL("/", getSiteBaseURL(import.meta.env.PROD)).href,
+    label: "トップ",
+    description: "猫耳メイドラーメンのトップページ",
+  },
+  {
     href: new URL("/menu", getSiteBaseURL(import.meta.env.PROD)).href,
-    label: "公開メニュー",
-    description: "来場者に見えているメニューを確認する",
+    label: "メニュー",
+    description: "来場者に見えているメニュー",
   },
 ];
 
@@ -209,7 +223,8 @@ export const StaffPageUI = ({ staff, loading, failed, actionFailed, busy, loginF
           </Paper>
 
           <NavigationSection navigations={staffNavigations} role={staff.role} title="スタッフページ" />
-          <NavigationSection navigations={publicNavigations} role={staff.role} title="一般ページ" />
+          <NavigationSection navigations={adminNavigations} role={staff.role} title="管理者ページ" />
+          <NavigationSection navigations={publicNavigations} role={staff.role} title="一般公開ページ" />
         </>
       ) : null}
       <Group component="nav" aria-label="規約とポリシー" gap="lg">

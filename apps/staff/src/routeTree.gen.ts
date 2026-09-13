@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedHandoffRouteImport } from './routes/_authenticated.handoff'
+import { Route as AuthenticatedInventoryManagementRouteImport } from './routes/_authenticated.inventory-management'
 import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated.kitchen'
 import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated.sales'
+import { Route as AuthenticatedStaffManagementRouteImport } from './routes/_authenticated.staff-management'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -25,16 +26,17 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedHandoffRoute = AuthenticatedHandoffRouteImport.update({
   id: '/handoff',
   path: '/handoff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInventoryManagementRoute =
+  AuthenticatedInventoryManagementRouteImport.update({
+    id: '/inventory-management',
+    path: '/inventory-management',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
   id: '/kitchen',
   path: '/kitchen',
@@ -45,43 +47,65 @@ const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
   path: '/sales',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedStaffManagementRoute =
+  AuthenticatedStaffManagementRouteImport.update({
+    id: '/staff-management',
+    path: '/staff-management',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/handoff': typeof AuthenticatedHandoffRoute
+  '/inventory-management': typeof AuthenticatedInventoryManagementRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/sales': typeof AuthenticatedSalesRoute
+  '/staff-management': typeof AuthenticatedStaffManagementRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/handoff': typeof AuthenticatedHandoffRoute
+  '/inventory-management': typeof AuthenticatedInventoryManagementRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/sales': typeof AuthenticatedSalesRoute
+  '/staff-management': typeof AuthenticatedStaffManagementRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/handoff': typeof AuthenticatedHandoffRoute
+  '/_authenticated/inventory-management': typeof AuthenticatedInventoryManagementRoute
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
   '/_authenticated/sales': typeof AuthenticatedSalesRoute
+  '/_authenticated/staff-management': typeof AuthenticatedStaffManagementRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/handoff' | '/kitchen' | '/sales'
+  fullPaths:
+    | '/'
+    | '/handoff'
+    | '/inventory-management'
+    | '/kitchen'
+    | '/sales'
+    | '/staff-management'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/handoff' | '/kitchen' | '/sales'
+  to:
+    | '/'
+    | '/handoff'
+    | '/inventory-management'
+    | '/kitchen'
+    | '/sales'
+    | '/staff-management'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/_authenticated/admin'
     | '/_authenticated/handoff'
+    | '/_authenticated/inventory-management'
     | '/_authenticated/kitchen'
     | '/_authenticated/sales'
+    | '/_authenticated/staff-management'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,18 +129,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/handoff': {
       id: '/_authenticated/handoff'
       path: '/handoff'
       fullPath: '/handoff'
       preLoaderRoute: typeof AuthenticatedHandoffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory-management': {
+      id: '/_authenticated/inventory-management'
+      path: '/inventory-management'
+      fullPath: '/inventory-management'
+      preLoaderRoute: typeof AuthenticatedInventoryManagementRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/kitchen': {
@@ -133,21 +157,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSalesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/staff-management': {
+      id: '/_authenticated/staff-management'
+      path: '/staff-management'
+      fullPath: '/staff-management'
+      preLoaderRoute: typeof AuthenticatedStaffManagementRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedHandoffRoute: typeof AuthenticatedHandoffRoute
+  AuthenticatedInventoryManagementRoute: typeof AuthenticatedInventoryManagementRoute
   AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
   AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
+  AuthenticatedStaffManagementRoute: typeof AuthenticatedStaffManagementRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedHandoffRoute: AuthenticatedHandoffRoute,
+  AuthenticatedInventoryManagementRoute: AuthenticatedInventoryManagementRoute,
   AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
   AuthenticatedSalesRoute: AuthenticatedSalesRoute,
+  AuthenticatedStaffManagementRoute: AuthenticatedStaffManagementRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

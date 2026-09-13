@@ -43,7 +43,7 @@ Cloudflareへ登録した`nekomimi-ramen.com`の下で、3つのWorkerを別々�
 
 D1を注文・在庫の唯一の正本とし、出店共通のDurable Objectはスタッフ接続の管理と変更通知を担う。サーバー側でのHTML生成は行わない。
 
-[Cloudflareの静的アセット転送](https://developers.cloudflare.com/workers/static-assets/redirects/)を使い、公開ホストの`/staff`と`/staff/*`は、`/staff`の接頭辞を除いてスタッフホストへ302転送する。スタッフ側の入口は`/`、管理は`/admin`、会計は`/sales`とする。認証後の戻り先もスタッフホストの`/`とする。
+[Cloudflareの静的アセット転送](https://developers.cloudflare.com/workers/static-assets/redirects/)を使い、公開ホストの`/staff`と`/staff/*`は、`/staff`の接頭辞を除いてスタッフホストへ302転送する。スタッフ側の入口は`/`、スタッフ管理は`/staff-management`、在庫管理は`/inventory-management`、会計は`/sales`とする。認証後の戻り先もスタッフホストの`/`とする。
 
 ## 理由
 
