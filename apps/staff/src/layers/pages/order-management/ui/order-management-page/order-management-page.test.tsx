@@ -124,12 +124,14 @@ describe("SPEC-SAL-006 注文管理からの取消", () => {
     open();
     await confirm();
     failed = true;
-    fireEvent.click(screen.getByRole("button", { name: "注文一覧を再読み込み" }));
+    revision += 1;
+    act(() => TestWebSocket.instances[0]!.change({ orders: revision }));
     await screen.findByText(/最新の注文を取得できません/);
     expect(screen.getByRole("button", { name: "はい、取り消す" }).hasAttribute("disabled")).toBe(true);
     expect(cancelled).toBe(0);
     failed = false;
-    fireEvent.click(screen.getByRole("button", { name: "注文一覧を再読み込み" }));
+    revision += 1;
+    act(() => TestWebSocket.instances[0]!.change({ orders: revision }));
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "はい、取り消す" }).hasAttribute("disabled")).toBe(false),
     );
