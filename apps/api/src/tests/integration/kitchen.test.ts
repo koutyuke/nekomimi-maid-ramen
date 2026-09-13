@@ -9,7 +9,7 @@ import { realtimeMock, upgradeWebSocketMock } from "../../../testing";
 import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";
-import { makeOrdersLayer } from "../../features/orders/layer";
+import { OrdersLayer } from "../../features/orders/layer";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
 
 const db = drizzle(env.DB);
@@ -23,7 +23,7 @@ const app = createApp({
     Layer.mergeAll(
       realtimeMock,
       MenuLayerWithUpdates,
-      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayerWithUpdates, realtimeMock))),
+      OrdersLayer.pipe(Layer.provide(Layer.mergeAll(MenuLayerWithUpdates, realtimeMock))),
       authenticationGatewayMock(staffFixture),
       staffRepositoryMock(),
     ).pipe(Layer.provide(makeDatabaseLive(env.DB))),
@@ -121,6 +121,18 @@ describe("SPEC-KIT-001 確定注文の調理一覧", () => {
 });
 
 describe("SPEC-KIT-002 調理状況の保存条件", () => {
+  it("保存済みOwnerは調理・受け渡しができ、保存前の権限喪失は拒否される", async () => {
+    await db.update(Database.tables.users).set({ role: "Owner" });
+    expect((await update("cooking")).status).toBe(200);
+    await db.update(Database.tables.users).set({ role: "None" });
+    expect((await update("completed")).status).toBe(409);
+    await db.update(Database.tables.users).set({ role: "Owner" });
+    expect((await update("completed")).status).toBe(200);
+    await db.update(Database.tables.users).set({ role: "None" });
+    expect((await handoff()).status).toBe(409);
+    await db.update(Database.tables.users).set({ role: "Owner" });
+    expect((await handoff()).status).toBe(200);
+  });
   it("注文全体を直接更新する経路は提供しない", async () => {
     expect((await request("/staff/orders/order-1/cooking-state", { to: "cooking" })).status).toBe(404);
   });

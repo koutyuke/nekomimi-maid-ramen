@@ -5,10 +5,12 @@ import { Effect, Layer, ManagedRuntime, Option, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../../bootstrap/create-app";
+import { MenuItemId } from "../../core/domain/ids";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { connectWebSocketHub } from "../../core/infra/websocket";
-import { makeMenuLayer } from "../../features/menu/layer";
-import { makeOrdersLayer } from "../../features/orders/layer";
+import { MenuLayer as MenuServices } from "../../features/menu/layer";
+import { adjustStock as saveStock, StockQuantity } from "../../features/menu/public";
+import { OrdersLayer } from "../../features/orders/layer";
 import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { StaffRepository } from "../../features/staff/application/ports/outbound/staff.repository";
 import { makeStaffLayer } from "../../features/staff/layer";
@@ -30,14 +32,15 @@ const config = {
   ownerEmail: `owner@${domain}`,
 };
 const RealtimeLayer = makeRealtimeLayer(env.STAFF_UPDATES);
-const MenuLayer = makeMenuLayer(config.ownerEmail).pipe(Layer.provide(RealtimeLayer));
-const appLayer = Layer.mergeAll(
-  RealtimeLayer,
-  MenuLayer,
-  makeOrdersLayer(config.ownerEmail).pipe(Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer))),
-  makeStaffLayer(env.DB, config),
-).pipe(Layer.provide(makeDatabaseLive(env.DB)));
-const runtime = ManagedRuntime.make(appLayer);
+const MenuLayer = MenuServices.pipe(Layer.provide(RealtimeLayer));
+const makeAppLayer = (ownerEmail = config.ownerEmail) =>
+  Layer.mergeAll(
+    RealtimeLayer,
+    MenuLayer,
+    OrdersLayer.pipe(Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer))),
+    makeStaffLayer(env.DB, { ...config, ownerEmail }),
+  ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
+const runtime = ManagedRuntime.make(makeAppLayer());
 const app = createApp({
   origin,
   runtime,
@@ -45,8 +48,8 @@ const app = createApp({
   aot: false,
 });
 const handle = (request: Request) => app.handle(request);
-const session = async (cookie: string) => {
-  const response = await handle(new Request(`${apiOrigin}/auth/session`, { headers: { cookie } }));
+const session = async (cookie: string, requestHandler = handle) => {
+  const response = await requestHandler(new Request(`${apiOrigin}/auth/session`, { headers: { cookie } }));
   const result = Schema.decodeUnknownSync(Schema.Struct({ staff: Schema.NullOr(Staff) }))(await response.json());
   expect(response.headers.get("cache-control")).toBe("no-store");
   return Option.fromNullable(result.staff);
@@ -56,7 +59,8 @@ const cookies = (response: Response) =>
     .getSetCookie()
     .map((cookie) => cookie.split(";")[0])
     .join("; ");
-const start = () => handle(new Request(`${apiOrigin}/auth/google`, { method: "POST", headers: { origin } }));
+const start = (requestHandler = handle) =>
+  requestHandler(new Request(`${apiOrigin}/auth/google`, { method: "POST", headers: { origin } }));
 
 const base64url = (value: Uint8Array) =>
   btoa(String.fromCharCode(...value))
@@ -67,9 +71,10 @@ const encode = (value: unknown) => base64url(new TextEncoder().encode(JSON.strin
 
 const login = async (
   claims: Record<string, unknown> = {},
-  options: { initiation?: Response; corruptSignature?: boolean } = {},
+  options: { initiation?: Response; corruptSignature?: boolean; handle?: typeof handle } = {},
 ) => {
-  const response = options.initiation ?? (await start());
+  const requestHandler = options.handle ?? handle;
+  const response = options.initiation ?? (await start(requestHandler));
   const { url } = Schema.decodeUnknownSync(Schema.Struct({ url: Schema.String }))(await response.json());
   const state = new URL(url).searchParams.get("state");
   const keys = await crypto.subtle.generateKey(
@@ -109,7 +114,7 @@ const login = async (
       throw new Error(`Unexpected request: ${requestUrl}`);
     }),
   );
-  return handle(
+  return requestHandler(
     new Request(`${apiOrigin}/auth/google/callback?code=test-code&state=${state}`, {
       headers: { cookie: cookies(response) },
     }),
@@ -242,21 +247,27 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     expect(await db.select().from(Database.tables.orders)).toHaveLength(1);
     expect((await db.select().from(Database.tables.stocks))[0]?.quantity).toBe(1);
   });
-  it("初回のアカウント保存に失敗しても再ログインで回復する", async () => {
-    await env.DB.prepare(
-      "CREATE TRIGGER fail_account BEFORE INSERT ON accounts BEGIN SELECT RAISE(ABORT, 'test account failure'); END",
-    ).run();
-    try {
-      const failed = await login();
-      expect(failed.headers.get("location")).toContain("error=");
-      expect(await db.select().from(Database.tables.sessions)).toHaveLength(0);
-    } finally {
-      await env.DB.prepare("DROP TRIGGER fail_account").run();
-    }
-    const retried = await login();
-    expect(Option.getOrNull(await session(cookies(retried)))?.role).toBe("None");
-    expect(await db.select().from(Database.tables.users)).toHaveLength(1);
-  });
+  it.each([false, true])(
+    "初回のアカウント保存に失敗しても同じGoogleアカウントで回復する（Owner=%s）",
+    async (owner) => {
+      const claims = { email: owner ? config.ownerEmail : `staff@${domain}` };
+      await env.DB.prepare(
+        "CREATE TRIGGER fail_account BEFORE INSERT ON accounts BEGIN SELECT RAISE(ABORT, 'test account failure'); END",
+      ).run();
+      try {
+        const failed = await login(claims);
+        expect(failed.headers.get("location")).toContain("error=");
+        expect(await db.select().from(Database.tables.sessions)).toHaveLength(0);
+      } finally {
+        await env.DB.prepare("DROP TRIGGER fail_account").run();
+      }
+      const other = await login({ ...claims, sub: "different-google-subject" });
+      expect(other.headers.get("location")).toContain("error=");
+      const retried = await login(claims);
+      expect(Option.getOrNull(await session(cookies(retried)))?.role).toBe(owner ? "Owner" : "None");
+      expect(await db.select().from(Database.tables.users)).toHaveLength(1);
+    },
+  );
   it("メールが同じ別のGoogleアカウントへ既存の権限を引き継がない", async () => {
     await login();
     await db.update(Database.tables.users).set({ role: "Admin" });
@@ -276,6 +287,63 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
   it("設定されたOwnerは初回からOwnerになる", async () => {
     const response = await login({ email: config.ownerEmail });
     expect(Option.getOrNull(await session(cookies(response)))?.role).toBe("Owner");
+    expect((await db.select().from(Database.tables.users))[0]?.role).toBe("Owner");
+    await db.update(Database.tables.users).set({ role: "None" });
+    const next = await login({ email: config.ownerEmail });
+    expect(Option.getOrNull(await session(cookies(next)))?.role).toBe("None");
+  });
+  it.each(["", `new-owner@${domain}`, `staff@${domain}`])(
+    "OWNER_EMAILを%sへ変更しても保存済みロールを維持する",
+    async (ownerEmail) => {
+      const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+      const staff = await loggedInStaff();
+      const changedRuntime = ManagedRuntime.make(makeAppLayer(ownerEmail));
+      const changedApp = createApp({
+        origin,
+        runtime: changedRuntime,
+        upgradeWebSocket: (id) => connectWebSocketHub(env.STAFF_UPDATES, id),
+        aot: false,
+      });
+      const changedHandle = (request: Request) => changedApp.handle(request);
+      try {
+        const returningOwner = await login(
+          { sub: "google-owner", email: config.ownerEmail },
+          { handle: changedHandle },
+        );
+        expect(Option.getOrThrow(await session(cookies(returningOwner), changedHandle)).role).toBe("Owner");
+        const returningStaff = await login({}, { handle: changedHandle });
+        expect(Option.getOrThrow(await session(cookies(returningStaff), changedHandle)).role).toBe("None");
+        expect(
+          (await changedHandle(new Request(`${apiOrigin}/staff`, { headers: { cookie: owner.cookie } }))).status,
+        ).toBe(200);
+        expect((await changeRole(owner.cookie, staff.staff.id, "Staff")).status).toBe(200);
+        const newOwner = await login(
+          { sub: "new-google-owner", email: `new-owner@${domain}` },
+          { handle: changedHandle },
+        );
+        expect(Option.getOrThrow(await session(cookies(newOwner), changedHandle)).role).toBe(
+          ownerEmail === `new-owner@${domain}` ? "Owner" : "None",
+        );
+      } finally {
+        await changedRuntime.dispose();
+      }
+    },
+  );
+  it("初回Ownerのセッション保存に失敗しても、再ログインでOwnerを維持する", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await env.DB.prepare(
+      "CREATE TRIGGER fail_session BEFORE INSERT ON sessions BEGIN SELECT RAISE(ABORT, 'test session failure'); END",
+    ).run();
+    try {
+      const failed = await login({ email: config.ownerEmail });
+      expect(failed.status).toBe(500);
+      expect(await db.select().from(Database.tables.accounts)).toHaveLength(1);
+    } finally {
+      await env.DB.prepare("DROP TRIGGER fail_session").run();
+      log.mockRestore();
+    }
+    const retried = await login({ email: config.ownerEmail });
+    expect(Option.getOrThrow(await session(cookies(retried))).role).toBe("Owner");
   });
   it("ログアウトすると同じセッションを再利用できない", async () => {
     const response = await login();
@@ -391,6 +459,17 @@ describe("SPEC-INV-004 在庫の登録・修正", () => {
       { previous_quantity: 0, quantity: 8, adjusted_by: owner.staff.id },
       { previous_quantity: 8, quantity: 3, adjusted_by: owner.staff.id },
     ]);
+    await db.update(Database.tables.users).set({ role: "None" }).where(eq(Database.tables.users.id, owner.staff.id));
+    const denied = await runtime.runPromise(
+      saveStock(
+        owner.staff.id,
+        Schema.decodeUnknownSync(MenuItemId)("test-ramen"),
+        Schema.decodeUnknownSync(StockQuantity)(9),
+      ).pipe(Effect.either),
+    );
+    expect(denied).toMatchObject({ _tag: "Left", left: { _tag: "PersistenceError" } });
+    expect((await db.select().from(Database.tables.stocks))[0]?.quantity).toBe(3);
+    expect(await env.DB.prepare("SELECT count(*) AS count FROM stock_adjustments").first("count")).toBe(2);
   });
 });
 
@@ -589,10 +668,9 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
       ).status,
     ).toBe(403);
   });
-  it("接続中に権限を失ったら通知を止める", async () => {
-    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+  it.each(["Staff", "Owner"] as const)("%sが接続中に権限を失ったら通知を止める", async (role) => {
     const staff = await loggedInStaff();
-    await changeRole(owner.cookie, staff.staff.id, "Staff");
+    await db.update(Database.tables.users).set({ role }).where(eq(Database.tables.users.id, staff.staff.id));
     const response = await handle(
       new Request(`${apiOrigin}/staff/events`, {
         headers: { cookie: staff.cookie, origin, upgrade: "websocket" },
@@ -607,7 +685,7 @@ describe("SPEC-SYS-006 調理・受け渡しデータの権限境界", () => {
       socket.addEventListener("close", (event) => resolve(event.code), { once: true }),
     );
     try {
-      await changeRole(owner.cookie, staff.staff.id, "None");
+      await db.update(Database.tables.users).set({ role: "None" }).where(eq(Database.tables.users.id, staff.staff.id));
       await env.STAFF_UPDATES.getByName("nekomimi-maid-ramen").publish({ orders: 1 });
       expect(await closed).toBe(1008);
       expect(messages).toEqual([]);

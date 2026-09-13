@@ -8,7 +8,7 @@ import { realtimeMock, upgradeWebSocketMock } from "../../../testing";
 import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";
-import { makeOrdersLayer } from "../../features/orders/layer";
+import { OrdersLayer } from "../../features/orders/layer";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
 
 const db = drizzle(env.DB);
@@ -25,7 +25,7 @@ const request = async (
     Layer.mergeAll(
       realtimeMock,
       menu,
-      makeOrdersLayer(staffFixture.email).pipe(Layer.provide(Layer.mergeAll(menu, realtimeMock))),
+      OrdersLayer.pipe(Layer.provide(Layer.mergeAll(menu, realtimeMock))),
       authenticationGatewayMock(role ? { ...staffFixture, role } : null),
       staffRepositoryMock(),
     ).pipe(Layer.provide(makeDatabaseLive(env.DB))),
@@ -57,7 +57,7 @@ beforeEach(async () => {
   await db.delete(Database.tables.menuItems);
   await db.delete(Database.tables.users);
   const now = new Date();
-  // 認証時と保存時の判定を分け、Ownerはメールアドレスから判定する。
+  // 認証時と保存時の判定を分け、保存時にはDBの最新ロールを使う。
   await db.insert(Database.tables.users).values({
     ...staffFixture,
     email: "admin@gm.ibaraki-ct.ac.jp",
@@ -206,8 +206,8 @@ describe("SPEC-SAL-006 SPEC-SYS-006 注文取消と在庫復元", () => {
     expect(await snapshot()).toEqual(before);
   });
 
-  it("Ownerは保存済みロールがNoneでも取り消せる", async () => {
-    await db.update(Database.tables.users).set({ role: "None", email: staffFixture.email });
+  it("Ownerはメールアドレスによらず保存済みロールで取り消せる", async () => {
+    await db.update(Database.tables.users).set({ role: "Owner" });
     expect((await cancel("Owner")).status).toBe(200);
   });
 
@@ -216,6 +216,7 @@ describe("SPEC-SAL-006 SPEC-SYS-006 注文取消と在庫復元", () => {
     expect((await cancel("Admin", "missing")).status).toBe(409);
     await db.update(Database.tables.users).set({ role: "None" });
     expect((await cancel()).status).toBe(409);
+    expect((await cancel("Owner")).status).toBe(409);
     expect(await snapshot()).toEqual(before);
   });
 
