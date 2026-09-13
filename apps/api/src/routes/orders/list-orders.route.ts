@@ -25,9 +25,10 @@ export const listOrdersRoute = (run: EffectRunner<ListOrdersRequirements>, origi
         set.headers["cache-control"] = "no-store";
         return run(
           logAndDie(
-            listOrders({ businessDate: query.businessDate }).pipe(
-              Effect.map(({ data, revision }) => ({ ...presentOrders(data), revision })),
-            ),
+            listOrders({
+              businessDate: query.businessDate,
+              includeCancelled: query.includeCancelled ?? false,
+            }).pipe(Effect.map(({ data, revision }) => ({ ...presentOrders(data), revision }))),
           ),
         );
       },
@@ -36,13 +37,14 @@ export const listOrdersRoute = (run: EffectRunner<ListOrdersRequirements>, origi
         query: Schema.standardSchemaV1(
           Schema.Struct({
             businessDate: Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}$/)),
+            includeCancelled: Schema.optional(Schema.BooleanFromString),
           }),
         ),
         detail: {
           operationId: "listOrders",
           summary: "確定した注文を取得",
           tags: ["注文"],
-          description: "Staff以上が利用できる。指定した営業日の取消済みを除く注文を返す。",
+          description: "指定した営業日の注文を返す。",
         },
         response: {
           200: Schema.standardSchemaV1(OrdersResponse),

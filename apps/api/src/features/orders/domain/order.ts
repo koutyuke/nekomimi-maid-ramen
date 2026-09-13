@@ -87,8 +87,16 @@ export class OperationalOrder extends Schema.Class<OperationalOrder>("Operationa
 export const canChangeCookingState = (from: CookingState, to: CookingState) =>
   (from === "unstarted" && to === "cooking") || (from === "cooking" && (to === "unstarted" || to === "completed"));
 
+export const canCancelOrder = (order: OperationalOrder): boolean =>
+  order.cancelledAt === null &&
+  order.handedOffAt === null &&
+  !order.lines.some((line) => line.cookingState === "completed");
+
 export class KitchenOrderConflict extends Data.TaggedError("KitchenOrderConflict") {}
 export class KitchenForbidden extends Data.TaggedError("KitchenForbidden") {}
+export class OrderCancellationConflict extends Data.TaggedError("OrderCancellationConflict") {}
+export class OrderCancellationForbidden extends Data.TaggedError("OrderCancellationForbidden") {}
+
 export class HandoffConflict extends Data.TaggedError("HandoffConflict") {}
 export class HandoffForbidden extends Data.TaggedError("HandoffForbidden") {}
 

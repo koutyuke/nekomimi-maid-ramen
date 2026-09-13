@@ -10,6 +10,7 @@ import type { CookingState } from "../../../../../core/domain/cooking-state";
 
 const repositoryWith = (cookingState: CookingState) =>
   Layer.succeed(OrderRepository, {
+    findById: () => Effect.succeedNone,
     findByRequestId: () => Effect.succeedNone,
     findLine: () => Effect.succeedSome(orderLineFixture("ramen", 1, 500, cookingState)),
     getRevision: () => Effect.succeed(0),

@@ -95,6 +95,7 @@ export const orders = sqliteTable(
     totalAmount: integer("total_amount").notNull(),
     handedOffAt: integer("handed_off_at", { mode: "timestamp_ms" }),
     cancelledAt: integer("cancelled_at", { mode: "timestamp_ms" }),
+    cancelledBy: text("cancelled_by"),
     confirmedAt: integer("confirmed_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },

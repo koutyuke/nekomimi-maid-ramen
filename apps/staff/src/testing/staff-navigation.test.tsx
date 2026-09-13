@@ -19,7 +19,7 @@ const open = (path: string) => {
 };
 
 describe("SPEC-SYS-006 未認証時のスタッフ画面への案内", () => {
-  it.each(["/staff-management", "/inventory-management", "/sales", "/kitchen", "/handoff"])(
+  it.each(["/staff-management", "/inventory-management", "/order-management", "/sales", "/kitchen", "/handoff"])(
     "%sからログイン画面へ戻し、業務データを取得しない",
     async (path) => {
       const fetch = vi.fn(async (input: RequestInfo | URL) => {
@@ -73,7 +73,7 @@ describe("スタッフ画面内の移動", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe("/sales"));
   });
 
-  it("Adminはトップからスタッフ管理と在庫管理へ移動できる", async () => {
+  it("Adminはトップから各管理画面へ移動できる", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -90,6 +90,7 @@ describe("スタッフ画面内の移動", () => {
 
     expect((await screen.findByRole("link", { name: "スタッフ管理" })).getAttribute("href")).toBe("/staff-management");
     expect(screen.getByRole("link", { name: "在庫管理" }).getAttribute("href")).toBe("/inventory-management");
+    expect(screen.getByRole("link", { name: "注文管理" }).getAttribute("href")).toBe("/order-management");
   });
 
   it("Staffが管理者ページを直接開いても管理データを取得しない", async () => {

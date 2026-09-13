@@ -16,7 +16,9 @@ export const StaffManagementPage = () => {
         <StaffManagementPageUI
           administrator={administrator}
           onRetry={() => void staff.refetch()}
-          slots={{ roleManagement: <StaffRoleManagement currentStaff={administrator} /> }}
+          slots={{
+            roleManagement: <StaffRoleManagement currentStaff={administrator} />,
+          }}
         />
       ) : null}
     </AdminGuard>

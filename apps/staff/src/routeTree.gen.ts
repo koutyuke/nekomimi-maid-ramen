@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedHandoffRouteImport } from './routes/_authenticated.handoff'
 import { Route as AuthenticatedInventoryManagementRouteImport } from './routes/_authenticated.inventory-management'
 import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated.kitchen'
+import { Route as AuthenticatedOrderManagementRouteImport } from './routes/_authenticated.order-management'
 import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated.sales'
 import { Route as AuthenticatedStaffManagementRouteImport } from './routes/_authenticated.staff-management'
 
@@ -42,6 +43,12 @@ const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
   path: '/kitchen',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedOrderManagementRoute =
+  AuthenticatedOrderManagementRouteImport.update({
+    id: '/order-management',
+    path: '/order-management',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/handoff': typeof AuthenticatedHandoffRoute
   '/inventory-management': typeof AuthenticatedInventoryManagementRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
+  '/order-management': typeof AuthenticatedOrderManagementRoute
   '/sales': typeof AuthenticatedSalesRoute
   '/staff-management': typeof AuthenticatedStaffManagementRoute
 }
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/handoff': typeof AuthenticatedHandoffRoute
   '/inventory-management': typeof AuthenticatedInventoryManagementRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
+  '/order-management': typeof AuthenticatedOrderManagementRoute
   '/sales': typeof AuthenticatedSalesRoute
   '/staff-management': typeof AuthenticatedStaffManagementRoute
 }
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/_authenticated/handoff': typeof AuthenticatedHandoffRoute
   '/_authenticated/inventory-management': typeof AuthenticatedInventoryManagementRoute
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
+  '/_authenticated/order-management': typeof AuthenticatedOrderManagementRoute
   '/_authenticated/sales': typeof AuthenticatedSalesRoute
   '/_authenticated/staff-management': typeof AuthenticatedStaffManagementRoute
 }
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/handoff'
     | '/inventory-management'
     | '/kitchen'
+    | '/order-management'
     | '/sales'
     | '/staff-management'
   fileRoutesByTo: FileRoutesByTo
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/handoff'
     | '/inventory-management'
     | '/kitchen'
+    | '/order-management'
     | '/sales'
     | '/staff-management'
   id:
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/handoff'
     | '/_authenticated/inventory-management'
     | '/_authenticated/kitchen'
+    | '/_authenticated/order-management'
     | '/_authenticated/sales'
     | '/_authenticated/staff-management'
   fileRoutesById: FileRoutesById
@@ -150,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKitchenRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/order-management': {
+      id: '/_authenticated/order-management'
+      path: '/order-management'
+      fullPath: '/order-management'
+      preLoaderRoute: typeof AuthenticatedOrderManagementRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/sales': {
       id: '/_authenticated/sales'
       path: '/sales'
@@ -171,6 +191,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHandoffRoute: typeof AuthenticatedHandoffRoute
   AuthenticatedInventoryManagementRoute: typeof AuthenticatedInventoryManagementRoute
   AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
+  AuthenticatedOrderManagementRoute: typeof AuthenticatedOrderManagementRoute
   AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
   AuthenticatedStaffManagementRoute: typeof AuthenticatedStaffManagementRoute
 }
@@ -179,6 +200,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHandoffRoute: AuthenticatedHandoffRoute,
   AuthenticatedInventoryManagementRoute: AuthenticatedInventoryManagementRoute,
   AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
+  AuthenticatedOrderManagementRoute: AuthenticatedOrderManagementRoute,
   AuthenticatedSalesRoute: AuthenticatedSalesRoute,
   AuthenticatedStaffManagementRoute: AuthenticatedStaffManagementRoute,
 }

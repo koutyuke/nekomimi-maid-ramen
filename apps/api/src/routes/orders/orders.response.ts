@@ -39,6 +39,13 @@ export const CookingStateResponse = Schema.Struct({
   cookingState: CookingState,
 });
 export const KitchenConflictResponse = Schema.Struct({ code: Schema.Literal("kitchen_order_conflict") });
+export const OrderCancelledResponse = Schema.Struct({
+  id: Schema.String,
+  cancelledAt: Schema.String,
+  cancelledBy: Schema.String,
+});
+export const OrderCancellationConflictResponse = Schema.Struct({ code: Schema.Literal("order_cancellation_conflict") });
+
 export const HandoffCompletedResponse = Schema.Struct({ id: Schema.String, handedOffAt: Schema.String });
 export const HandoffConflictResponse = Schema.Struct({ code: Schema.Literal("handoff_conflict") });
 
