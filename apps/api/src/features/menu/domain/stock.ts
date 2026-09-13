@@ -1,9 +1,13 @@
-import { Schema } from "effect";
+import { Data, Schema } from "effect";
 
 import { MenuItemId } from "../../../core/domain/ids";
 
 export const StockQuantity = Schema.Int.pipe(Schema.nonNegative(), Schema.brand("StockQuantity"));
 export type StockQuantity = Schema.Schema.Type<typeof StockQuantity>;
+
+export const canAdjustStock = (role: string): boolean => role === "Owner" || role === "Admin";
+
+export class StockAdjustmentForbidden extends Data.TaggedError("StockAdjustmentForbidden") {}
 
 /**
  * 商品ごとの在庫。

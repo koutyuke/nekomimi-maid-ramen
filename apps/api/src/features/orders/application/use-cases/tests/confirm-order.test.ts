@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { MenuItemId } from "../../../../../core/domain/ids";
 import { menuItemFixture, stockFixture } from "../../../../menu/testing";
@@ -18,6 +18,8 @@ import {
   orderStockAvailabilityGatewayMock,
   orderStockAvailabilityGatewaySequenceMock,
 } from "../../../testing";
+import { OrderStockAvailabilityGateway } from "../../ports/outbound/order-stock-availability.gateway";
+import { OrderUpdatesGateway } from "../../ports/outbound/order-updates.gateway";
 import { confirmOrder } from "../confirm-order";
 import type { OrderRepositoryMockOptions } from "../../../testing";
 import type { ConfirmOrderInput } from "../confirm-order";
@@ -53,6 +55,38 @@ const confirmFailure = (layers: ReturnType<typeof environment>, input: ConfirmOr
   Effect.runPromise(Effect.flip(confirmOrder(input).pipe(Effect.provide(layers))));
 
 describe("SPEC-SAL-005 注文の確定", () => {
+  it.each(["在庫不足", "商品不存在"])("並行した同じ要求の確定後は%sより既存注文を優先する", async (condition) => {
+    const existing = orderFixture({
+      id: "order-1",
+      orderNumber: 7,
+      requestId: "request-1",
+      lines: [orderLineFixture("item-ramen", 1, 500)],
+    });
+    const confirmed: Array<typeof existing> = [];
+    const save = vi.fn(() => Effect.succeed(existing));
+    const notify = vi.fn(() => Effect.void);
+    const order = await Effect.runPromise(
+      confirmOrder({ requestId, lines: [line(condition === "在庫不足" ? "item-ramen" : "item-unknown", 1)] }).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            environment({ stocks: [], orders: { confirmed, confirm: save } }),
+            Layer.succeed(OrderStockAvailabilityGateway, {
+              findShortages: () =>
+                Effect.sync(() => {
+                  confirmed.push(existing);
+                  return condition === "在庫不足" ? [{ menuItemId: ramen.id, requested: 1, available: 0 }] : [];
+                }),
+            }),
+            Layer.succeed(OrderUpdatesGateway, { notify }),
+          ),
+        ),
+      ),
+    );
+    expect(order).toBe(existing);
+    expect(save).not.toHaveBeenCalled();
+    expect(notify).not.toHaveBeenCalled();
+  });
+
   it("販売可能な注文候補から注文を1件作り、注文番号を発行する", async () => {
     const order = await confirm(
       environment({ stocks: [stockFixture("item-ramen", 3), stockFixture("item-gyoza", 3)] }),
@@ -144,6 +178,25 @@ describe("SPEC-INV-002 確定直前の在庫再確認", () => {
 });
 
 describe("SPEC-INV-003 確定が保存先で競合した場合", () => {
+  it("競合後に在庫不足が解消していたら空の不足情報ではなく未保存の競合を返す", async () => {
+    const save = vi.fn(() => Effect.fail(new ConfirmationLostStockRace({ requestId })));
+    const notify = vi.fn(() => Effect.void);
+    const result = await Effect.runPromise(
+      confirmOrder({ requestId, lines: [line("item-ramen", 1)] }).pipe(
+        Effect.either,
+        Effect.provide(
+          Layer.mergeAll(
+            environment({ stocks: [stockFixture("item-ramen", 3)], orders: { confirm: save } }),
+            Layer.succeed(OrderUpdatesGateway, { notify }),
+          ),
+        ),
+      ),
+    );
+    expect(result).toMatchObject({ _tag: "Left", left: { _tag: "OrderConfirmationConflict" } });
+    expect(save).toHaveBeenCalledOnce();
+    expect(notify).not.toHaveBeenCalled();
+  });
+
   it("在庫の競合に敗れたら現在の在庫で不足を作り直して拒否する", async () => {
     const error = await confirmFailure(
       environment({

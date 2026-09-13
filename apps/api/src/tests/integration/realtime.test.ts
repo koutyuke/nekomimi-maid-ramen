@@ -150,7 +150,9 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     const socket = await connect();
     const message = nextMessage(socket);
 
-    await live.runPromise(adjustStock(staffFixture.id, MenuItemId.make("ramen"), StockQuantity.make(8)));
+    await live.runPromise(
+      adjustStock({ ...staffFixture, role: "Admin" }, MenuItemId.make("ramen"), StockQuantity.make(8)),
+    );
 
     expect(JSON.parse(await message)).toMatchObject({ type: "changed", revisions: { menu: expect.any(Number) } });
   });

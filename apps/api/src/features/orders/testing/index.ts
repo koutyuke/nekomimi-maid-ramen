@@ -1,4 +1,5 @@
 export { orderFixture, orderLineFixture } from "./fixture/order.fixture";
+export { ConfirmationLostStockRace, ConfirmationRequestId } from "../domain/order";
 export { failingOrderRepositoryMock, orderRepositoryMock } from "./mock/order.repository.mock";
 export { orderPricingGatewayMock } from "./mock/order-pricing.gateway.mock";
 export {

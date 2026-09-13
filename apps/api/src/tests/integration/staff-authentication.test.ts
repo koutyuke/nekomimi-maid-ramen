@@ -462,7 +462,7 @@ describe("SPEC-INV-004 在庫の登録・修正", () => {
     await db.update(Database.tables.users).set({ role: "None" }).where(eq(Database.tables.users.id, owner.staff.id));
     const denied = await runtime.runPromise(
       saveStock(
-        owner.staff.id,
+        owner.staff,
         Schema.decodeUnknownSync(MenuItemId)("test-ramen"),
         Schema.decodeUnknownSync(StockQuantity)(9),
       ).pipe(Effect.either),

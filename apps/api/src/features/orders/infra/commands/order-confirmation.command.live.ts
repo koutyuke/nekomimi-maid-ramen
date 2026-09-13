@@ -59,6 +59,17 @@ export const OrderConfirmationCommandLive = Layer.effect(
                   cookingState: line.cookingState,
                 })),
               ),
+              // 欠落した在庫行も残数0から減算し、制約違反でバッチ全体を取り消す。
+              db
+                .insert(Database.tables.stocks)
+                .values(
+                  draft.lines.map((line) => ({
+                    menuItemId: line.menuItemId,
+                    quantity: 0,
+                    updatedAt: draft.confirmedAt,
+                  })),
+                )
+                .onConflictDoNothing(),
               ...draft.lines.map((line) =>
                 db
                   .update(Database.tables.stocks)

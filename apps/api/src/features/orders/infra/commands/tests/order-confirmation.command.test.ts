@@ -79,6 +79,26 @@ beforeEach(async () => {
 });
 
 describe("SPEC-INV-003 注文確定の原子性", () => {
+  it("在庫行が欠落していたら注文・明細・他商品の減算・リビジョンをすべて取り消す", async () => {
+    await db.delete(Database.tables.stocks).where(eq(Database.tables.stocks.menuItemId, "item-gyoza"));
+    const revisions = await db.select().from(Database.tables.resourceRevisions);
+    const exit = await execute(
+      draftOf({
+        id: "order-1",
+        requestId: "request-1",
+        lines: [orderLineFixture("item-ramen", 1, 500), orderLineFixture("item-gyoza", 1, 400)],
+      }),
+    );
+    expect(exit._tag === "Failure" && exit.cause._tag === "Fail" ? exit.cause.error._tag : null).toBe(
+      "ConfirmationLostStockRace",
+    );
+    expect(await countOrders()).toBe(0);
+    expect(await countOrderLines()).toBe(0);
+    expect(await stockOf("item-ramen")).toBe(3);
+    expect(await stockOf("item-gyoza")).toBeUndefined();
+    expect(await db.select().from(Database.tables.resourceRevisions)).toEqual(revisions);
+  });
+
   it("注文と明細を保存し、営業日ごとに1から始まる注文番号を発行する", async () => {
     const first = await execute(
       draftOf({

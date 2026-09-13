@@ -1,7 +1,7 @@
 import { Effect, Option } from "effect";
 
 import { MenuItemId, OrderId } from "../../../../core/domain/ids";
-import { canChangeCookingState, KitchenForbidden, KitchenOrderConflict } from "../../domain/order";
+import { canUpdateCookingState, KitchenForbidden, KitchenOrderConflict } from "../../domain/order";
 import { OrderUpdatesGateway } from "../ports/outbound/order-updates.gateway";
 import { OrderRepository } from "../ports/outbound/order.repository";
 import { UpdateCookingStateCommand } from "../ports/outbound/update-cooking-state.command";
@@ -21,15 +21,19 @@ export const updateCookingState = (
     const itemId = MenuItemId.make(menuItemId);
 
     const repository = yield* OrderRepository;
-    const line = yield* repository.findLine(orderId, itemId);
     const updates = yield* OrderUpdatesGateway;
     const command = yield* UpdateCookingStateCommand;
 
-    if (Option.isNone(line) || !canChangeCookingState(line.value.cookingState, to)) {
+    const order = yield* repository.findById(orderId);
+    const line = Option.isSome(order)
+      ? order.value.lines.find((candidate) => candidate.menuItemId === itemId)
+      : undefined;
+
+    if (Option.isNone(order) || line === undefined || !canUpdateCookingState(order.value, line.cookingState, to)) {
       return yield* new KitchenOrderConflict();
     }
 
-    yield* command.execute(actor.id, orderId, itemId, line.value.cookingState, to);
+    yield* command.execute(actor.id, orderId, itemId, line.cookingState, to);
 
     yield* updates.notify(["orders"]);
 
