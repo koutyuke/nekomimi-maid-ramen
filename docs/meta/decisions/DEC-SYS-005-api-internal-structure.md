@@ -118,7 +118,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 `GET /staff/events`は`routes/realtime/upgrade-websocket.route.ts`で定義し、`routes/realtime/index.ts`で集約し、他の領域とともに`bootstrap/create-app.ts`で合成する。ルートはOrigin、セッションと権限、Upgradeヘッダーを確認し、注入された接続関数を呼ぶ。`core/adapters/elysia`の`cloudflareAdapter`は、Cloudflare固有の`webSocket`を持つ101応答を再構築せず返し、それ以外の応答をElysiaのCloudflareアダプターへ委ねる。
 
-同期機能の通知方針は`features/realtime/application/facades/update-notifier.facade.live.ts`に置く。`UpdateNotifierFacade`が機能間の入口となり、注文機能は`OrderUpdatesGateway`とアダプターを通じて呼ぶ。注文確定・調理・受け渡しのユースケースが保存後に通知を要求する。ファサードは通知の待ち時間を1秒に制限し、失敗を記録して保存済みの業務結果を成功のまま返す。HTTPの経路を通さない呼び出しでも同じ保証を保つ。
+同期機能の通知方針は`features/realtime/application/facades/update-notifier.facade.live.ts`に置く。`UpdateNotifierFacade`が機能間の入口となり、注文機能は`OrderUpdatesGateway`とアダプターを通じて呼ぶ。注文確定・取消・調理・受け渡しのユースケースが保存後に通知を要求する。ファサードは通知の待ち時間を1秒に制限し、失敗を記録して保存済みの業務結果を成功のまま返す。HTTPの経路を通さない呼び出しでも同じ保証を保つ。
 
 `UpdatePublisherGateway`は通知先への出力契約とし、`Response`やWebSocketを契約へ含めない。Durable Objectの接続管理と配信は`core/infra/websocket`、D1のリビジョン取得と配信基盤の呼び出しは`features/realtime/infra/update-publisher.gateway.live.ts`に置く。`bootstrap/websocket-hub.ts`がスタッフ機能の認可判定を注入した`WebSocketHub`クラスを定義し、`index.ts`が公開する。認可のランタイムはコンストラクターのバインディングからスタッフのリポジトリとDBだけを組み立て、HTTP APIのランタイムには依存しない。接続・配信基盤は機能へ依存しない。
 
@@ -134,7 +134,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 関数名は、可否の判定と状態を変える操作を区別する。`canOperate`や`canChangeRole`は可否を返す判定とし、有効化する操作を表す`enable`へ置き換えない。保存値の更新は`updateRole`のように表す。業務操作には`confirmOrder`のように目的を表す動詞を使い、すべてを`update`へ揃えない。
 
-リポジトリの複数件取得は`findMany`とする。取得条件を受け取る場合は条件に一致する全件を返し、条件を省略した場合は、そのリポジトリが取得対象とする集合の全件を返す。`OrderRepository.findMany`は取消済みを除外し、営業日を指定するとその日に絞る。`StaffRepository.findMany`はGoogleアカウントの登録を完了した利用者を返す。条件を使わないリポジトリには条件引数を設けない。ユースケースの一覧提供は`listMenu`や`listOrders`のように表す。
+リポジトリの複数件取得は`findMany`とする。取得条件を受け取る場合は条件に一致する全件を返し、条件を省略した場合は、そのリポジトリが取得対象とする集合の全件を返す。`OrderRepository.findMany`は既定で取消済みを除外し、`includeCancelled`を指定した場合は取消済みも含める。営業日を指定するとその日に絞る。`StaffRepository.findMany`はGoogleアカウントの登録を完了した利用者を返す。条件を使わないリポジトリには条件引数を設けない。ユースケースの一覧提供は`listMenu`や`listOrders`のように表す。
 
 `AuthenticationGateway`はセッション取得を`getSession`にまとめる。担当者だけを必要とする呼び出し元は、`getCurrentStaff`ユースケースを使う。このユースケースがセッションから担当者を取り出し、未認証を`Option.none()`として保つ。`StaffAccessPluginRequirements`は`staffAccessPlugin`が要求する依存型を表す。
 
