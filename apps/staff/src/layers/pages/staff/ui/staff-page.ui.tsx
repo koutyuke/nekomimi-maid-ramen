@@ -58,6 +58,12 @@ const staffNavigations: readonly Navigation[] = [
     description: "注文番号と商品を照合し、受け渡しを記録するページ",
     roles: ["Owner", "Admin", "Staff"],
   },
+  {
+    href: "/order-management",
+    label: "注文管理",
+    description: "確定した注文を確認・取り消すページ",
+    roles: ["Owner", "Admin", "Staff"],
+  },
 ];
 
 const adminNavigations: readonly Navigation[] = [

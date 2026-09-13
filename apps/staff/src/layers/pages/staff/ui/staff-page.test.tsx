@@ -104,5 +104,7 @@ describe("SPEC-SYS-008 管理ページへの導線", () => {
     await screen.findByRole("region", { name: "ログイン中のスタッフ" });
     expect(screen.queryByRole("link", { name: "スタッフ管理" })).toBeNull();
     expect(screen.queryByRole("link", { name: "在庫管理" })).toBeNull();
+    expect(screen.getByRole("link", { name: "注文管理" }).getAttribute("href")).toBe("/order-management");
+    expect(screen.queryByRole("heading", { name: "管理者ページ" })).toBeNull();
   });
 });
