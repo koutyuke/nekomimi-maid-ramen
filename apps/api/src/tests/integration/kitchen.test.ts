@@ -14,6 +14,7 @@ import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "..
 
 const db = drizzle(env.DB);
 const origin = "https://staff.nekomimi-ramen.com";
+const MenuLayerWithUpdates = MenuLayer.pipe(Layer.provide(realtimeMock));
 const app = createApp({
   upgradeWebSocket: upgradeWebSocketMock,
   origin,
@@ -21,8 +22,8 @@ const app = createApp({
   runtime: ManagedRuntime.make(
     Layer.mergeAll(
       realtimeMock,
-      MenuLayer,
-      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayer, realtimeMock))),
+      MenuLayerWithUpdates,
+      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayerWithUpdates, realtimeMock))),
       authenticationGatewayMock(staffFixture),
       staffRepositoryMock(),
     ).pipe(Layer.provide(makeDatabaseLive(env.DB))),

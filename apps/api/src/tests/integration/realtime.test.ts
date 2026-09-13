@@ -4,11 +4,13 @@ import { Effect, Layer, ManagedRuntime, Schema } from "effect";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../bootstrap/create-app";
+import { MenuItemId } from "../../core/domain/ids";
 import { PersistenceError } from "../../core/domain/persistence-error";
 import { Revision } from "../../core/domain/revision";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { connectWebSocketHub } from "../../core/infra/websocket";
 import { MenuLayer } from "../../features/menu/layer";
+import { adjustStock, StockQuantity } from "../../features/menu/public";
 import { makeOrdersLayer } from "../../features/orders/layer";
 import { confirmOrder } from "../../features/orders/public";
 import { makeRealtimeLayer } from "../../features/realtime/layer";
@@ -19,16 +21,18 @@ import { ConfirmedOrderResponse } from "../../routes/orders/orders.response";
 const db = drizzle(env.DB);
 const origin = "https://staff.nekomimi-ramen.com";
 const realtimeLive = makeRealtimeLayer(env.STAFF_UPDATES);
-const runtime = (realtime = realtimeLive, staff = staffFixture) =>
-  ManagedRuntime.make(
+const runtime = (realtime = realtimeLive, staff = staffFixture) => {
+  const menu = MenuLayer.pipe(Layer.provide(realtime));
+  return ManagedRuntime.make(
     Layer.mergeAll(
-      MenuLayer,
-      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayer, realtime))),
+      menu,
+      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(menu, realtime))),
       realtime,
       authenticationGatewayMock(staff),
       staffRepositoryMock(),
     ).pipe(Layer.provide(makeDatabaseLive(env.DB))),
   );
+};
 const live = runtime();
 const upgradeWebSocket = (sessionId: string) => connectWebSocketHub(env.STAFF_UPDATES, sessionId);
 const app = createApp({ origin, runtime: live, upgradeWebSocket, aot: false });
@@ -126,6 +130,16 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     const message = nextMessage(socket);
     await live.runPromise(confirmOrder(confirmBody));
     expect(JSON.parse(await message)).toMatchObject({ type: "changed" });
+  });
+
+  it("在庫修正ユースケースをHTTP以外から実行しても保存後の通知を送る", async () => {
+    await db.update(Database.tables.users).set({ role: "Admin" });
+    const socket = await connect();
+    const message = nextMessage(socket);
+
+    await live.runPromise(adjustStock(staffFixture.id, MenuItemId.make("ramen"), StockQuantity.make(8)));
+
+    expect(JSON.parse(await message)).toMatchObject({ type: "changed", revisions: { menu: expect.any(Number) } });
   });
 
   it("在庫残数と一致するリビジョンを返し、公開メニューには残数を返さない", async () => {

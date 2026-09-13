@@ -17,7 +17,7 @@ const googleCallbackPath = "/auth/google/callback";
 const authenticationResultPath = "/";
 
 const RealtimeLayer = makeRealtimeLayer(env.STAFF_UPDATES);
-const MenuLayer = makeMenuLayer(env.OWNER_EMAIL ?? "");
+const MenuLayer = makeMenuLayer(env.OWNER_EMAIL ?? "").pipe(Layer.provide(RealtimeLayer));
 const OrdersLayer = makeOrdersLayer(env.OWNER_EMAIL ?? "").pipe(
   Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer)),
 );

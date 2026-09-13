@@ -13,10 +13,11 @@ import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "..
 
 const db = drizzle(env.DB);
 
-const OrdersLayer = makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayer, realtimeMock)));
+const MenuLayerWithUpdates = MenuLayer.pipe(Layer.provide(realtimeMock));
+const OrdersLayer = makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayerWithUpdates, realtimeMock)));
 const AppLayer = Layer.mergeAll(
   realtimeMock,
-  MenuLayer,
+  MenuLayerWithUpdates,
   OrdersLayer,
   authenticationGatewayMock(staffFixture),
   staffRepositoryMock(),

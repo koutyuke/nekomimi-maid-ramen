@@ -8,6 +8,7 @@ import {
   inventoryAvailabilityFacadeMock,
   menuItemFixture,
   menuItemRepositoryMock,
+  menuUpdatesGatewayMock,
   stockFixture,
   stockRepositoryMock,
 } from "../../../features/menu/testing";
@@ -33,6 +34,7 @@ const appWith = (
       | StaffAccessPluginRequirements
       | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>
       | Layer.Layer.Success<ReturnType<typeof orderOperationsMock>>
+      | Layer.Layer.Success<typeof menuUpdatesGatewayMock>
       | Layer.Layer.Success<ReturnType<typeof stockRepositoryMock>>
     >
   >,
@@ -43,6 +45,7 @@ const appWith = (
     runtime: ManagedRuntime.make(
       Layer.mergeAll(
         realtimeMock,
+        menuUpdatesGatewayMock,
         layers,
         orderOperationsMock(),
         stockRepositoryMock([]),

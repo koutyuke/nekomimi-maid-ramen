@@ -29,13 +29,12 @@ const config = {
   secret: "test-only-auth-secret-with-at-least-32-characters",
   ownerEmail: `owner@${domain}`,
 };
-const MenuLayer = makeMenuLayer(config.ownerEmail);
+const RealtimeLayer = makeRealtimeLayer(env.STAFF_UPDATES);
+const MenuLayer = makeMenuLayer(config.ownerEmail).pipe(Layer.provide(RealtimeLayer));
 const appLayer = Layer.mergeAll(
-  makeRealtimeLayer(env.STAFF_UPDATES),
+  RealtimeLayer,
   MenuLayer,
-  makeOrdersLayer(config.ownerEmail).pipe(
-    Layer.provide(Layer.mergeAll(MenuLayer, makeRealtimeLayer(env.STAFF_UPDATES))),
-  ),
+  makeOrdersLayer(config.ownerEmail).pipe(Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer))),
   makeStaffLayer(env.DB, config),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 const runtime = ManagedRuntime.make(appLayer);

@@ -4,7 +4,6 @@ import { Elysia } from "elysia";
 import { logAndDie } from "../../core/adapters/elysia";
 import { MenuItemId } from "../../core/domain/ids";
 import { adjustStock, StockQuantity } from "../../features/menu/public";
-import { UpdateNotifierFacade } from "../../features/realtime/public";
 import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
@@ -20,7 +19,6 @@ const StockQuantityInput = Schema.Int.pipe(Schema.nonNegative());
 
 export type AdjustStockRequirements =
   | Effect.Effect.Context<ReturnType<typeof adjustStock>>
-  | UpdateNotifierFacade
   | StaffAccessPluginRequirements;
 
 export const adjustStockRoute = (run: EffectRunner<AdjustStockRequirements>, origin: string) =>
@@ -31,7 +29,6 @@ export const adjustStockRoute = (run: EffectRunner<AdjustStockRequirements>, ori
       return run(
         logAndDie(
           adjustStock(staff.id, params.menuItemId, StockQuantity.make(body.quantity)).pipe(
-            Effect.tap(() => Effect.flatMap(UpdateNotifierFacade, (updates) => updates.notify(["menu"]))),
             Effect.map((adjustment) => ({
               menuItemId: adjustment.menuItemId,
               previousQuantity: adjustment.previousQuantity,
