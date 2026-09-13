@@ -26,6 +26,7 @@ export const orderRepositoryMock = (options: OrderRepositoryMockOptions = {}) =>
     });
 
   const repository = Layer.succeed(OrderRepository, {
+    findById: () => Effect.die("Unexpected order lookup"),
     findLine: (id, menuItemId) =>
       Effect.sync(() =>
         Option.fromNullable(
@@ -51,6 +52,7 @@ export const orderRepositoryMock = (options: OrderRepositoryMockOptions = {}) =>
 export const failingOrderRepositoryMock = (error: PersistenceError) =>
   Layer.mergeAll(
     Layer.succeed(OrderRepository, {
+      findById: () => Effect.fail(error),
       findLine: () => Effect.fail(error),
       findByRequestId: () => Effect.fail(error),
       getRevision: () => Effect.fail(error),

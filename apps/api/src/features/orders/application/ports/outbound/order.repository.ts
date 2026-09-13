@@ -6,11 +6,12 @@ import type { PersistenceError } from "../../../../../core/domain/persistence-er
 import type { Snapshot } from "../../../../../core/domain/revision";
 import type { ConfirmationRequestId, OperationalOrder, Order, OrderLine } from "../../../domain/order";
 
-export type OrderLookup = { readonly businessDate: string };
+export type OrderLookup = { readonly businessDate: string; readonly includeCancelled?: boolean };
 
 export class OrderRepository extends Context.Tag("OrderRepository")<
   OrderRepository,
   {
+    readonly findById: (id: OrderId) => Effect.Effect<Option.Option<OperationalOrder>, PersistenceError>;
     readonly findLine: (
       id: OrderId,
       menuItemId: MenuItemId,

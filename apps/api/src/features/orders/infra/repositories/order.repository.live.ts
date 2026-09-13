@@ -33,6 +33,42 @@ export const OrderRepositoryLive = Layer.effect(
     const { orders: ordersTable, orderLines: linesTable, menuItems: menuTable } = Database.tables;
 
     return OrderRepository.of({
+      findById: (id) =>
+        database
+          .run("注文の読み出し", (db) =>
+            db
+              .select({
+                order: ordersTable,
+                line: linesTable,
+                name: menuTable.name,
+                category: menuTable.category,
+              })
+              .from(ordersTable)
+              .leftJoin(linesTable, eq(linesTable.orderId, ordersTable.id))
+              .leftJoin(menuTable, eq(menuTable.id, linesTable.menuItemId))
+              .where(eq(ordersTable.id, id))
+              .all(),
+          )
+          .pipe(
+            Effect.map((rows) =>
+              buildOrder(
+                rows.map(({ order, line, name, category }) => ({
+                  order,
+                  line: line === null ? null : { ...line, name, category },
+                })),
+              ),
+            ),
+            Effect.flatMap(
+              Option.match({
+                onNone: () => Effect.succeedNone,
+                onSome: (candidate) =>
+                  Schema.decodeUnknown(OperationalOrder)(candidate).pipe(
+                    Effect.mapError((cause) => new PersistenceError({ operation: "注文の復元", cause })),
+                    Effect.asSome,
+                  ),
+              }),
+            ),
+          ),
       findLine: (id, menuItemId) =>
         database
           .run("注文明細の読み出し", (db) =>
@@ -108,9 +144,10 @@ export const OrderRepositoryLive = Layer.effect(
                 .leftJoin(linesTable, eq(linesTable.orderId, ordersTable.id))
                 .leftJoin(menuTable, eq(menuTable.id, linesTable.menuItemId))
                 .where(
-                  lookup
-                    ? and(eq(ordersTable.businessDate, lookup.businessDate), isNull(ordersTable.cancelledAt))
-                    : isNull(ordersTable.cancelledAt),
+                  and(
+                    lookup ? eq(ordersTable.businessDate, lookup.businessDate) : undefined,
+                    lookup?.includeCancelled ? undefined : isNull(ordersTable.cancelledAt),
+                  ),
                 )
                 .orderBy(
                   ordersTable.confirmedAt,

@@ -12,7 +12,7 @@ import { connectWebSocketHub } from "../../core/infra/websocket";
 import { MenuLayer } from "../../features/menu/layer";
 import { adjustStock, StockQuantity } from "../../features/menu/public";
 import { makeOrdersLayer } from "../../features/orders/layer";
-import { confirmOrder } from "../../features/orders/public";
+import { cancelOrder, confirmOrder } from "../../features/orders/public";
 import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { failingUpdateNotifierMock } from "../../features/realtime/testing";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
@@ -130,6 +130,19 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     const message = nextMessage(socket);
     await live.runPromise(confirmOrder(confirmBody));
     expect(JSON.parse(await message)).toMatchObject({ type: "changed" });
+  });
+
+  it("注文取消後に注文と在庫の両方を通知し、一覧から取消済み注文を除く", async () => {
+    const order = await live.runPromise(confirmOrder(confirmBody));
+    await db.update(Database.tables.users).set({ role: "Admin" });
+    const socket = await connect();
+    const message = nextMessage(socket);
+    await live.runPromise(cancelOrder({ ...staffFixture, role: "Admin" }, order.id));
+    expect(JSON.parse(await message)).toEqual({ type: "changed", revisions: await revisions() });
+    expect(await (await request(`/staff/orders?businessDate=${order.businessDate}`)).json()).toMatchObject({
+      orders: [],
+    });
+    expect(await (await request("/staff/menu")).json()).toMatchObject({ items: [{ id: "ramen", quantity: 10 }] });
   });
 
   it("在庫修正ユースケースをHTTP以外から実行しても保存後の通知を送る", async () => {
