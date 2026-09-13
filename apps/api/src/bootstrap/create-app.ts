@@ -50,6 +50,7 @@ export const createApp = ({ origin, runtime, upgradeWebSocket, aot = true }: App
             { name: "システム", description: "API 自体の情報と稼働状態" },
             { name: "認証", description: "担当者のGoogle認証とセッション管理" },
             { name: "ロール管理", description: "利用者の一覧とロールの付与・剥奪" },
+            { name: "在庫管理", description: "商品の現在在庫数の登録・修正" },
             { name: "メニュー", description: "来店者へ提供するメニュー情報" },
             { name: "受け渡し", description: "完成注文の照合と受け渡し日時の記録" },
             { name: "調理", description: "確定注文の確認と調理状況の更新" },

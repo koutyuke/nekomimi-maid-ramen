@@ -7,7 +7,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vites
 import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { connectWebSocketHub } from "../../core/infra/websocket";
-import { MenuLayer } from "../../features/menu/layer";
+import { makeMenuLayer } from "../../features/menu/layer";
 import { makeOrdersLayer } from "../../features/orders/layer";
 import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { StaffRepository } from "../../features/staff/application/ports/outbound/staff.repository";
@@ -29,12 +29,12 @@ const config = {
   secret: "test-only-auth-secret-with-at-least-32-characters",
   ownerEmail: `owner@${domain}`,
 };
+const RealtimeLayer = makeRealtimeLayer(env.STAFF_UPDATES);
+const MenuLayer = makeMenuLayer(config.ownerEmail).pipe(Layer.provide(RealtimeLayer));
 const appLayer = Layer.mergeAll(
-  makeRealtimeLayer(env.STAFF_UPDATES),
+  RealtimeLayer,
   MenuLayer,
-  makeOrdersLayer(config.ownerEmail).pipe(
-    Layer.provide(Layer.mergeAll(MenuLayer, makeRealtimeLayer(env.STAFF_UPDATES))),
-  ),
+  makeOrdersLayer(config.ownerEmail).pipe(Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer))),
   makeStaffLayer(env.DB, config),
 ).pipe(Layer.provide(makeDatabaseLive(env.DB)));
 const runtime = ManagedRuntime.make(appLayer);
@@ -350,10 +350,49 @@ const changeRole = (cookie: string, id: string, role: string, requestOrigin = or
       body: JSON.stringify({ role }),
     }),
   );
+const adjustStock = (cookie: string, menuItemId: string, quantity: number) =>
+  handle(
+    new Request(`${apiOrigin}/staff/menu/${menuItemId}/stock`, {
+      method: "PUT",
+      headers: { cookie, origin, "content-type": "application/json" },
+      body: JSON.stringify({ quantity }),
+    }),
+  );
 const loggedInStaff = async (claims: Record<string, unknown> = {}) => {
   const cookie = cookies(await login(claims));
   return { cookie, staff: Option.getOrThrow(await session(cookie)) };
 };
+
+describe("SPEC-INV-004 在庫の登録・修正", () => {
+  it("Admin以上だけが現在数を上書きでき、変更前後の数量と担当者を記録する", async () => {
+    await db.insert(Database.tables.menuItems).values({
+      id: "test-ramen",
+      name: "ラーメン",
+      price: 500,
+      category: "main",
+      displayOrder: 1,
+      allergenCheckState: "unchecked",
+      updatedAt: new Date(),
+    });
+    const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
+    const staff = await loggedInStaff();
+    await changeRole(owner.cookie, staff.staff.id, "Staff");
+
+    expect((await adjustStock(staff.cookie, "test-ramen", 8)).status).toBe(403);
+    expect((await adjustStock(owner.cookie, "test-ramen", -1)).status).toBe(422);
+    expect((await adjustStock(owner.cookie, "test-ramen", 8)).status).toBe(200);
+    expect((await adjustStock(owner.cookie, "test-ramen", 3)).status).toBe(200);
+
+    expect(await db.select().from(Database.tables.stocks)).toMatchObject([{ menuItemId: "test-ramen", quantity: 3 }]);
+    const { results } = await env.DB.prepare(
+      "SELECT previous_quantity, quantity, adjusted_by FROM stock_adjustments ORDER BY adjusted_at, rowid",
+    ).all();
+    expect(results).toEqual([
+      { previous_quantity: 0, quantity: 8, adjusted_by: owner.staff.id },
+      { previous_quantity: 8, quantity: 3, adjusted_by: owner.staff.id },
+    ]);
+  });
+});
 
 describe("SPEC-SYS-008 ロールの付与・剥奪", () => {
   it("Ownerが一覧から付与・剥奪し、同じセッションの次の操作に反映する", async () => {

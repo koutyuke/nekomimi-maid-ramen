@@ -19,7 +19,7 @@ const open = (path: string) => {
 };
 
 describe("SPEC-SYS-006 未認証時のスタッフ画面への案内", () => {
-  it.each(["/admin", "/sales", "/kitchen", "/handoff"])(
+  it.each(["/staff-management", "/inventory-management", "/sales", "/kitchen", "/handoff"])(
     "%sからログイン画面へ戻し、業務データを取得しない",
     async (path) => {
       const fetch = vi.fn(async (input: RequestInfo | URL) => {
@@ -71,5 +71,45 @@ describe("スタッフ画面内の移動", () => {
     fireEvent.click(await screen.findByRole("link", { name: "注文・会計" }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/sales"));
+  });
+
+  it("Adminはトップからスタッフ管理と在庫管理へ移動できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = input instanceof Request ? input.url : input.toString();
+        if (url.endsWith("/auth/session")) {
+          return Response.json({
+            staff: { id: "admin", name: "管理者", email: "admin@example.com", role: "Admin" },
+          });
+        }
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    open("/");
+
+    expect((await screen.findByRole("link", { name: "スタッフ管理" })).getAttribute("href")).toBe("/staff-management");
+    expect(screen.getByRole("link", { name: "在庫管理" }).getAttribute("href")).toBe("/inventory-management");
+  });
+
+  it("Staffが管理者ページを直接開いても管理データを取得しない", async () => {
+    const fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = input instanceof Request ? input.url : input.toString();
+      if (url.endsWith("/auth/session")) {
+        return Response.json({
+          staff: { id: "staff", name: "担当者", email: "staff@example.com", role: "Staff" },
+        });
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetch);
+    open("/inventory-management");
+
+    await screen.findByText("管理者ページを閲覧する権限がありません。");
+    expect(
+      fetch.mock.calls.every(([input]) =>
+        (input instanceof Request ? input.url : input.toString()).endsWith("/auth/session"),
+      ),
+    ).toBe(true);
   });
 });

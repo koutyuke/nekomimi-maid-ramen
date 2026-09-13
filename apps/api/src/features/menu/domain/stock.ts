@@ -18,6 +18,15 @@ export class Stock extends Schema.Class<Stock>("Stock")({
   updatedAt: Schema.DateFromSelf,
 }) {}
 
+export class StockAdjustment extends Schema.Class<StockAdjustment>("StockAdjustment")({
+  id: Schema.String,
+  menuItemId: MenuItemId,
+  previousQuantity: StockQuantity,
+  quantity: StockQuantity,
+  adjustedBy: Schema.String,
+  adjustedAt: Schema.DateFromSelf,
+}) {}
+
 export const isSellable = (stock: Stock): boolean => stock.quantity > 0;
 
 /**

@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
-import { AdminPage } from "./admin-page";
+import { StaffManagementPage } from "./staff-management-page";
 
 let currentRole = "Admin";
 let targetRole = "None";
@@ -64,7 +64,7 @@ const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <AdminPage />
+      <StaffManagementPage />
     </QueryClientProvider>,
   );
 };
@@ -73,7 +73,7 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
   it("Staffには管理内容を表示せず、利用者一覧も取得しない", async () => {
     currentRole = "Staff";
     renderPage();
-    await screen.findByText("管理ページを閲覧する権限がありません。");
+    await screen.findByText("管理者ページを閲覧する権限がありません。");
     expect(screen.queryByRole("table")).toBeNull();
     expect(listRequests).toBe(0);
   });
@@ -140,7 +140,7 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     await screen.findByRole("combobox", { name: "対象者のロール" });
     currentRole = "None";
     fireEvent.click(screen.getByRole("button", { name: "権限を再確認" }));
-    await screen.findByText("管理ページを閲覧する権限がありません。");
+    await screen.findByText("管理者ページを閲覧する権限がありません。");
     expect(screen.queryByRole("table")).toBeNull();
   });
 });

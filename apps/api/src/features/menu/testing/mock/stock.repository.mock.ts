@@ -5,7 +5,10 @@ import type { PersistenceError } from "../../../../core/domain/persistence-error
 import type { Stock } from "../../domain/stock";
 
 export const stockRepositoryMock = (stocks: ReadonlyArray<Stock>) =>
-  Layer.succeed(StockRepository, { findMany: () => Effect.succeed(stocks) });
+  Layer.succeed(StockRepository, {
+    findMany: () => Effect.succeed(stocks),
+    adjust: () => Effect.die("Unexpected stock adjustment"),
+  });
 
 export const failingStockRepositoryMock = (error: PersistenceError) =>
-  Layer.succeed(StockRepository, { findMany: () => Effect.fail(error) });
+  Layer.succeed(StockRepository, { findMany: () => Effect.fail(error), adjust: () => Effect.fail(error) });
