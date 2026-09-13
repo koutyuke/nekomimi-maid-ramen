@@ -6,3 +6,5 @@ export { AllergenCheckState, MenuCategory } from "./domain/menu-item";
 export { listMenu, type MenuEntry } from "./application/use-cases/list-menu";
 export { listStaffMenu } from "./application/use-cases/list-staff-menu";
 export { getMenuRevision } from "./application/use-cases/get-menu-revision";
+export { adjustStock } from "./application/use-cases/adjust-stock";
+export { StockQuantity } from "./domain/stock";

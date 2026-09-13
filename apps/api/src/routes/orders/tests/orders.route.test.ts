@@ -9,6 +9,7 @@ import {
   menuItemFixture,
   menuItemRepositoryMock,
   stockFixture,
+  stockRepositoryMock,
 } from "../../../features/menu/testing";
 import {
   failingOrderRepositoryMock,
@@ -32,6 +33,7 @@ const appWith = (
       | StaffAccessPluginRequirements
       | Layer.Layer.Success<ReturnType<typeof staffRepositoryMock>>
       | Layer.Layer.Success<ReturnType<typeof orderOperationsMock>>
+      | Layer.Layer.Success<ReturnType<typeof stockRepositoryMock>>
     >
   >,
 ) =>
@@ -43,6 +45,7 @@ const appWith = (
         realtimeMock,
         layers,
         orderOperationsMock(),
+        stockRepositoryMock([]),
         authenticationGatewayMock(staffFixture),
         staffRepositoryMock(),
       ),

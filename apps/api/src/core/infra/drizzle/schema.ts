@@ -66,6 +66,25 @@ export const stocks = sqliteTable(
   (table) => [check("stocks_quantity_non_negative", sql`${table.quantity} >= 0`)],
 );
 
+export const stockAdjustments = sqliteTable(
+  "stock_adjustments",
+  {
+    id: text("id").primaryKey(),
+    menuItemId: text("menu_item_id")
+      .notNull()
+      .references(() => menuItems.id, { onDelete: "cascade" }),
+    previousQuantity: integer("previous_quantity").notNull(),
+    quantity: integer("quantity").notNull(),
+    adjustedBy: text("adjusted_by").notNull(),
+    adjustedAt: integer("adjusted_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    index("stock_adjustments_menu_item_adjusted_at").on(table.menuItemId, table.adjustedAt),
+    check("stock_adjustments_previous_quantity_non_negative", sql`${table.previousQuantity} >= 0`),
+    check("stock_adjustments_quantity_non_negative", sql`${table.quantity} >= 0`),
+  ],
+);
+
 export const orders = sqliteTable(
   "orders",
   {

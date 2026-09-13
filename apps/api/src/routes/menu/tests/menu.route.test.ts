@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { realtimeMock, upgradeWebSocketMock } from "../../../../testing";
 import { createApp } from "../../../bootstrap/create-app";
 import { PersistenceError } from "../../../core/domain/persistence-error";
-import { failingMenuItemRepositoryMock } from "../../../features/menu/testing";
+import { failingMenuItemRepositoryMock, stockRepositoryMock } from "../../../features/menu/testing";
 import {
   orderOperationsMock,
   orderPricingGatewayMock,
@@ -25,6 +25,7 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
         authenticationGatewayMock(),
         staffRepositoryMock(),
         failingMenu,
+        stockRepositoryMock([]),
         orderPricingGatewayMock([]),
         orderStockAvailabilityGatewayMock([]),
         orderRepositoryMock(),

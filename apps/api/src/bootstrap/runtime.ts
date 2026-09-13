@@ -3,7 +3,7 @@ import { Layer, ManagedRuntime } from "effect";
 
 import { makeDatabaseLive } from "../core/infra/drizzle";
 import { connectWebSocketHub } from "../core/infra/websocket";
-import { MenuLayer } from "../features/menu/layer";
+import { makeMenuLayer } from "../features/menu/layer";
 import { makeOrdersLayer } from "../features/orders/layer";
 import { makeRealtimeLayer } from "../features/realtime/layer";
 import { makeStaffLayer } from "../features/staff/layer";
@@ -17,10 +17,12 @@ const googleCallbackPath = "/auth/google/callback";
 const authenticationResultPath = "/";
 
 const RealtimeLayer = makeRealtimeLayer(env.STAFF_UPDATES);
+const MenuLayer = makeMenuLayer(env.OWNER_EMAIL ?? "");
 const OrdersLayer = makeOrdersLayer(env.OWNER_EMAIL ?? "").pipe(
   Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer)),
 );
 const AppLayer = Layer.mergeAll(
+  RealtimeLayer,
   MenuLayer,
   OrdersLayer,
   makeStaffLayer(env.DB, {
