@@ -20,7 +20,7 @@ export const AuthenticationUnavailableResponse = Schema.Struct({
   }),
 }).annotations({ description: "認証サービスを利用できない" });
 
-export const GoogleSignInResponse = Schema.Struct({
+export const GoogleLoginResponse = Schema.Struct({
   url: Schema.String.annotations({ description: "Googleの認証画面URL" }),
   redirect: Schema.Boolean.annotations({ description: "呼び出し側で認証画面へ移動する必要があるか" }),
 }).annotations({ description: "Google認証の開始情報" });

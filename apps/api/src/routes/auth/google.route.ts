@@ -3,7 +3,7 @@ import { Elysia } from "elysia";
 
 import { logAndDie } from "../../core/adapters/elysia";
 import { requestAuthentication } from "../../features/staff/public";
-import { AuthenticationUnavailableResponse, ForbiddenResponse, GoogleSignInResponse } from "./auth.response";
+import { AuthenticationUnavailableResponse, ForbiddenResponse, GoogleLoginResponse } from "./auth.response";
 import type { EffectRunner } from "../../core/adapters/elysia";
 
 export type GoogleRouteRequirements = Effect.Effect.Context<ReturnType<typeof requestAuthentication>>;
@@ -29,7 +29,7 @@ export const googleRoute = (run: EffectRunner<GoogleRouteRequirements>) =>
 
         return run(
           logAndDie(
-            Effect.tryPromise(() => response.json()).pipe(Effect.flatMap(Schema.decodeUnknown(GoogleSignInResponse))),
+            Effect.tryPromise(() => response.json()).pipe(Effect.flatMap(Schema.decodeUnknown(GoogleLoginResponse))),
           ),
         );
       },
@@ -41,7 +41,7 @@ export const googleRoute = (run: EffectRunner<GoogleRouteRequirements>) =>
           tags: ["認証"],
         },
         response: {
-          200: Schema.standardSchemaV1(GoogleSignInResponse),
+          200: Schema.standardSchemaV1(GoogleLoginResponse),
           403: Schema.standardSchemaV1(ForbiddenResponse),
           503: Schema.standardSchemaV1(AuthenticationUnavailableResponse),
         },
