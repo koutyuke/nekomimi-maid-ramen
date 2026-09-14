@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AuthenticatedStaffLayout } from "../layers/pages/staff";
+import { AuthenticatedLayout } from "../layers/app/layout";
 
-export const Route = createFileRoute("/_authenticated")({ component: AuthenticatedStaffLayout });
+export const Route = createFileRoute("/_authenticated")({ component: AuthenticatedLayout });
