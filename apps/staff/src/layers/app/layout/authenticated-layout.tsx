@@ -1,15 +1,15 @@
 import { Outlet } from "@tanstack/react-router";
 
-import { AdminGuard, AuthGuard } from "../../widgets/auth-guard";
+import { AuthGuard } from "../../widgets/auth-guard";
 
-export const AuthenticatedLayout = () => (
-  <AuthGuard>
+export const StaffAuthenticatedLayout = () => (
+  <AuthGuard permission="Staff">
     <Outlet />
   </AuthGuard>
 );
 
 export const AdminAuthenticatedLayout = () => (
-  <AdminGuard>
+  <AuthGuard permission="Admin">
     <Outlet />
-  </AdminGuard>
+  </AuthGuard>
 );

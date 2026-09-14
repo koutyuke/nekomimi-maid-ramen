@@ -8,7 +8,7 @@ export const AccessDeniedUI = () => (
       <Stack align="flex-start">
         <Text>このページを閲覧する権限がありません。</Text>
         <Button component={Link} to="/" variant="default">
-          スタッフページへ戻る
+          トップページへ戻る
         </Button>
       </Stack>
     </Alert>
