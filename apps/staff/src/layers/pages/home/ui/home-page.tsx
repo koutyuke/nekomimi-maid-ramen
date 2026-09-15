@@ -2,10 +2,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { staffQueries } from "../../../entities/staff";
 import { useAuth } from "../../../features/auth";
-import { AuthGuard } from "../../../widgets/auth-guard";
 import { HomePageUI } from "./home-page.ui";
 
-const HomePageContent = () => {
+export const HomePage = () => {
   const staff = useSuspenseQuery(staffQueries.current());
   const { logout, logoutError, logoutPending } = useAuth();
 
@@ -23,9 +22,3 @@ const HomePageContent = () => {
     />
   );
 };
-
-export const HomePage = () => (
-  <AuthGuard unauthenticated="login-prompt">
-    <HomePageContent />
-  </AuthGuard>
-);

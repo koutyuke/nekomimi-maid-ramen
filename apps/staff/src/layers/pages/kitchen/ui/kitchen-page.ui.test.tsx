@@ -54,7 +54,8 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
     render(<KitchenPageUI {...kitchenPageFixture} orders={{ status: "success", data: [order] }} />);
     expect(screen.getByRole("article", { name: "注文1" })).toBeDefined();
 
-    fireEvent.change(screen.getByRole("combobox", { name: "表示する商品" }), { target: { value: "main" } });
+    fireEvent.click(screen.getByRole("combobox", { name: "表示する商品" }));
+    fireEvent.click(screen.getByRole("option", { name: "ラーメンのみ" }));
     expect(screen.queryByRole("article", { name: "注文1" })).toBeNull();
     fireEvent.click(screen.getByRole("checkbox", { name: "対応済みを非表示" }));
     const article = screen.getByRole("article", { name: "注文1" });
@@ -162,13 +163,14 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
     const onRetry = vi.fn();
     const props = { ...kitchenPageFixture, onRetry };
     const page = render(<KitchenPageUI {...props} />);
-    fireEvent.change(screen.getByRole("combobox", { name: "表示する商品" }), { target: { value: "side" } });
+    fireEvent.click(screen.getByRole("combobox", { name: "表示する商品" }));
+    fireEvent.click(screen.getByRole("option", { name: "サイドのみ" }));
     page.rerender(<KitchenPageUI {...props} orders={{ status: "denied", data: undefined }} />);
     expect(screen.queryByRole("article")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "注文情報を更新" }));
     expect(onRetry).toHaveBeenCalledOnce();
     page.rerender(<KitchenPageUI {...props} />);
-    expect(screen.getByRole<HTMLSelectElement>("combobox", { name: "表示する商品" }).value).toBe("side");
+    expect(screen.getByRole<HTMLInputElement>("combobox", { name: "表示する商品" }).value).toBe("サイドのみ");
     expect(screen.queryByText("ラーメン")).toBeNull();
   });
 

@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
+import { AuthGuard } from "../../../widgets/auth-guard";
 import { HomePage } from "./home-page";
 
 let loggedIn = true;
@@ -47,7 +48,9 @@ const renderPage = () => {
   queryClient.setQueryData(["private-orders"], [{ id: "sensitive-order" }]);
   render(
     <QueryClientProvider client={queryClient}>
-      <HomePage />
+      <AuthGuard unauthenticated="login-prompt">
+        <HomePage />
+      </AuthGuard>
     </QueryClientProvider>,
   );
   return queryClient;

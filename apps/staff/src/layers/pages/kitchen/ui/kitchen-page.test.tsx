@@ -13,7 +13,7 @@ afterEach(() => {
   TestWebSocket.instances = [];
 });
 
-it("SPEC-KIT-002 明細を更新し、アクセス拒否から再取得で復帰しても担当範囲を維持する", async () => {
+it("SPEC-KIT-002 明細を更新し、アクセス拒否から再取得で復帰する", async () => {
   let denied = false;
   let cookingState = "unstarted";
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -52,7 +52,6 @@ it("SPEC-KIT-002 明細を更新し、アクセス拒否から再取得で復帰
     </QueryClientProvider>,
   );
   await screen.findByRole("article", { name: "注文1" });
-  fireEvent.change(screen.getByRole("combobox", { name: "表示する商品" }), { target: { value: "side" } });
   fireEvent.click(screen.getByRole("button", { name: "注文1の餃子の調理を開始" }));
   await waitFor(() =>
     expect(screen.getByRole<HTMLButtonElement>("button", { name: "注文1の餃子を完成" }).disabled).toBe(false),
@@ -75,6 +74,4 @@ it("SPEC-KIT-002 明細を更新し、アクセス拒否から再取得で復帰
   await waitFor(() =>
     expect(screen.getByRole<HTMLButtonElement>("button", { name: "注文1の餃子を完成" }).disabled).toBe(false),
   );
-  expect(screen.getByRole<HTMLSelectElement>("combobox", { name: "表示する商品" }).value).toBe("side");
-  expect(screen.queryByText("ラーメン")).toBeNull();
 });
