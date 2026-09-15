@@ -2,15 +2,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { render } from "../../../../../testing/render";
-import { TestWebSocket } from "../../../../../testing/websocket";
-import { orderManagementPageFixture } from "../../testing";
+import { render } from "../../../../testing/render";
+import { TestWebSocket } from "../../../../testing/websocket";
+import { AuthGuard } from "../../../widgets/auth-guard";
+import { orderManagementOrdersFixture } from "../testing";
 import { OrderManagementPage } from "./order-management-page";
 
-const order = orderManagementPageFixture.orders[0]!;
+const order = orderManagementOrdersFixture[0]!;
 let orders = [order];
 let role = "Staff";
 let failed = false;
+let denied = false;
 let conflict = false;
 let lostResponse = false;
 let pendingResponse: Promise<void> | undefined;
@@ -22,6 +24,7 @@ beforeEach(() => {
   orders = [order];
   role = "Staff";
   failed = false;
+  denied = false;
   conflict = false;
   lostResponse = false;
   pendingResponse = undefined;
@@ -40,7 +43,11 @@ beforeEach(() => {
         return Response.json({ revision });
       }
       if (url.includes("/staff/orders?")) {
-        return failed ? Response.json({}, { status: 500 }) : Response.json({ orders, revision });
+        return denied
+          ? Response.json({}, { status: 403 })
+          : failed
+            ? Response.json({}, { status: 500 })
+            : Response.json({ orders, revision });
       }
       if (url.endsWith("/staff/orders/order-1/cancel") && init?.method === "POST") {
         cancelled += 1;
@@ -62,7 +69,9 @@ afterEach(() => vi.unstubAllGlobals());
 const open = () =>
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <OrderManagementPage />
+      <AuthGuard permission="Staff">
+        <OrderManagementPage />
+      </AuthGuard>
     </QueryClientProvider>,
   );
 const confirm = async () => {
@@ -91,7 +100,7 @@ describe("SPEC-SAL-006 注文管理からの取消", () => {
   it.each(["None"])("%sは注文管理データを取得せず取消もできない", async (value) => {
     role = value;
     open();
-    await screen.findByText("注文管理にはスタッフ権限が必要です。");
+    await screen.findByText("このページを閲覧する権限がありません。");
     expect(requests.mock.calls.every(([url]) => String(url).endsWith("/auth/session"))).toBe(true);
   });
   it("別端末の取消通知で確認を閉じ、取消を送信しない", async () => {
@@ -167,6 +176,24 @@ describe("SPEC-SAL-006 注文管理からの取消", () => {
       expect(requests.mock.calls.some(([url]) => String(url).includes("businessDate=2026-10-23"))).toBe(true),
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(cancelled).toBe(0);
+  });
+
+  it("注文APIの拒否で確認を閉じ、営業日を維持したまま再試行できる", async () => {
+    open();
+    await screen.findByRole("button", { name: "注文12を取り消す" });
+    fireEvent.change(screen.getByLabelText("営業日"), { target: { value: "2026-10-23" } });
+    await confirm();
+    denied = true;
+    fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
+    await screen.findByText(/注文情報へのアクセスが拒否されました/);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.queryByRole("button", { name: "注文12を取り消す" })).toBeNull();
+    denied = false;
+    fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
+    await screen.findByRole("button", { name: "注文12を取り消す" });
+    expect(screen.getByDisplayValue("2026-10-23")).toBeDefined();
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(cancelled).toBe(0);
   });
 });

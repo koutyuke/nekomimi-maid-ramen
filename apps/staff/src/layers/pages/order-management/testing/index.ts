@@ -1,1 +1,1 @@
-export { orderManagementPageFixture } from "./order-management.fixtures";
+export { orderManagementPageFixture, orderManagementOrdersFixture } from "./order-management.fixtures";
