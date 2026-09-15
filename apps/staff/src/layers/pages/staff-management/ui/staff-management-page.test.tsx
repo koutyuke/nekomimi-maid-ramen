@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
+import { AuthGuard } from "../../../widgets/auth-guard";
 import { StaffManagementPage } from "./staff-management-page";
 
 let currentRole = "Admin";
@@ -64,7 +65,9 @@ const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <StaffManagementPage />
+      <AuthGuard permission="Admin">
+        <StaffManagementPage />
+      </AuthGuard>
     </QueryClientProvider>,
   );
 };
@@ -73,7 +76,7 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
   it("Staffには管理内容を表示せず、利用者一覧も取得しない", async () => {
     currentRole = "Staff";
     renderPage();
-    await screen.findByText("管理者ページを閲覧する権限がありません。");
+    await screen.findByText("このページを閲覧する権限がありません。");
     expect(screen.queryByRole("table")).toBeNull();
     expect(listRequests).toBe(0);
   });
@@ -129,18 +132,18 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     await screen.findByText("対象者のロールをAdminに変更しました。");
   });
 
-  it("一覧取得に失敗した場合に再試行でき、権限剥奪後は一覧を隠す", async () => {
+  it("再読み込みで一覧取得を再試行でき、権限剥奪も反映して一覧を隠す", async () => {
     listFails = true;
     renderPage();
     await screen.findByRole("alert");
     fireEvent.click(screen.getByRole("button", { name: "エラーを閉じる" }));
     expect(screen.queryByRole("alert")).toBeNull();
     listFails = false;
-    fireEvent.click(screen.getByRole("button", { name: "利用者一覧を再読み込み" }));
+    fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
     await screen.findByRole("combobox", { name: "対象者のロール" });
     currentRole = "None";
-    fireEvent.click(screen.getByRole("button", { name: "権限を再確認" }));
-    await screen.findByText("管理者ページを閲覧する権限がありません。");
+    fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
+    await screen.findByText("このページを閲覧する権限がありません。");
     expect(screen.queryByRole("table")).toBeNull();
   });
 });
