@@ -10,7 +10,7 @@ type RealtimeOptions = {
   scope: ResourceScope;
   queryKey: QueryKey;
   checkRevision: (signal: AbortSignal) => Promise<number>;
-  enabled: boolean;
+  enabled?: boolean;
   onCheck?: () => void;
 };
 
@@ -18,7 +18,7 @@ export const useRealtime = (options: RealtimeOptions) => {
   const client = useQueryClient();
   const [attempt, setAttempt] = useState(0);
 
-  const { enabled, scope, checkRevision } = options;
+  const { enabled = true, scope, checkRevision } = options;
 
   const key = JSON.stringify(options.queryKey);
   const generation = JSON.stringify([enabled, scope, key, attempt]);
