@@ -7,7 +7,7 @@ import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
 import { handoffQueries } from "../../../entities/orders";
 import { currentBusinessDate } from "../../../shared/lib";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { handoffOrdersFixture } from "../testing";
 import { useHandoff } from "./use-handoff";
 
@@ -111,7 +111,7 @@ describe("SPEC-HAND-001 当日の注文一覧", () => {
     hook.unmount();
   });
 
-  it("AuthGuardがNoneを拒否し、一覧取得も通知接続も始めない", async () => {
+  it("PermissionGuardがNoneを拒否し、一覧取得も通知接続も始めない", async () => {
     const fetch = vi.fn(async () =>
       Response.json({
         staff: { id: "staff-1", role: "None", name: "担当者", email: "staff@gm.ibaraki-ct.ac.jp" },
@@ -121,8 +121,10 @@ describe("SPEC-HAND-001 当日の注文一覧", () => {
     vi.stubGlobal("WebSocket", TestWebSocket);
     render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <AuthGuard permission="Staff">
-          <Handoff />
+        <AuthGuard>
+          <PermissionGuard permission="Staff">
+            <Handoff />
+          </PermissionGuard>
         </AuthGuard>
       </QueryClientProvider>,
     );

@@ -1,4 +1,5 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
@@ -27,6 +28,16 @@ afterEach(() => {
 const LoginPromptAuthGuard = ({ children }: { children: ReactNode }) => (
   <AuthGuard unauthenticated="login-prompt">{children}</AuthGuard>
 );
+
+const SwitchableAuthGuard = ({ children }: { children: ReactNode }) => {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      <button onClick={() => setShowLogin(true)}>ログイン案内へ切り替える</button>
+      <AuthGuard unauthenticated={showLogin ? "login-prompt" : "redirect"}>{children}</AuthGuard>
+    </>
+  );
+};
 
 describe("SPEC-SYS-006 認証エラーの判別と回復", () => {
   it.each([AuthGuard, LoginPromptAuthGuard])("%sは認証取得の失敗では移動せず、再試行で回復する", async (Guard) => {
@@ -66,5 +77,18 @@ describe("SPEC-SYS-006 認証エラーの判別と回復", () => {
 
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("業務画面のエラー"));
     expect(screen.queryByText("ログイン状態を確認できません")).toBeNull();
+  });
+
+  it("別の購読元で認証情報が更新されても、捕捉済みのエラーを再試行できる", async () => {
+    failed = true;
+    const { client } = openGuard(SwitchableAuthGuard);
+    await screen.findByRole("button", { name: "再読み込み" });
+
+    failed = false;
+    await act(async () => client.fetchQuery(staffQueries.current()));
+    fireEvent.click(screen.getByRole("button", { name: "ログイン案内へ切り替える" }));
+    fireEvent.click(await screen.findByRole("button", { name: "再読み込み" }));
+    await screen.findByText("業務データ");
+    expect(screen.queryByText("業務画面のエラー")).toBeNull();
   });
 });

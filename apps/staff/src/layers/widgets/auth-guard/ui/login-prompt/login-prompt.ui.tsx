@@ -7,7 +7,7 @@ type LoginPromptUIProps = {
 };
 
 export const LoginPromptUI = ({ busy, loginFailed, onLogin }: LoginPromptUIProps) => (
-  <Container py="xl" size="sm">
+  <Container py="xl" size="md">
     <Stack>
       {loginFailed && (
         <Alert color="yellow" role="alert" title="ログインできませんでした" variant="light">

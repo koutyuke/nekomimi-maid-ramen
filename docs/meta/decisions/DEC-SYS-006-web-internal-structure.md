@@ -108,13 +108,13 @@ fixtureは`{層}/{スライス}/testing/index.ts`を入口とし、Storybookと�
 | Presenter | `{部品}.ui.tsx` | `{部品}UI` | propsの表示、見た目、表示に閉じた状態                   |
 | Container | `{部品}.tsx`    | `{部品}`   | データ取得、副作用、Presenterへ渡す値とハンドラーの用意 |
 
-PresenterはAPI、保存領域、業務用の共有状態へ接続しない。開閉、入力途中の値、表示フィルターは`useState`で持ってよい。DOMのフォーカス移動など表示に閉じた副作用、純粋関数による業務上の導出も許す。Routerの`Link`とAPI成功後の`navigate`はContainer側へ置く。独立したPresenterは`backLink`などの要素を受け取り、単体検証では通常のリンクを表示する。テーマや局所的なUIのContextは表示環境として許可する。
+PresenterはAPI、保存領域、業務用の共有状態へ接続しない。開閉、入力途中の値、表示フィルターは`useState`で持ってよい。DOMのフォーカス移動など表示に閉じた副作用、純粋関数による業務上の導出も許す。Routerの`Link`・`useLocation`・`useMatchRoute`はリンクと現在位置の表示に使える。リンクや現在のパスを渡すためだけのContainerは作らない。API成功後や認証結果による遷移、業務データの取得条件を決めるための経路データはContainer・業務用フック・認証ガードが扱う。テーマや局所的なUIのContextとRouterの表示機能は表示環境として許可する。
 
 Presenterは同じスライスまたは下位の層の表示部品を直接使える。`features`の公開部品でも、`CookingStateControlUI`のように通信や共有状態へ接続しなければ直接使ってよい。Containerを組み込む場合は、親Containerが`slots`または`children`として要素を渡す。操作は通常のイベントpropsを基本とし、意味のある操作群は`actions`へまとめてよい。主内容は`children`、複数の配置先は名前付きpropsを使う。`slots`への一律の集約は要求しない。
 
 同じ対象を表すpropsは、対象ごとのオブジェクトにまとめる。たとえばロール管理の実行者は、IDとロールを別々に渡さず`currentStaff`として渡す。必要な項目だけを既存の型から選び、機能固有の制約を加える。
 
-表示と表示内の状態だけで完結する部品には、Containerを作らない。外部接続があっても、独立した表示契約が不要な小さな機能は単一部品でよい。在庫管理ページはContainerへ取得・同期・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表と数量入力は`StockTableUI`、認証とアクセス許可は上位の管理者レイアウトが担当する。スタッフ管理ページはContainerへ取得・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表とロール選択は`StaffTableUI`が担当する。通信や共有状態との接続を分離する場合、小さなContainerは直接`useQuery`や`useMutation`を呼んでよい。複数処理の協調や状態遷移がある場合にフックへ切り出し、純粋な計算は通常の関数にする。具体的な判断手順は[実装ガイド](../../../apps/staff/docs/presentational-container-pattern.md)に記載する。
+表示と表示内の状態だけで完結する部品には、Containerを作らない。外部接続があっても、独立した表示契約が不要な小さな機能は単一部品でよい。在庫管理ページはContainerへ取得・同期・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表と数量入力は`StockTableUI`、認証は共通の`AuthGuard`、アクセス許可は管理者レイアウトの`PermissionGuard`が担当する。スタッフ管理ページはContainerへ取得・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表とロール選択は`StaffTableUI`が担当する。通信や共有状態との接続を分離する場合、小さなContainerは直接`useQuery`や`useMutation`を呼んでよい。複数処理の協調や状態遷移がある場合にフックへ切り出し、純粋な計算は通常の関数にする。具体的な判断手順は[実装ガイド](../../../apps/staff/docs/presentational-container-pattern.md)に記載する。
 
 ### 部品の置き方
 
@@ -128,7 +128,9 @@ Container・Presenter・テスト・ストーリーをまとめて持つ部品�
 
 ナビゲーションの一覧とロール別の表示条件は`widgets/layout/model/navigation.ts`に置く。スタッフのトップは同じスライスの公開入口からナビゲーションを読み、アカウント欄とともに表示する。
 
-アカウントカードの表示は`entities/staff/ui`に置き、操作はコールバックで受け取る。トップページが既存の認証操作に接続し、ログアウトの処理中・失敗表示を担当する。ログアウト成功時は通信を取り消し、認証キャッシュを未ログインへ更新し、その他のキャッシュを削除してセッションを再確認する。
+アカウントカードは`entities/staff/ui`に置き、氏名・メールアドレス・ロールの表示を担当する。`widgets/layout`の`HamburgerMenu`がQueryから認証情報を読み、ログアウト操作を`HamburgerMenuUI`へ渡す。トップ本文は同じQueryキャッシュを参照し、アカウントカードとナビゲーションを表示する。ログアウトの処理中・失敗状態はContainerの`HamburgerMenu`が保持し、メニューの開閉や画面移動で失われない。ログアウト成功時は通信を取り消し、認証キャッシュを未ログインへ更新し、その他のキャッシュを削除してセッションを再確認する。
+
+`app/layout`の`AuthenticatedLayout`がHeader・本文・Footerを組み合わせ、固定ヘッダーと本文の余白を扱う。`HeaderUI`はロゴとメニューの配置、`HamburgerMenuUI`はアバターの表示とDrawerの開閉、`AccountMenuUI`はアカウント情報・ナビゲーション・ログアウトボタンの表示を担当する。認証情報の取得失敗や未ログインへの変化でメニューを閉じ、復旧後も閉じた状態を保つ。ナビゲーションのPresenterは渡されたロールに応じたリンクを表示し、Routerから現在位置を読む。
 
 ### 状態の置き場
 
@@ -168,11 +170,11 @@ export const menuQueries = {
 
 ### 経路
 
-`src/routes/`はTanStack Routerのファイル経路であり、`pages`の画面と`app/layout`の認証境界を結線する。経路ファイルへ部品の見た目とデータ取得を書かない。経路一覧(`src/routeTree.gen.ts`)は生成物であり、直接編集しない。トップは未認証時にログインを案内する認証レイアウトを通す。管理・会計・調理・受け渡しの経路はスタッフ用の認証レイアウトを通し、未認証なら`/`へ戻す。認証確認の通信失敗時はその場で再試行し、認証済み利用者のロール判定は各画面とAPIで行う。
+`src/routes/`はTanStack Routerのファイル経路であり、`pages`の画面と`app/layout`の認証境界を結線する。経路ファイルへ部品の見た目とデータ取得を書かない。経路一覧(`src/routeTree.gen.ts`)は生成物であり、直接編集しない。HeaderとFooterは認証状態によらず表示し、本文だけを共通の`AuthGuard`で囲む。Header内のメニューは`useQuery`で取得状態に応じた表示を選ぶ。本文の認証確認はSuspense、通信エラーと再試行は認証用のエラー境界が担当する。再試行を一か所に集約し、認証情報の再取得とエラー境界の解除を同じ操作で行う。トップは未認証時にログインを案内し、他の経路は未認証なら`/`へ戻す。本文側の`PermissionGuard`が各ページに必要なロールを判定する。権限不足でも共通レイアウトを残し、ページ移動とログアウトを利用できる。APIも各要求で権限を検証する。
 
 ### 試験とStorybook
 
-StorybookではPresenterの表示と操作を確認する。propsと表示内の状態を使い、実際のAPIへ接続せずに判断の分かれる表示を再現する。下位の純粋な表示部品は実物を使い、Container用のスロットは表示用の要素で置き換える。単体ストーリーはMantineなどの表示環境を用意し、注入するリンクなどのJSXは`render`で構築する。RouterやQueryを含む本番の構成は結合テストまたは結合ストーリーで確認する。
+StorybookではPresenterの表示と操作を確認する。propsと表示内の状態を使い、実際のAPIへ接続せずに判断の分かれる表示を再現する。下位の表示部品は実物を使い、Container用のスロットは表示用の要素で置き換える。共通デコレーターでMantineとメモリー履歴のRouterを用意する。初期パスは`parameters.routerPath`で指定し、リンク選択で現在位置が変わることも確認する。本番の経路・ローダー・事前読み込みは使わない。Queryなどを含む本番の接続は結合テストまたは結合ストーリーで確認する。
 
 テストはPresenterだけに限定せず、純粋関数の業務規則と、フックやContainerの権限判定、重複送信、競合、再試行も確認する。
 
@@ -182,7 +184,7 @@ Storybookのファイル名は`{部品}.stories.tsx`、Presenterのテストの�
 
 `app`から`shared`へ向かう一方向だけを許す。`app` → `pages` → `widgets` → `features` → `entities` → `shared`の順であり、下位の層は上位の層を読まない。同じ層の別スライスも参照しない。`app`と`shared`はスライスを持たない。`routes`は`pages`と共通レイアウトの公開入口を読む。
 
-上位層への参照と公開入口の迂回は`apps/staff/oxlint.config.ts`の`no-restricted-imports`、同層の別スライスへの相対参照は`staff-fsd/no-cross-slice-imports`で検査する。`staff-fsd/presenter-dependencies`は`*.ui.tsx`からQuery・Router・Jotai・`api`への直接の実行時参照を拒否する。型だけの参照は許可し、ヘルパーやbarrelを経由した間接依存はレビューと挙動テストで確認する。
+上位層への参照と公開入口の迂回は`apps/staff/oxlint.config.ts`の`no-restricted-imports`、同層の別スライスへの相対参照は`staff-fsd/no-cross-slice-imports`で検査する。Presenterの依存先を一律に制限するカスタムルールは設けず、表示と業務処理の境界はコードレビューと挙動テストで確認する。
 
 同層の参照規則は、静的なimport、再公開、文字列を指定した動的importを対象とする。
 

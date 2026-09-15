@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { InventoryManagementPage } from "./inventory-management-page";
 
 let quantity = 8;
@@ -83,8 +83,10 @@ const renderPage = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}
     >
-      <AuthGuard permission="Admin">
-        <InventoryManagementPage />
+      <AuthGuard>
+        <PermissionGuard permission="Admin">
+          <InventoryManagementPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );

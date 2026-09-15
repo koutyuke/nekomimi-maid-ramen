@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { kitchenOrdersFixture } from "../testing";
 import { KitchenPage } from "./kitchen-page";
 
@@ -46,8 +46,10 @@ it("SPEC-KIT-002 明細を更新し、アクセス拒否から再取得で復帰
   vi.stubGlobal("WebSocket", TestWebSocket);
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <AuthGuard permission="Staff">
-        <KitchenPage />
+      <AuthGuard>
+        <PermissionGuard permission="Staff">
+          <KitchenPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );

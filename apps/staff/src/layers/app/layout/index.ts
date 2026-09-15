@@ -1,1 +1,1 @@
-export { HomeAuthenticatedLayout, StaffAuthenticatedLayout, AdminAuthenticatedLayout } from "./authenticated-layout";
+export { AuthenticatedLayout, StaffPermissionLayout, AdminPermissionLayout } from "./authenticated-layout";

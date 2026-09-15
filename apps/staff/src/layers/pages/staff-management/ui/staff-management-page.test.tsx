@@ -3,7 +3,7 @@ import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { StaffManagementPage } from "./staff-management-page";
 
 let currentRole = "Admin";
@@ -71,8 +71,10 @@ const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <AuthGuard permission="Admin">
-        <StaffManagementPage />
+      <AuthGuard>
+        <PermissionGuard permission="Admin">
+          <StaffManagementPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );
