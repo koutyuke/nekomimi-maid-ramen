@@ -2,9 +2,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { render } from "../../../../../testing/render";
-import { TestWebSocket } from "../../../../../testing/websocket";
-import { menuFixture } from "../../../../entities/menu/testing";
+import { render } from "../../../../testing/render";
+import { TestWebSocket } from "../../../../testing/websocket";
+import { menuFixture } from "../../../entities/menu/testing";
+import { AuthGuard } from "../../../widgets/auth-guard";
 import { OrderEntryPage } from "./order-entry-page";
 
 let role = "Staff";
@@ -14,6 +15,7 @@ let menuRequests = 0;
 let price = 500;
 let stock = 30;
 let menuFailed = false;
+let menuDenied = false;
 let revision = 1;
 let release: (() => void) | undefined;
 
@@ -25,6 +27,7 @@ beforeEach(() => {
   price = 500;
   stock = 30;
   menuFailed = false;
+  menuDenied = false;
   revision = 1;
   release = undefined;
   vi.stubGlobal(
@@ -39,6 +42,9 @@ beforeEach(() => {
       }
       if (url.endsWith("/staff/menu")) {
         menuRequests += 1;
+        if (menuDenied) {
+          return Response.json({ message: "PRIVATE_ERROR" }, { status: 403 });
+        }
         if (menuFailed) {
           return Response.json({}, { status: 500 });
         }
@@ -71,6 +77,9 @@ beforeEach(() => {
         if (outcome === "forbidden") {
           return Response.json({ message: "PRIVATE_ERROR" }, { status: 403 });
         }
+        if (outcome === "conflict") {
+          return Response.json({ code: "order_confirmation_conflict" }, { status: 409 });
+        }
         return Response.json(
           {
             orderId: "order",
@@ -93,7 +102,9 @@ const open = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}
     >
-      <OrderEntryPage />
+      <AuthGuard permission="Staff">
+        <OrderEntryPage />
+      </AuthGuard>
     </QueryClientProvider>,
   );
 const click = (name: string) => fireEvent.click(screen.getByRole("button", { name }));
@@ -105,6 +116,28 @@ const prepare = async () => {
 };
 
 describe("SPEC-SAL-001〜005 / SPEC-INV-001〜002 注文・会計", () => {
+  it("商品取得が拒否されたら操作を隠し、再取得で復帰しても入力を保持する", async () => {
+    open();
+    await prepare();
+    menuDenied = true;
+    click("商品情報を更新");
+    await screen.findByText("商品情報へのアクセスが拒否されました。ログイン状態とスタッフ権限を確認してください。");
+    expect(screen.queryByRole("button", { name: "ラーメンを1個増やす" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "注文を確定" })).toBeNull();
+    expect(screen.queryByText("接続中")).toBeNull();
+    expect(screen.queryByText("PRIVATE_ERROR")).toBeNull();
+
+    menuDenied = false;
+    click("商品情報を更新");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(false),
+    );
+    expect(screen.getByLabelText("ラーメンの選択数").textContent).toBe("2");
+    expect(screen.getByText("お釣り：1,000円")).toBeDefined();
+    expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(false);
+    expect(requests).toEqual([]);
+  });
+
   it("確認中に商品取得が失敗したら、キャッシュが残っていても承認を止める", async () => {
     open();
     await prepare();
@@ -244,6 +277,14 @@ describe("SPEC-SAL-001〜005 / SPEC-INV-001〜002 注文・会計", () => {
     open();
     await prepare();
     click("クリア");
+    expect(screen.getByRole("status", { name: "受取金額" }).textContent).toBe("—00 円");
+    click("受取金額に0を入力");
+    expect(screen.getByRole("status", { name: "受取金額" }).textContent).toBe("000 円");
+    click("1桁削除");
+    expect(screen.getByRole("status", { name: "受取金額" }).textContent).toBe("—00 円");
+    click("受取金額に5を入力");
+    click("1桁削除");
+    expect(screen.getByRole("status", { name: "受取金額" }).textContent).toBe("—00 円");
     click("受取金額に5を入力");
     expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(true);
     click("受取金額に0を入力");
@@ -310,6 +351,24 @@ describe("SPEC-SAL-001〜005 / SPEC-INV-001〜002 注文・会計", () => {
     expect(requests[0]).not.toEqual(requests[1]);
     expect(menuRequests).toBeGreaterThan(1);
   });
+  it("保存競合では自動再送せず、内容を確認して新しい要求で確定できる", async () => {
+    outcome = "conflict";
+    open();
+    await prepare();
+    click("注文を確定");
+    fireEvent.click(await screen.findByRole("button", { name: "はい、確定する" }));
+    await screen.findByText(
+      "他の操作と競合したため注文を確定できませんでした。商品情報を確認して、もう一度確定してください。",
+    );
+    expect(requests).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "同じ注文の結果を再確認" })).toBeNull();
+    outcome = "success";
+    click("注文を確定");
+    fireEvent.click(await screen.findByRole("button", { name: "はい、確定する" }));
+    await screen.findByText("注文番号：42");
+    expect(requests).toHaveLength(2);
+    expect(requests[0]).not.toEqual(requests[1]);
+  });
   it("送信中もダイアログを閉じず、同じダイアログで注文番号へ切り替える", async () => {
     outcome = "pending";
     open();
@@ -326,38 +385,45 @@ describe("SPEC-SAL-001〜005 / SPEC-INV-001〜002 注文・会計", () => {
     expect(screen.getByRole("dialog")).toBe(dialog);
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
   });
-  it("連打を一要求にまとめ、応答喪失時は内容を固定して同じ要求を再送する", async () => {
-    outcome = "pending";
-    open();
-    await prepare();
-    click("注文を確定");
-    const confirm = await screen.findByRole("button", { name: "はい、確定する" });
-    fireEvent.click(confirm);
-    fireEvent.click(confirm);
-    await waitFor(() => expect(requests).toHaveLength(1));
-    outcome = "network";
-    release?.();
-    await screen.findByRole("button", { name: "同じ注文の結果を再確認" });
-    expect(screen.getByRole("button", { name: "ラーメンを1個増やす" }).hasAttribute("disabled")).toBe(true);
-    outcome = "forbidden";
-    fireEvent.click(screen.getByRole("button", { name: "同じ注文の結果を再確認" }));
-    await screen.findByText("ログイン状態とスタッフ権限を確認してください。");
-    expect(screen.getByRole("button", { name: "ラーメンを1個増やす" }).hasAttribute("disabled")).toBe(true);
-    outcome = "success";
-    fireEvent.click(screen.getByRole("button", { name: "同じ注文の結果を再確認" }));
-    await screen.findByText("注文番号：42");
-    expect(requests).toHaveLength(3);
-    expect(requests[0]).toEqual(requests[1]);
-    expect(requests[0]).toEqual(requests[2]);
-    expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(true);
-    click("注文を確定");
-    expect(requests).toHaveLength(3);
-    fireEvent.click(screen.getByRole("button", { name: "番号を控えて次の注文" }));
-    expect(screen.getByLabelText("ラーメンの選択数").textContent).toBe("0");
-    expect(screen.getByRole("status", { name: "受取金額" }).textContent).toBe("—00 円");
-    expect(screen.getByRole("button", { name: "ラーメンを1個増やす" }).hasAttribute("disabled")).toBe(false);
-    expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(true);
-  });
+  it.each(["forbidden", "conflict"])(
+    "連打を一要求にまとめ、応答喪失後の%sでも同じ要求を再送する",
+    async (rejection) => {
+      outcome = "pending";
+      open();
+      await prepare();
+      click("注文を確定");
+      const confirm = await screen.findByRole("button", { name: "はい、確定する" });
+      fireEvent.click(confirm);
+      fireEvent.click(confirm);
+      await waitFor(() => expect(requests).toHaveLength(1));
+      outcome = "network";
+      release?.();
+      await screen.findByRole("button", { name: "同じ注文の結果を再確認" });
+      expect(screen.getByRole("button", { name: "ラーメンを1個増やす" }).hasAttribute("disabled")).toBe(true);
+      outcome = rejection;
+      fireEvent.click(screen.getByRole("button", { name: "同じ注文の結果を再確認" }));
+      await screen.findByText(
+        rejection === "forbidden"
+          ? "ログイン状態とスタッフ権限を確認してください。"
+          : "他の操作と競合したため注文を確定できませんでした。商品情報を確認して、もう一度確定してください。",
+      );
+      expect(screen.getByRole("button", { name: "ラーメンを1個増やす" }).hasAttribute("disabled")).toBe(true);
+      outcome = "success";
+      fireEvent.click(screen.getByRole("button", { name: "同じ注文の結果を再確認" }));
+      await screen.findByText("注文番号：42");
+      expect(requests).toHaveLength(3);
+      expect(requests[0]).toEqual(requests[1]);
+      expect(requests[0]).toEqual(requests[2]);
+      expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(true);
+      click("注文を確定");
+      expect(requests).toHaveLength(3);
+      fireEvent.click(screen.getByRole("button", { name: "番号を控えて次の注文" }));
+      expect(screen.getByLabelText("ラーメンの選択数").textContent).toBe("0");
+      expect(screen.getByRole("status", { name: "受取金額" }).textContent).toBe("—00 円");
+      expect(screen.getByRole("button", { name: "ラーメンを1個増やす" }).hasAttribute("disabled")).toBe(false);
+      expect(screen.getByRole("button", { name: "注文を確定" }).hasAttribute("disabled")).toBe(true);
+    },
+  );
   it("商品情報を更新した価格で再計算し、受取金額が不足すれば確定を止める", async () => {
     open();
     await prepare();
@@ -369,7 +435,7 @@ describe("SPEC-SAL-001〜005 / SPEC-INV-001〜002 注文・会計", () => {
   it("Noneには会計操作を表示しない", async () => {
     role = "None";
     open();
-    await screen.findByText("注文・会計にはスタッフ権限が必要です。");
+    await screen.findByText("このページを閲覧する権限がありません。");
     expect(screen.queryByRole("button", { name: "注文を確定" })).toBeNull();
     expect(menuRequests).toBe(0);
   });

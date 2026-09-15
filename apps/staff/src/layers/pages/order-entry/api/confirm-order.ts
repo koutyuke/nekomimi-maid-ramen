@@ -13,6 +13,13 @@ export const confirmOrder = async (request: OrderRequest) => {
     return { kind: "shortage", shortages: error.value.shortages } as const;
   }
 
+  if (error.status === 409 && error.value.code === "order_confirmation_conflict") {
+    return {
+      kind: "rejected",
+      message: "他の操作と競合したため注文を確定できませんでした。商品情報を確認して、もう一度確定してください。",
+    } as const;
+  }
+
   if (error.status === 401 || error.status === 403) {
     return { kind: "rejected", message: "ログイン状態とスタッフ権限を確認してください。" } as const;
   }

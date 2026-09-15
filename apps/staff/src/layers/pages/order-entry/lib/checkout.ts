@@ -27,3 +27,19 @@ export const stockShortages = (lines: readonly DraftLine[], items: readonly Menu
     const requested = Number(line.quantity);
     return requested > available ? [{ name: line.item.name, menuItemId: line.item.id, requested, available }] : [];
   });
+
+export const changeLineQuantity = (lines: DraftLine[], item: MenuItem, delta: -1 | 1): DraftLine[] => {
+  const line = lines.find((candidate) => candidate.item.id === item.id);
+  const quantity = Number(line?.quantity ?? 0) + delta;
+  if (!Number.isInteger(quantity) || quantity < 0 || quantity > 10 || (delta > 0 && !item.sellable)) {
+    return lines;
+  }
+  if (quantity === 0) {
+    return lines.filter((candidate) => candidate.item.id !== item.id);
+  }
+  return line
+    ? lines.map((candidate) =>
+        candidate.item.id === item.id ? { ...candidate, quantity: String(quantity) } : candidate,
+      )
+    : [...lines, { item, quantity: String(quantity) }];
+};

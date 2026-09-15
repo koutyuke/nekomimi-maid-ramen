@@ -1,28 +1,19 @@
-import { Alert, Badge, Box, Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Badge, Box, Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Minus, Plus } from "lucide-react";
 
 import { yen } from "../../lib/format-yen";
 import type { MenuItem } from "../../../../entities/menu";
-import type { DraftLine } from "../../model/checkout";
+import type { DraftLine } from "../../lib/checkout";
 
 type OrderItemsUIProps = {
-  loading: boolean;
-  failed: boolean;
   disabled: boolean;
+  canIncrease: boolean;
   items: readonly MenuItem[];
   lines: readonly DraftLine[];
-  actions: {
-    onStep: (item: MenuItem, delta: -1 | 1) => void;
-  };
+  onChangeQuantity: (item: MenuItem, delta: -1 | 1) => void;
 };
 
-export const OrderItemsUI = ({
-  items,
-  lines,
-  loading: menuLoading,
-  failed: menuFailed,
-  disabled: locked,
-  actions: { onStep },
-}: OrderItemsUIProps) => {
+export const OrderItemsUI = ({ items, lines, disabled, canIncrease, onChangeQuantity }: OrderItemsUIProps) => {
   // 商品が一覧から消えても、選択済みの行を残して数量を減らせるようにする。
   const displayedItems = [
     ...items,
@@ -32,14 +23,7 @@ export const OrderItemsUI = ({
   ];
 
   return (
-    <>
-      {menuLoading ? <Text>商品を読み込んでいます</Text> : null}
-      {menuFailed ? (
-        <Alert color="red" role="alert">
-          商品情報を取得できません。再読み込みしてから確定してください。
-        </Alert>
-      ) : null}
-      {!menuLoading && !menuFailed && items.length === 0 ? <Text>販売中の商品はありません。</Text> : null}
+    <Stack>
       {displayedItems.map((item) => {
         const line = lines.find((candidate) => candidate.item.id === item.id);
         const quantity = Number(line?.quantity ?? 0);
@@ -68,10 +52,10 @@ export const OrderItemsUI = ({
                   size="lg"
                   variant="default"
                   aria-label={`${item.name}を1個減らす`}
-                  disabled={locked || quantity === 0}
-                  onClick={() => onStep(item, -1)}
+                  disabled={disabled || quantity === 0}
+                  onClick={() => onChangeQuantity(item, -1)}
                 >
-                  −
+                  <Minus />
                 </Button>
                 <Box pos="relative">
                   <Text aria-label={`${item.name}の選択数`} aria-live="polite" fw={700} fz={28}>
@@ -94,10 +78,10 @@ export const OrderItemsUI = ({
                 <Button
                   size="lg"
                   aria-label={`${item.name}を1個増やす`}
-                  disabled={locked || menuFailed || !item.sellable || quantity >= Math.min(10, item.quantity)}
-                  onClick={() => onStep(item, 1)}
+                  disabled={disabled || !canIncrease || !item.sellable || quantity >= Math.min(10, item.quantity)}
+                  onClick={() => onChangeQuantity(item, 1)}
                 >
-                  ＋
+                  <Plus />
                 </Button>
               </Group>
               {quantity > 0 ? <Text ta="right">小計：{yen((line?.item.price ?? item.price) * quantity)}</Text> : null}
@@ -105,6 +89,6 @@ export const OrderItemsUI = ({
           </Paper>
         );
       })}
-    </>
+    </Stack>
   );
 };
