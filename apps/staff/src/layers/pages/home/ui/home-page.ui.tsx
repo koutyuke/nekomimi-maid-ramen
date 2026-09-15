@@ -6,13 +6,12 @@ import type { Staff } from "../../../entities/staff";
 
 export type HomePageUIProps = {
   staff: Staff;
-  logoutError: boolean;
-  logoutPending: boolean;
+  logoutStatus: "idle" | "pending" | "error" | "success";
   onRetry: () => void;
   onLogout: () => void;
 };
 
-export const HomePageUI = ({ staff, logoutError, logoutPending, onRetry, onLogout }: HomePageUIProps) => (
+export const HomePageUI = ({ staff, logoutStatus, onRetry, onLogout }: HomePageUIProps) => (
   <Container py="lg" size="sm">
     <Stack>
       <Title order={1}>スタッフ</Title>
@@ -20,8 +19,8 @@ export const HomePageUI = ({ staff, logoutError, logoutPending, onRetry, onLogou
         name={staff.name}
         email={staff.email}
         role={staff.role}
-        busy={logoutPending}
-        failed={logoutError}
+        busy={logoutStatus === "pending"}
+        failed={logoutStatus === "error"}
         onRetry={onRetry}
         onLogout={onLogout}
       />

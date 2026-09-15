@@ -1,16 +1,13 @@
-import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { staffQueries } from "../../../entities/staff";
-import { login } from "../api/login";
 import { logout } from "../api/logout";
 
-export const useAuth = () => {
+export const useLogout = () => {
   const queryClient = useQueryClient();
-
   const staff = useQuery(staffQueries.current());
 
-  const loginMutation = useMutation({ mutationFn: login });
-  const logoutMutation = useMutation({
+  return useMutation({
     mutationFn: logout,
     onSuccess: async () => {
       await queryClient.cancelQueries();
@@ -22,11 +19,4 @@ export const useAuth = () => {
       await staff.refetch();
     },
   });
-
-  return {
-    login: loginMutation.mutate,
-    logout: logoutMutation.mutate,
-    logoutError: logoutMutation.isError,
-    logoutPending: logoutMutation.isPending,
-  };
 };
