@@ -1,4 +1,4 @@
-import type { HandoffOrder } from "../../../entities/handoff";
+import type { Order } from "../../../entities/orders";
 
 export type HandoffStatus = "ready" | "drinkPending" | "preparing" | "completed";
 
@@ -12,7 +12,7 @@ export const handoffStatusLabels = {
 // ドリンク待ちは受け渡し担当が自分で進められるため、他の調理待ちより前に出す。
 const statusRank = { ready: 0, drinkPending: 1, preparing: 2, completed: 3 } as const;
 
-const statusOf = (order: HandoffOrder): HandoffStatus => {
+const statusOf = (order: Order): HandoffStatus => {
   if (order.handedOffAt) {
     return "completed";
   }
@@ -25,7 +25,7 @@ const statusOf = (order: HandoffOrder): HandoffStatus => {
   return "preparing";
 };
 
-export const visibleHandoffOrders = (orders: readonly HandoffOrder[], hideCompleted: boolean) =>
+export const visibleHandoffOrders = (orders: readonly Order[], hideCompleted: boolean) =>
   orders
     .filter((order) => !order.cancelledAt)
     .map((order) => ({ order, status: statusOf(order) }))

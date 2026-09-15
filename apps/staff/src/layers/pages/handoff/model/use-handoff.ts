@@ -1,88 +1,143 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { match } from "ts-pattern";
 
-import { getHandoffRevision } from "../../../entities/handoff";
-import { handoffQueries, handoffQueryScopes } from "../../../entities/handoff";
-import { kitchenQueryScopes, useCookingStateUpdate } from "../../../entities/kitchen";
-import { staffQueries } from "../../../entities/staff";
+import { getOrdersRevision, handoffQueries, handoffQueryScopes, kitchenQueryScopes } from "../../../entities/orders";
+import { useCookingStateUpdate } from "../../../features/cooking-state";
 import { useRealtime } from "../../../features/sync-data";
+import { isAccessDenied } from "../../../shared/api";
 import { currentBusinessDate } from "../../../shared/lib";
 import { completeHandoff } from "../api/complete-handoff";
-import type { HandoffOrder, HandoffOrderLine } from "../../../entities/handoff";
-import type { CookingState } from "../../../entities/kitchen";
+import type { Order, CookingState } from "../../../entities/orders";
+import type { PendingCookingLine } from "../../../features/cooking-state";
 
-export const useHandoff = () => {
+export type HandoffOrdersState =
+  | { status: "pending"; data: undefined }
+  | { status: "denied"; data: undefined }
+  | { status: "error"; data: readonly Order[] | undefined }
+  | { status: "success"; data: readonly Order[] };
+
+type HandoffState = {
+  orders: HandoffOrdersState;
+  realtimeConnected: boolean;
+  retry: () => void;
+  cooking: {
+    pendingLines: readonly PendingCookingLine[];
+    error: string | null;
+    update: (orderId: string, menuItemId: string, to: CookingState) => void;
+  };
+  handoff: {
+    pending: boolean;
+    error: string | null;
+    complete: (orderId: string) => void;
+  };
+};
+
+export const useHandoff = (): HandoffState => {
   const client = useQueryClient();
-  const staff = useQuery(staffQueries.current());
-  const hasRole = !staff.isError && !!staff.data && staff.data.role !== "None";
+
   const [businessDate, setBusinessDate] = useState(currentBusinessDate);
+
   const options = handoffQueries.list(businessDate);
   const realtime = useRealtime({
     scope: "orders",
-    checkRevision: getHandoffRevision,
+    checkRevision: getOrdersRevision,
     queryKey: options.queryKey,
-    enabled: hasRole,
     onCheck: () => setBusinessDate(currentBusinessDate()),
   });
-  const allowed = hasRole && !realtime.denied;
-  const orders = useQuery({ ...options, enabled: allowed });
+
+  const orders = useQuery({ ...options, enabled: !realtime.denied });
   const refreshOrders = async () => {
     await Promise.all([
       client.invalidateQueries({ queryKey: handoffQueryScopes.all() }),
       client.invalidateQueries({ queryKey: kitchenQueryScopes.all() }),
     ]);
   };
-  const update = useCookingStateUpdate(refreshOrders);
-  const complete = useMutation({ mutationFn: completeHandoff, retry: false, onSettled: refreshOrders });
 
-  const ready = !realtime.failed && !orders.isError && !orders.isPending && !complete.isPending;
+  const cooking = useCookingStateUpdate(refreshOrders);
+
+  const completing = useRef(false);
+  const handoff = useMutation({
+    mutationFn: completeHandoff,
+    retry: false,
+    onSettled: async () => {
+      try {
+        await refreshOrders();
+      } finally {
+        completing.current = false;
+      }
+    },
+  });
+
+  const ordersState = match(orders)
+    .returnType<HandoffOrdersState>()
+    .when(
+      () => realtime.denied || isAccessDenied(orders.error),
+      () => ({ status: "denied", data: undefined }),
+    )
+    .when(
+      () => realtime.failed,
+      () => ({ status: "error", data: orders.data }),
+    )
+    .with({ status: "error" }, ({ data }) => ({ status: "error", data }))
+    .with({ status: "pending" }, () => ({ status: "pending", data: undefined }))
+    .with({ status: "success" }, ({ data }) => ({ status: "success", data }))
+    .exhaustive();
+
+  const retry = () => {
+    const today = currentBusinessDate();
+    setBusinessDate(today);
+    realtime.retry();
+    if (today === businessDate) {
+      void orders.refetch();
+    }
+  };
+
+  const update = (orderId: string, menuItemId: string, to: CookingState) => {
+    if (ordersState.status !== "success" || completing.current) {
+      return;
+    }
+    const order = ordersState.data.find((candidate) => candidate.id === orderId);
+    const line = order?.lines.find((candidate) => candidate.menuItemId === menuItemId);
+    if (!order || order.cancelledAt || order.handedOffAt || !line || line.category !== "drink") {
+      return;
+    }
+    cooking.mutate({ order, line, to });
+  };
+
+  const complete = (orderId: string) => {
+    if (ordersState.status !== "success" || completing.current) {
+      return;
+    }
+    const order = ordersState.data.find((candidate) => candidate.id === orderId);
+    if (
+      !order ||
+      order.cancelledAt ||
+      order.handedOffAt ||
+      order.lines.length === 0 ||
+      order.cookingState !== "completed" ||
+      cooking.isPending(order.id)
+    ) {
+      return;
+    }
+    // 再描画前の連打も防ぎ、記録後の注文再取得まで操作を止める。
+    completing.current = true;
+    handoff.mutate(order);
+  };
 
   return {
-    access: staff.isPending
-      ? ("loading" as const)
-      : staff.isError
-        ? ("error" as const)
-        : allowed
-          ? ("allowed" as const)
-          : ("denied" as const),
-    orders: allowed ? (orders.data ?? []) : [],
-    loading: orders.isPending,
-    failed: orders.isError || realtime.failed,
-    connected: allowed && realtime.connected,
-    pending: complete.isPending,
-    pendingLines: update.pendingLines,
-    error: update.error ?? complete.error?.message ?? null,
-    actions: {
-      onUpdate: (order: HandoffOrder, line: HandoffOrderLine, to: CookingState) => {
-        const currentOrder = orders.data?.find((candidate) => candidate.id === order.id);
-        const currentLine = currentOrder?.lines.find((candidate) => candidate.menuItemId === line.menuItemId);
-        if (allowed && ready && currentOrder && !currentOrder.handedOffAt && currentLine?.category === "drink") {
-          update.mutate({ order: currentOrder, line: currentLine, to });
-        }
-      },
-      onComplete: (order: HandoffOrder) => {
-        const current = orders.data?.find((candidate) => candidate.id === order.id);
-        if (
-          allowed &&
-          ready &&
-          current &&
-          !update.isPending(current.id) &&
-          current.lines.length > 0 &&
-          current.cookingState === "completed" &&
-          !current.cancelledAt &&
-          !current.handedOffAt
-        ) {
-          complete.mutate(current);
-        }
-      },
-      onRetry: () => {
-        realtime.retry();
-        setBusinessDate(currentBusinessDate());
-        void staff.refetch();
-        if (allowed) {
-          void orders.refetch();
-        }
-      },
+    orders: ordersState,
+    realtimeConnected: realtime.connected,
+    retry,
+    cooking: {
+      pendingLines: cooking.pendingLines,
+      error: cooking.error,
+      update,
+    },
+    handoff: {
+      pending: handoff.isPending,
+      error: handoff.error?.message ?? null,
+      complete,
     },
   };
 };
