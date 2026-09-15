@@ -1,12 +1,13 @@
-import { Alert, Button, Checkbox, Container, Divider, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Checkbox, Container, Divider, Flex, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 
-import { ErrorAlert, ConnectingIndicator } from "../../../../shared/ui";
-import { visibleHandoffOrders } from "../../lib/handoff-status";
-import { HandoffOrderCardUI } from "../handoff-order-card/handoff-order-card.ui";
-import type { CookingState } from "../../../../entities/orders";
-import type { PendingCookingLine } from "../../../../features/cooking-state";
-import type { HandoffOrdersState } from "../../model/use-handoff";
+import { ErrorAlert, ConnectingIndicator } from "../../../shared/ui";
+import { visibleHandoffOrders } from "../lib/handoff-status";
+import { HandoffOrderCardUI } from "./handoff-order-card/handoff-order-card.ui";
+import type { CookingState } from "../../../entities/orders";
+import type { PendingCookingLine } from "../../../features/cooking-state";
+import type { HandoffOrdersState } from "../model/use-handoff";
 
 export type HandoffPageUIProps = {
   orders: HandoffOrdersState;
@@ -38,21 +39,22 @@ export const HandoffPageUI = ({
   return (
     <Container size="md" py="lg">
       <Stack>
-        <Group justify="space-between">
+        <Flex gap="xs" align="center">
           <Title order={1}>受け渡し</Title>
-          {!realtimeConnected && (orders.status === "pending" || orders.status === "success") && (
-            <ConnectingIndicator />
-          )}
-        </Group>
-
+          <Flex flex={1} align="center" justify="end">
+            {!realtimeConnected && (orders.status === "pending" || orders.status === "success") && (
+              <ConnectingIndicator />
+            )}
+          </Flex>
+          <Button variant="light" onClick={onRetry} h={44} w={44} p={0}>
+            <RefreshCw size={20} />
+          </Button>
+        </Flex>
         <Checkbox
           label="完了を非表示"
           checked={hideCompleted}
           onChange={(event) => setHideCompleted(event.currentTarget.checked)}
         />
-        <Button variant="light" onClick={onRetry}>
-          注文情報を更新
-        </Button>
         <Divider />
 
         {orders.status === "pending" && <Text component="output">注文を読み込んでいます</Text>}
