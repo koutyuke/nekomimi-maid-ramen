@@ -16,12 +16,8 @@ const meta = {
   title: "Pages/StaffManagement/StaffManagementPage",
   args: {
     currentStaff: { id: "admin", role: "Admin" },
-    members,
-    loading: false,
-    failed: false,
-    busy: false,
-    updateFailed: false,
-    updateResult: null,
+    members: { status: "success", data: members },
+    roleUpdate: { status: "idle" },
     onRetry: fn(),
     onUpdateRole: fn(),
   },
@@ -30,10 +26,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Members: Story = {};
-export const Loading: Story = { args: { members: [], loading: true } };
-export const Failed: Story = { args: { members: [], failed: true } };
-export const Updating: Story = { args: { busy: true } };
-export const UpdateFailed: Story = { args: { updateFailed: true } };
+export const Loading: Story = { args: { members: { status: "pending" } } };
+export const Failed: Story = { args: { members: { status: "error" } } };
+export const Updating: Story = { args: { roleUpdate: { status: "pending" } } };
+export const UpdateFailed: Story = { args: { roleUpdate: { status: "error" } } };
 export const Updated: Story = {
-  args: { updateResult: { name: "スタッフ", role: "Admin" } },
+  args: { roleUpdate: { status: "success", result: { name: "スタッフ", role: "Admin" } } },
 };

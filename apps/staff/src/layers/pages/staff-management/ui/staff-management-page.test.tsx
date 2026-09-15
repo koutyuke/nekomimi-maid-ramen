@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
@@ -11,6 +11,8 @@ let targetRole = "None";
 let changeFails = false;
 let listFails = false;
 let listRequests = 0;
+let sessionRequests = 0;
+let updateWait: Promise<void> | undefined;
 
 beforeEach(() => {
   currentRole = "Admin";
@@ -18,11 +20,14 @@ beforeEach(() => {
   changeFails = false;
   listFails = false;
   listRequests = 0;
+  sessionRequests = 0;
+  updateWait = undefined;
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input instanceof Request ? input.url : String(input);
       if (url.endsWith("/auth/session")) {
+        sessionRequests += 1;
         return Response.json({
           staff: { id: "test-staff", name: "担当者", email: "staff@gm.ibaraki-ct.ac.jp", role: currentRole },
         });
@@ -41,6 +46,7 @@ beforeEach(() => {
         });
       }
       if (url.endsWith("/staff/target/role")) {
+        await updateWait;
         if (changeFails) {
           return Response.json({ message: "PRIVATE_INTERNAL_ERROR" }, { status: 403 });
         }
@@ -119,8 +125,12 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     changeFails = true;
     renderPage();
     fireEvent.change(await screen.findByRole("combobox", { name: "対象者のロール" }), { target: { value: "Admin" } });
+    const previousListRequests = listRequests;
+    const previousSessionRequests = sessionRequests;
     fireEvent.click(screen.getByRole("button", { name: "対象者のロールを変更" }));
     await screen.findByRole("alert");
+    expect(listRequests).toBeGreaterThan(previousListRequests);
+    expect(sessionRequests).toBeGreaterThan(previousSessionRequests);
     expect(targetRole).toBe("None");
     fireEvent.click(screen.getByRole("button", { name: "エラーを閉じる" }));
     expect(screen.queryByRole("alert")).toBeNull();
@@ -145,5 +155,23 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
     await screen.findByText("このページを閲覧する権限がありません。");
     expect(screen.queryByRole("table")).toBeNull();
+  });
+  it("更新中は入力と再読み込みを無効にし、完了後に操作を再開できる", async () => {
+    let release: (() => void) | undefined;
+    updateWait = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    renderPage();
+    const select = await screen.findByRole("combobox", { name: "対象者のロール" });
+    fireEvent.change(select, { target: { value: "Staff" } });
+    fireEvent.click(screen.getByRole("button", { name: "対象者のロールを変更" }));
+    await waitFor(() => expect(select.hasAttribute("disabled")).toBe(true));
+    expect(screen.getByRole("button", { name: "再読み込み" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.queryByText("ロールを変更しました")).toBeNull();
+
+    await act(async () => release?.());
+    await screen.findByText("対象者のロールをStaffに変更しました。");
+    expect(screen.getByRole("combobox", { name: "対象者のロール" }).hasAttribute("disabled")).toBe(false);
+    expect(screen.getByRole("button", { name: "再読み込み" }).hasAttribute("disabled")).toBe(false);
   });
 });
