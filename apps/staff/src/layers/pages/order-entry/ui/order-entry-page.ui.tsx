@@ -109,7 +109,7 @@ export const OrderEntryPageUI = ({
     <Container size="sm" py="lg">
       <Stack>
         <Flex gap="xs" align="center">
-          <Title order={1}>注文</Title>
+          <Title order={1}>注文・会計</Title>
           <Flex flex={1} align="center" justify="end">
             {!realtimeConnected && (menu.status === "pending" || menu.status === "success") && <ConnectingIndicator />}
           </Flex>
