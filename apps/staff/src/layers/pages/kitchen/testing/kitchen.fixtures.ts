@@ -1,13 +1,8 @@
-import type { KitchenPageUIProps } from "../ui/kitchen-page/kitchen-page.ui";
+import type { Order } from "../../../entities/orders";
+import type { KitchenPageUIProps } from "../ui/kitchen-page.ui";
 
-export const kitchenPageFixture: KitchenPageUIProps = {
-  access: "allowed",
-  loading: false,
-  failed: false,
-  connected: true,
-  pendingLines: [],
-  error: null,
-  orders: (["unstarted", "cooking", "completed"] as const).map((state, index) => ({
+export const kitchenOrdersFixture: readonly Order[] = (["unstarted", "cooking", "completed"] as const).map(
+  (state, index) => ({
     id: `order-${index + 1}`,
     businessDate: "2026-10-24",
     orderNumber: index + 1,
@@ -20,6 +15,14 @@ export const kitchenPageFixture: KitchenPageUIProps = {
       { menuItemId: "gyoza", name: "餃子", quantity: 1, category: "side", cookingState: state },
       { menuItemId: "tea", name: "烏龍茶", quantity: 1, category: "drink", cookingState: state },
     ],
-  })),
-  actions: { onRetry: () => {}, onUpdate: () => {} },
+  }),
+);
+
+export const kitchenPageFixture: KitchenPageUIProps = {
+  orders: { status: "success", data: kitchenOrdersFixture },
+  realtimeConnected: true,
+  pendingLines: [],
+  updateError: null,
+  onRetry: () => {},
+  onUpdate: () => {},
 };

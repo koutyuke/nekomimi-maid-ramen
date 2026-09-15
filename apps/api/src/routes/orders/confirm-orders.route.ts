@@ -7,6 +7,7 @@ import { staffAccessPlugin } from "../../plugins/staff-access";
 import { AuthenticationRequiredResponse, ForbiddenResponse } from "../auth/auth.response";
 import {
   ConfirmedOrderResponse,
+  OrderConfirmationConflictResponse,
   OutOfStockResponse,
   presentConfirmedOrder,
   presentOutOfStock,
@@ -35,6 +36,9 @@ export const confirmOrderRoute = (run: EffectRunner<OrderRouteRequirements>, ori
               Effect.map((order) => ({ status: 201, body: presentConfirmedOrder(order) }) as const),
               Effect.catchTag("OutOfStock", (error) =>
                 Effect.succeed({ status: 409, body: presentOutOfStock(error.shortages) } as const),
+              ),
+              Effect.catchTag("OrderConfirmationConflict", () =>
+                Effect.succeed({ status: 409, body: { code: "order_confirmation_conflict" } } as const),
               ),
               Effect.catchTag("UnknownMenuItem", (error) =>
                 Effect.succeed({ status: 422, body: presentUnknownMenuItem(error.menuItemIds) } as const),
@@ -77,7 +81,7 @@ export const confirmOrderRoute = (run: EffectRunner<OrderRouteRequirements>, ori
           401: Schema.standardSchemaV1(AuthenticationRequiredResponse),
           403: Schema.standardSchemaV1(ForbiddenResponse),
           201: Schema.standardSchemaV1(ConfirmedOrderResponse),
-          409: Schema.standardSchemaV1(OutOfStockResponse),
+          409: Schema.standardSchemaV1(Schema.Union(OutOfStockResponse, OrderConfirmationConflictResponse)),
           422: Schema.standardSchemaV1(RejectedOrderResponse),
         },
       },

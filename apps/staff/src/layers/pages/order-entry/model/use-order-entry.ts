@@ -1,45 +1,60 @@
 import { useQuery } from "@tanstack/react-query";
+import { match } from "ts-pattern";
 
-import { getMenuRevision } from "../../../entities/menu";
-import { menuQueries } from "../../../entities/menu";
-import { staffQueries } from "../../../entities/staff";
+import { getMenuRevision, menuQueries } from "../../../entities/menu";
 import { useRealtime } from "../../../features/sync-data";
+import { isAccessDenied } from "../../../shared/api";
+import type { MenuItem } from "../../../entities/menu";
 
-export const useOrderEntry = () => {
-  const staff = useQuery(staffQueries.current());
+export type MenuState =
+  | { status: "pending"; data: undefined }
+  | { status: "denied"; data: undefined }
+  | { status: "error"; data: readonly MenuItem[] | undefined }
+  | { status: "success"; data: readonly MenuItem[] };
 
-  const hasRole = !staff.isError && !!staff.data && staff.data.role !== "None";
+type OrderEntryState = {
+  menu: MenuState;
+  realtimeConnected: boolean;
+  retry: () => void;
+};
 
+export const useOrderEntry = (): OrderEntryState => {
   const options = menuQueries.list();
 
   const realtime = useRealtime({
     scope: "menu",
     checkRevision: getMenuRevision,
     queryKey: options.queryKey,
-    enabled: hasRole,
   });
 
-  const allowed = hasRole && !realtime.denied;
-  const menu = useQuery({ ...options, enabled: allowed });
+  const menu = useQuery({
+    ...options,
+    enabled: !realtime.denied,
+  });
 
-  const onRetry = () => {
+  const retry = () => {
     realtime.retry();
-    void staff.refetch();
     void menu.refetch();
   };
 
+  const menuState = match(menu)
+    .returnType<MenuState>()
+    .when(
+      () => realtime.denied || isAccessDenied(menu.error),
+      () => ({ status: "denied", data: undefined }),
+    )
+    .when(
+      () => realtime.failed,
+      () => ({ status: "error", data: menu.data }),
+    )
+    .with({ status: "error" }, ({ data }) => ({ status: "error", data }))
+    .with({ status: "pending" }, () => ({ status: "pending", data: undefined }))
+    .with({ status: "success" }, ({ data }) => ({ status: "success", data }))
+    .exhaustive();
+
   return {
-    access: staff.isPending
-      ? ("loading" as const)
-      : staff.isError
-        ? ("error" as const)
-        : allowed
-          ? ("allowed" as const)
-          : ("denied" as const),
-    items: menu.data ?? [],
-    menuLoading: menu.isPending,
-    menuFailed: menu.isError || realtime.failed,
-    connected: realtime.connected,
-    onRetry,
+    menu: menuState,
+    realtimeConnected: realtime.connected,
+    retry,
   };
 };

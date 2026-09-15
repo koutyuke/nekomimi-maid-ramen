@@ -1,26 +1,73 @@
-import { Anchor, Container, Paper, Stack, Text, Title } from "@mantine/core";
-import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Alert, Button, Container, Group, Stack, Text, Title } from "@mantine/core";
+import { RefreshCw } from "lucide-react";
+
+import { ErrorAlert, LoadingNotice } from "../../../shared/ui";
+import { StockTableUI } from "./stock-table/stock-table.ui";
+import type { InventoryState, StockUpdateState } from "../model/use-inventory-management";
 
 export type InventoryManagementPageUIProps = {
-  slots: { stockManagement: ReactNode };
+  inventory: InventoryState;
+  stockUpdate: StockUpdateState;
+  onRetry: () => void;
+  onUpdate: (menuItemId: string, quantity: number) => void;
 };
 
-export const InventoryManagementPageUI = ({ slots }: InventoryManagementPageUIProps) => (
-  <Container py="xl" size="lg">
-    <Stack gap="xl">
-      <Stack gap={4}>
-        <Anchor c="dimmed" component={Link} size="sm" to="/" w="fit-content">
-          ← スタッフページへ戻る
-        </Anchor>
+export const InventoryManagementPageUI = ({
+  inventory,
+  stockUpdate,
+  onRetry,
+  onUpdate,
+}: InventoryManagementPageUIProps) => (
+  <Container py="lg" size="lg">
+    <Stack>
+      <Group align="flex-end" gap="sm" justify="space-between">
         <Title order={1}>在庫管理</Title>
+        <Button
+          aria-label="再読み込み"
+          disabled={stockUpdate.status === "pending"}
+          onClick={onRetry}
+          variant="light"
+          h={44}
+          w={44}
+          p={0}
+        >
+          <RefreshCw size={20} />
+        </Button>
+      </Group>
+      <Stack gap="md">
         <Text c="dimmed" size="sm">
           商品ごとの現在在庫数を登録・修正します。
+          <br />
+          実在庫を数え直した現在の数量を入力してください。
         </Text>
+
+        {inventory.status === "denied" && (
+          <Alert color="yellow" role="alert">
+            在庫情報へのアクセスが拒否されました。ログイン状態とスタッフ権限を確認してください。
+          </Alert>
+        )}
+        {inventory.status === "error" && (
+          <ErrorAlert title="在庫を取得できません">権限と通信状況を確認して再試行してください。</ErrorAlert>
+        )}
+        {inventory.status !== "denied" && stockUpdate.status === "error" && (
+          <ErrorAlert title="在庫を更新できませんでした">権限と通信状況を確認し、もう一度お試しください。</ErrorAlert>
+        )}
+        {inventory.status !== "denied" && stockUpdate.status === "success" && (
+          <Alert color="green" component="output" title="在庫を更新しました">
+            {stockUpdate.result.name}の在庫を{stockUpdate.result.previousQuantity}個から{stockUpdate.result.quantity}
+            個へ更新しました。
+          </Alert>
+        )}
+        {inventory.status === "pending" && <LoadingNotice>在庫を読み込んでいます</LoadingNotice>}
+        {inventory.status === "success" && (
+          <StockTableUI
+            items={inventory.data}
+            busy={stockUpdate.status === "pending"}
+            updatingMenuItemId={stockUpdate.status === "pending" ? stockUpdate.menuItemId : null}
+            onUpdate={onUpdate}
+          />
+        )}
       </Stack>
-      <Paper component="section" p="lg" radius="md" withBorder>
-        {slots.stockManagement}
-      </Paper>
     </Stack>
   </Container>
 );

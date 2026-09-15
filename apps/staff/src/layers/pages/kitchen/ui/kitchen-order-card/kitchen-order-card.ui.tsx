@@ -1,16 +1,16 @@
 import { Badge, Group, Paper, Stack, Text, Title } from "@mantine/core";
 
+import { CookingStateControlUI } from "../../../../features/cooking-state";
 import { kitchenStatusLabels } from "../../lib/kitchen-status";
-import { KitchenOrderLineUI } from "../kitchen-order-line/kitchen-order-line.ui";
-import type { CookingState, KitchenOrder, KitchenOrderLine } from "../../../../entities/kitchen";
+import type { CookingState, Order, OrderLine } from "../../../../entities/orders";
 
 type KitchenOrderCardUIProps = {
-  order: KitchenOrder;
-  lines: readonly KitchenOrderLine[];
+  order: Order;
+  lines: readonly OrderLine[];
   status: CookingState;
   disabled: boolean;
   pendingItemIds: readonly string[];
-  actions: { onUpdate: (line: KitchenOrderLine, to: CookingState) => void };
+  onUpdate: (menuItemId: string, to: CookingState) => void;
 };
 
 export const KitchenOrderCardUI = ({
@@ -19,7 +19,7 @@ export const KitchenOrderCardUI = ({
   status,
   disabled,
   pendingItemIds,
-  actions: { onUpdate },
+  onUpdate,
 }: KitchenOrderCardUIProps) => (
   <Paper component="article" aria-label={`注文${order.orderNumber}`} withBorder p="md" radius="md">
     <Stack>
@@ -31,13 +31,13 @@ export const KitchenOrderCardUI = ({
       </Group>
       <Stack gap="xs">
         {lines.map((line) => (
-          <KitchenOrderLineUI
+          <CookingStateControlUI
             key={line.menuItemId}
             line={line}
             orderNumber={order.orderNumber}
             editable={!order.handedOffAt}
             disabled={disabled || pendingItemIds.includes(line.menuItemId)}
-            actions={{ onUpdate: (to) => onUpdate(line, to) }}
+            onUpdate={(to) => onUpdate(line.menuItemId, to)}
           />
         ))}
       </Stack>

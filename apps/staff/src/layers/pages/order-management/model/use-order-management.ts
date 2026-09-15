@@ -1,10 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
+import { match } from "ts-pattern";
 
-import { handoffQueryScopes } from "../../../entities/handoff";
-import { kitchenQueryScopes } from "../../../entities/kitchen";
 import { menuQueryScopes } from "../../../entities/menu";
-import { getOrdersRevision, orderCancellationReason, ordersQueries, ordersQueryScopes } from "../../../entities/orders";
+import {
+  handoffQueryScopes,
+  kitchenQueryScopes,
+  getOrdersRevision,
+  orderCancellationReason,
+  ordersQueries,
+  ordersQueryScopes,
+} from "../../../entities/orders";
 import { staffQueries } from "../../../entities/staff";
 import { useRealtime } from "../../../features/sync-data";
 import { isAccessDenied } from "../../../shared/api";
@@ -12,26 +18,42 @@ import { currentBusinessDate } from "../../../shared/lib";
 import { cancelOrder } from "../api/cancel-order";
 import type { OrderSummary } from "../../../entities/orders";
 
-export const useOrderManagement = () => {
+export type OrderManagementOrdersState =
+  | { status: "pending"; data: undefined }
+  | { status: "denied"; data: undefined }
+  | { status: "error"; data: readonly OrderSummary[] | undefined }
+  | { status: "success"; data: readonly OrderSummary[] };
+
+type OrderManagementState = {
+  businessDate: string;
+  changeBusinessDate: (value: string) => void;
+  orders: OrderManagementOrdersState;
+  realtimeConnected: boolean;
+  retry: () => void;
+  cancellation: {
+    pending: boolean;
+    error: string | null;
+    cancelledOrderNumber: number | null;
+    cancel: (orderId: string) => void;
+  };
+};
+
+export const useOrderManagement = (): OrderManagementState => {
   const client = useQueryClient();
-  const staff = useQuery(staffQueries.current());
 
   const [businessDate, setBusinessDate] = useState(currentBusinessDate);
 
   const options = ordersQueries.list(businessDate);
-  const hasRole = !staff.isError && !!staff.data && staff.data.role !== "None";
   const realtime = useRealtime({
     scope: "orders",
     queryKey: options.queryKey,
     checkRevision: getOrdersRevision,
-    enabled: hasRole,
   });
 
-  const allowed = hasRole && !realtime.denied;
-  const orders = useQuery({ ...options, enabled: allowed });
+  const orders = useQuery({ ...options, enabled: !realtime.denied });
 
   const submitting = useRef(false);
-  const cancel = useMutation({
+  const cancellation = useMutation({
     mutationFn: cancelOrder,
     retry: false,
     onError: (error) => {
@@ -51,53 +73,57 @@ export const useOrderManagement = () => {
       }
     },
   });
-  const failed = orders.isError || realtime.failed || realtime.denied;
+  const ordersState = match(orders)
+    .returnType<OrderManagementOrdersState>()
+    .when(
+      () => realtime.denied || isAccessDenied(orders.error),
+      () => ({ status: "denied", data: undefined }),
+    )
+    .when(
+      () => realtime.failed,
+      () => ({ status: "error", data: orders.data }),
+    )
+    .with({ status: "error" }, ({ data }) => ({ status: "error", data }))
+    .with({ status: "pending" }, () => ({ status: "pending", data: undefined }))
+    .with({ status: "success" }, ({ data }) => ({ status: "success", data }))
+    .exhaustive();
+
+  const changeBusinessDate = (value: string) => {
+    if (value && !submitting.current) {
+      setBusinessDate(value);
+      cancellation.reset();
+    }
+  };
+
+  const cancel = (orderId: string) => {
+    if (ordersState.status !== "success" || submitting.current) {
+      return;
+    }
+    const order = ordersState.data.find((item) => item.id === orderId);
+    if (!order || orderCancellationReason(order)) {
+      return;
+    }
+    // 再描画前の連打も防ぎ、取消後の再取得が終わるまで日付変更と取消を止める。
+    submitting.current = true;
+    cancellation.mutate(order);
+  };
+
+  const retry = () => {
+    realtime.retry();
+    void orders.refetch();
+  };
 
   return {
-    access: staff.isPending
-      ? ("loading" as const)
-      : staff.isError
-        ? ("error" as const)
-        : allowed
-          ? ("allowed" as const)
-          : ("denied" as const),
     businessDate,
-    connected: realtime.connected,
-    orders: allowed ? (orders.data ?? []) : [],
-    loading: orders.isPending,
-    failed,
-    pending: cancel.isPending,
-    error: cancel.error?.message ?? null,
-    cancelledOrderNumber: cancel.isSuccess ? cancel.variables.orderNumber : null,
-    actions: {
-      onBusinessDateChange: (value: string) => {
-        if (value && !submitting.current) {
-          setBusinessDate(value);
-          cancel.reset();
-        }
-      },
-      onCancel: (order: OrderSummary) => {
-        const current = orders.data?.find((item) => item.id === order.id);
-        if (
-          !allowed ||
-          failed ||
-          orders.isPending ||
-          submitting.current ||
-          !current ||
-          orderCancellationReason(current)
-        ) {
-          return;
-        }
-        submitting.current = true;
-        cancel.mutate(current);
-      },
-      onRetry: () => {
-        realtime.retry();
-        if (allowed) {
-          void orders.refetch();
-        }
-        void client.invalidateQueries({ queryKey: staffQueries.current().queryKey });
-      },
+    changeBusinessDate,
+    orders: ordersState,
+    realtimeConnected: realtime.connected,
+    retry,
+    cancellation: {
+      pending: cancellation.isPending,
+      error: cancellation.error?.message ?? null,
+      cancelledOrderNumber: cancellation.isSuccess ? cancellation.variables.orderNumber : null,
+      cancel,
     },
   };
 };

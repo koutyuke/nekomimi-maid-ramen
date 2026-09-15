@@ -4,11 +4,10 @@ import { Effect, Layer, Option, Schema } from "effect";
 import { PersistenceError } from "../../../../core/domain/persistence-error";
 import { Database } from "../../../../core/infra/drizzle";
 import { OrderRepository } from "../../application/ports/outbound/order.repository";
-import { OperationalOrder, Order, OrderLine } from "../../domain/order";
+import { OperationalOrder, Order } from "../../domain/order";
 import type { ConfirmationRequestId } from "../../domain/order";
 
 const decodeOrder = Schema.decodeUnknown(Order);
-const decodeOrderLine = Schema.decodeUnknown(OrderLine);
 
 type OrderRow = typeof Database.tables.orders.$inferSelect;
 type OrderLineRow = typeof Database.tables.orderLines.$inferSelect;
@@ -67,25 +66,6 @@ export const OrderRepositoryLive = Layer.effect(
                     Effect.asSome,
                   ),
               }),
-            ),
-          ),
-      findLine: (id, menuItemId) =>
-        database
-          .run("注文明細の読み出し", (db) =>
-            db
-              .select()
-              .from(linesTable)
-              .where(and(eq(linesTable.orderId, id), eq(linesTable.menuItemId, menuItemId)))
-              .get(),
-          )
-          .pipe(
-            Effect.flatMap((row) =>
-              row === undefined
-                ? Effect.succeedNone
-                : decodeOrderLine(row).pipe(
-                    Effect.mapError((cause) => new PersistenceError({ operation: "注文明細の復元", cause })),
-                    Effect.asSome,
-                  ),
             ),
           ),
       findByRequestId: (requestId: ConfirmationRequestId) =>

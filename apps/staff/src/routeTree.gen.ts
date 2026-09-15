@@ -10,120 +10,126 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AuthenticatedHandoffRouteImport } from './routes/_authenticated.handoff'
-import { Route as AuthenticatedInventoryManagementRouteImport } from './routes/_authenticated.inventory-management'
-import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated.kitchen'
-import { Route as AuthenticatedOrderManagementRouteImport } from './routes/_authenticated.order-management'
-import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated.sales'
-import { Route as AuthenticatedStaffManagementRouteImport } from './routes/_authenticated.staff-management'
+import { Route as AdminRouteImport } from './routes/_admin'
+import { Route as StaffRouteImport } from './routes/_staff'
+import { Route as AdminInventoryManagementRouteImport } from './routes/_admin.inventory-management'
+import { Route as AdminStaffManagementRouteImport } from './routes/_admin.staff-management'
+import { Route as StaffHandoffRouteImport } from './routes/_staff.handoff'
+import { Route as StaffKitchenRouteImport } from './routes/_staff.kitchen'
+import { Route as StaffOrderManagementRouteImport } from './routes/_staff.order-management'
+import { Route as StaffSalesRouteImport } from './routes/_staff.sales'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedHandoffRoute = AuthenticatedHandoffRouteImport.update({
-  id: '/handoff',
-  path: '/handoff',
-  getParentRoute: () => AuthenticatedRoute,
+const StaffRoute = StaffRouteImport.update({
+  id: '/_staff',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedInventoryManagementRoute =
-  AuthenticatedInventoryManagementRouteImport.update({
+const AdminInventoryManagementRoute =
+  AdminInventoryManagementRouteImport.update({
     id: '/inventory-management',
     path: '/inventory-management',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AdminRoute,
   } as any)
-const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
+const AdminStaffManagementRoute = AdminStaffManagementRouteImport.update({
+  id: '/staff-management',
+  path: '/staff-management',
+  getParentRoute: () => AdminRoute,
+} as any)
+const StaffHandoffRoute = StaffHandoffRouteImport.update({
+  id: '/handoff',
+  path: '/handoff',
+  getParentRoute: () => StaffRoute,
+} as any)
+const StaffKitchenRoute = StaffKitchenRouteImport.update({
   id: '/kitchen',
   path: '/kitchen',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => StaffRoute,
 } as any)
-const AuthenticatedOrderManagementRoute =
-  AuthenticatedOrderManagementRouteImport.update({
-    id: '/order-management',
-    path: '/order-management',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
+const StaffOrderManagementRoute = StaffOrderManagementRouteImport.update({
+  id: '/order-management',
+  path: '/order-management',
+  getParentRoute: () => StaffRoute,
+} as any)
+const StaffSalesRoute = StaffSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => StaffRoute,
 } as any)
-const AuthenticatedStaffManagementRoute =
-  AuthenticatedStaffManagementRouteImport.update({
-    id: '/staff-management',
-    path: '/staff-management',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/handoff': typeof AuthenticatedHandoffRoute
-  '/inventory-management': typeof AuthenticatedInventoryManagementRoute
-  '/kitchen': typeof AuthenticatedKitchenRoute
-  '/order-management': typeof AuthenticatedOrderManagementRoute
-  '/sales': typeof AuthenticatedSalesRoute
-  '/staff-management': typeof AuthenticatedStaffManagementRoute
+  '/inventory-management': typeof AdminInventoryManagementRoute
+  '/staff-management': typeof AdminStaffManagementRoute
+  '/handoff': typeof StaffHandoffRoute
+  '/kitchen': typeof StaffKitchenRoute
+  '/order-management': typeof StaffOrderManagementRoute
+  '/sales': typeof StaffSalesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/handoff': typeof AuthenticatedHandoffRoute
-  '/inventory-management': typeof AuthenticatedInventoryManagementRoute
-  '/kitchen': typeof AuthenticatedKitchenRoute
-  '/order-management': typeof AuthenticatedOrderManagementRoute
-  '/sales': typeof AuthenticatedSalesRoute
-  '/staff-management': typeof AuthenticatedStaffManagementRoute
+  '/inventory-management': typeof AdminInventoryManagementRoute
+  '/staff-management': typeof AdminStaffManagementRoute
+  '/handoff': typeof StaffHandoffRoute
+  '/kitchen': typeof StaffKitchenRoute
+  '/order-management': typeof StaffOrderManagementRoute
+  '/sales': typeof StaffSalesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/_authenticated/handoff': typeof AuthenticatedHandoffRoute
-  '/_authenticated/inventory-management': typeof AuthenticatedInventoryManagementRoute
-  '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
-  '/_authenticated/order-management': typeof AuthenticatedOrderManagementRoute
-  '/_authenticated/sales': typeof AuthenticatedSalesRoute
-  '/_authenticated/staff-management': typeof AuthenticatedStaffManagementRoute
+  '/_admin': typeof AdminRouteWithChildren
+  '/_staff': typeof StaffRouteWithChildren
+  '/_admin/inventory-management': typeof AdminInventoryManagementRoute
+  '/_admin/staff-management': typeof AdminStaffManagementRoute
+  '/_staff/handoff': typeof StaffHandoffRoute
+  '/_staff/kitchen': typeof StaffKitchenRoute
+  '/_staff/order-management': typeof StaffOrderManagementRoute
+  '/_staff/sales': typeof StaffSalesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/handoff'
     | '/inventory-management'
+    | '/staff-management'
+    | '/handoff'
     | '/kitchen'
     | '/order-management'
     | '/sales'
-    | '/staff-management'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/handoff'
     | '/inventory-management'
+    | '/staff-management'
+    | '/handoff'
     | '/kitchen'
     | '/order-management'
     | '/sales'
-    | '/staff-management'
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
-    | '/_authenticated/handoff'
-    | '/_authenticated/inventory-management'
-    | '/_authenticated/kitchen'
-    | '/_authenticated/order-management'
-    | '/_authenticated/sales'
-    | '/_authenticated/staff-management'
+    | '/_admin'
+    | '/_staff'
+    | '/_admin/inventory-management'
+    | '/_admin/staff-management'
+    | '/_staff/handoff'
+    | '/_staff/kitchen'
+    | '/_staff/order-management'
+    | '/_staff/sales'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
+  StaffRoute: typeof StaffRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -135,83 +141,97 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
+    '/_admin': {
+      id: '/_admin'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/handoff': {
-      id: '/_authenticated/handoff'
-      path: '/handoff'
-      fullPath: '/handoff'
-      preLoaderRoute: typeof AuthenticatedHandoffRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/_staff': {
+      id: '/_staff'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/inventory-management': {
-      id: '/_authenticated/inventory-management'
+    '/_admin/inventory-management': {
+      id: '/_admin/inventory-management'
       path: '/inventory-management'
       fullPath: '/inventory-management'
-      preLoaderRoute: typeof AuthenticatedInventoryManagementRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AdminInventoryManagementRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/_authenticated/kitchen': {
-      id: '/_authenticated/kitchen'
-      path: '/kitchen'
-      fullPath: '/kitchen'
-      preLoaderRoute: typeof AuthenticatedKitchenRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/order-management': {
-      id: '/_authenticated/order-management'
-      path: '/order-management'
-      fullPath: '/order-management'
-      preLoaderRoute: typeof AuthenticatedOrderManagementRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/sales': {
-      id: '/_authenticated/sales'
-      path: '/sales'
-      fullPath: '/sales'
-      preLoaderRoute: typeof AuthenticatedSalesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/staff-management': {
-      id: '/_authenticated/staff-management'
+    '/_admin/staff-management': {
+      id: '/_admin/staff-management'
       path: '/staff-management'
       fullPath: '/staff-management'
-      preLoaderRoute: typeof AuthenticatedStaffManagementRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AdminStaffManagementRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_staff/handoff': {
+      id: '/_staff/handoff'
+      path: '/handoff'
+      fullPath: '/handoff'
+      preLoaderRoute: typeof StaffHandoffRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/kitchen': {
+      id: '/_staff/kitchen'
+      path: '/kitchen'
+      fullPath: '/kitchen'
+      preLoaderRoute: typeof StaffKitchenRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/order-management': {
+      id: '/_staff/order-management'
+      path: '/order-management'
+      fullPath: '/order-management'
+      preLoaderRoute: typeof StaffOrderManagementRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/sales': {
+      id: '/_staff/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof StaffSalesRouteImport
+      parentRoute: typeof StaffRoute
     }
   }
 }
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedHandoffRoute: typeof AuthenticatedHandoffRoute
-  AuthenticatedInventoryManagementRoute: typeof AuthenticatedInventoryManagementRoute
-  AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
-  AuthenticatedOrderManagementRoute: typeof AuthenticatedOrderManagementRoute
-  AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
-  AuthenticatedStaffManagementRoute: typeof AuthenticatedStaffManagementRoute
+interface AdminRouteChildren {
+  AdminInventoryManagementRoute: typeof AdminInventoryManagementRoute
+  AdminStaffManagementRoute: typeof AdminStaffManagementRoute
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedHandoffRoute: AuthenticatedHandoffRoute,
-  AuthenticatedInventoryManagementRoute: AuthenticatedInventoryManagementRoute,
-  AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
-  AuthenticatedOrderManagementRoute: AuthenticatedOrderManagementRoute,
-  AuthenticatedSalesRoute: AuthenticatedSalesRoute,
-  AuthenticatedStaffManagementRoute: AuthenticatedStaffManagementRoute,
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminInventoryManagementRoute: AdminInventoryManagementRoute,
+  AdminStaffManagementRoute: AdminStaffManagementRoute,
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface StaffRouteChildren {
+  StaffHandoffRoute: typeof StaffHandoffRoute
+  StaffKitchenRoute: typeof StaffKitchenRoute
+  StaffOrderManagementRoute: typeof StaffOrderManagementRoute
+  StaffSalesRoute: typeof StaffSalesRoute
+}
+
+const StaffRouteChildren: StaffRouteChildren = {
+  StaffHandoffRoute: StaffHandoffRoute,
+  StaffKitchenRoute: StaffKitchenRoute,
+  StaffOrderManagementRoute: StaffOrderManagementRoute,
+  StaffSalesRoute: StaffSalesRoute,
+}
+
+const StaffRouteWithChildren = StaffRoute._addFileChildren(StaffRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
+  StaffRoute: StaffRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

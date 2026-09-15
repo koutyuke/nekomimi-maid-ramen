@@ -136,13 +136,14 @@ export const users = sqliteTable(
     email: text("email").notNull().unique(),
     emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
     image: text("image"),
-    role: text("role", { enum: ["Admin", "Staff", "None"] })
+    role: text("role", { enum: ["Owner", "Admin", "Staff", "None"] })
       .notNull()
       .default("None"),
+    registrationSubject: text("registration_subject"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
-  (table) => [check("users_role", sql`${table.role} in ('Admin', 'Staff', 'None')`)],
+  (table) => [check("users_role", sql`${table.role} in ('Owner', 'Admin', 'Staff', 'None')`)],
 );
 
 export const sessions = sqliteTable(

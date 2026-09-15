@@ -71,6 +71,7 @@ describe("スタッフ画面内の移動", () => {
     fireEvent.click(await screen.findByRole("link", { name: "注文・会計" }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/sales"));
+    await screen.findByRole("heading", { name: "注文・会計" });
   });
 
   it("Adminはトップから各管理画面へ移動できる", async () => {
@@ -93,24 +94,27 @@ describe("スタッフ画面内の移動", () => {
     expect(screen.getByRole("link", { name: "注文管理" }).getAttribute("href")).toBe("/order-management");
   });
 
-  it("Staffが管理者ページを直接開いても管理データを取得しない", async () => {
-    const fetch = vi.fn(async (input: RequestInfo | URL) => {
-      const url = input instanceof Request ? input.url : input.toString();
-      if (url.endsWith("/auth/session")) {
-        return Response.json({
-          staff: { id: "staff", name: "担当者", email: "staff@example.com", role: "Staff" },
-        });
-      }
-      throw new Error(`Unexpected request: ${url}`);
-    });
-    vi.stubGlobal("fetch", fetch);
-    open("/inventory-management");
+  it.each(["/staff-management", "/inventory-management"])(
+    "Staffが%sを直接開いても管理データを取得しない",
+    async (path) => {
+      const fetch = vi.fn(async (input: RequestInfo | URL) => {
+        const url = input instanceof Request ? input.url : input.toString();
+        if (url.endsWith("/auth/session")) {
+          return Response.json({
+            staff: { id: "staff", name: "担当者", email: "staff@example.com", role: "Staff" },
+          });
+        }
+        throw new Error(`Unexpected request: ${url}`);
+      });
+      vi.stubGlobal("fetch", fetch);
+      open(path);
 
-    await screen.findByText("管理者ページを閲覧する権限がありません。");
-    expect(
-      fetch.mock.calls.every(([input]) =>
-        (input instanceof Request ? input.url : input.toString()).endsWith("/auth/session"),
-      ),
-    ).toBe(true);
-  });
+      await screen.findByRole("alert", { name: "権限がありません" });
+      expect(
+        fetch.mock.calls.every(([input]) =>
+          (input instanceof Request ? input.url : input.toString()).endsWith("/auth/session"),
+        ),
+      ).toBe(true);
+    },
+  );
 });

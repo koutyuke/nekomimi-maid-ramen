@@ -1,638 +1,125 @@
-# Presenter/Container Pattern
+# Presenter / Container の実装ガイド
 
-## 目的
+スタッフ画面では、独立して検証・変更する価値のある箇所にPresenterを作り、通信や状態管理を接続するContainerと分ける。通常のページは接続済みの部品を直接組み合わせてよく、すべての部品を二分しない。
 
-Presenter/Container Pattern は、UI の表示責務とアプリケーションロジック・副作用の責務を分離するための設計方針である。
-このパターンを採用する目的は以下のとおり。
+設計判断の正本は[DEC-SYS-006](../../../docs/meta/decisions/DEC-SYS-006-web-internal-structure.md)である。この文書は、部品やフックを追加・変更するときの判断手順を示す。
 
-- UI とロジックの責務を明確に分離する
-- UI を Storybook や Test で独立して検証しやすくする
-- データ取得や副作用の位置を限定し、保守性を高める
-- 依存関係を明確にし、変更影響を局所化する
-- UI を再利用しやすくする
-  本ドキュメントでは、Presenter / Container の責務、依存方向、命名規則、公開方針を定義する。
+1. 業務上の所有者を決め、FSDの層とスライスを選ぶ。
+2. 表示と操作、業務規則、外部接続の所有者を決める。通信なしで検証する必要がある表示をPresenterとして抽出する。
+3. 複数の処理を協調させる必要がある場合にフックへ切り出す。
+4. 利用者から見える挙動と依存の向きを検証する。
 
----
+## 分離する価値を先に確認する
 
-## 基本方針
+通常の`Foo`から始め、通信やセッションなしで表示状態を試す、同じ表示を別の接続先で使う、見た目と接続が異なる理由で変わる場合に`FooUI`を抽出する。APIを使うという理由だけでペアにしない。
 
-- **Presenter** は表示責務に専念する
-- **Container** はロジック・副作用・依存注入を担当する
-- Container から Presenter に値とイベントを渡して描画する
-- 外部の component を注入する場合は Composition props として `slots.*` にまとめる
-- event handler を渡す場合は `actions.on*` にまとめる
-- Presenter の中に Container を直接配置しない
-- Container を差し込みたい場合は **Composition** で注入する
-- アプリケーションロジックは原則として hooks に切り出し、Container から利用する
-- Presenter の Storybook は、外部 Container を import せず、`args` に mock / fixture を渡す
+在庫管理ページは、Containerで一覧取得・同期・在庫更新・再取得を扱い、ページPresenterで取得状態と更新結果を表示する。`StockTableUI`は一覧表と数量入力を担当し、認証とアクセス許可は上位の管理者レイアウトが担当する。スタッフ管理ページは、Containerで一覧取得・ロール変更・再取得を扱い、ページPresenterで取得状態と更新結果を表示する。`StaffTableUI`は一覧表とロール選択を担当する。調理・受け渡し・注文管理・会計のUIも、表示と操作のテストやStorybookで独立して使うため、分離を維持する。
 
----
+Containerは接続の役割、Compositionは部品を組み合わせる役割である。同じページが両方を担ってよく、`*.composition.tsx`や専用フックを必須にはしない。既存レイアウト、Provider、短い意味的なラッパーは通常の部品に直接書ける。
 
-## FSD での配置
+## FSDは配置、Presenter / Containerは責務を決める
 
-この project では Feature-Sliced Design の layer / slice / segment に合わせて配置する。
+FSDの依存方向は`app → pages → widgets → features → entities → shared`である。スライス内は相互に参照でき、スライス外は下位の層の公開入口から読む。同じ層の別スライスは参照しない。Presenter同士でもこの制約は変わらない。
 
-- `pages` / `widgets` / `features` / `entities` は slice を切り、その下の `ui` segment に component を置く
-- `app` / `shared` は slice を持たず、`styles` / `lib` / `ui` のような segment 直下に置く
-- 上位 layer から参照する公開入口は各 slice の `index.ts` に寄せる
+| 置くもの                                 | 配置と実装例                         |
+| ---------------------------------------- | ------------------------------------ |
+| 画面全体の取得・操作可否・更新後の再取得 | `pages/kitchen/model/use-kitchen.ts` |
+| 複数画面で使う調理状態の更新             | `features/cooking-state`             |
+| 注文の型・ラベル・取得処理・Query定義    | `entities/orders`                    |
+| HTTP・WebSocketの接続と通信エラーの型    | `shared/api`                         |
+| 業務に依存しないエラー・読み込み中の表示 | `shared/ui`                          |
 
-Presenter / Container Pattern を適用する layer:
+`entities/{領域}/api`や`shared/api`には通信処理がある。「下位の層は副作用禁止」という規則にはしない。Presenterから通信処理を実行しないことと、層の依存方向を守ることをそれぞれ確認する。
 
-- 適用する: `features`, `widgets`, `pages`
-- 適用しない: `app`, `entities`, `shared`
+画面だけで完結する処理は、そのページへ置く。在庫管理は`pages/inventory-management`が所有し、同期機能は下位の`features/sync-data`から使う。ファイルが長いという理由だけで`features`や`widgets`へ移さない。
 
-`entities` / `shared`:
+## PresenterとContainerの境界
 
-- 基本的に副作用を持つロジックを含まない。含ませてもいけない
-- 公開される component はすべて Presenter として扱う
-- Presenter として Storybook や test の対象にする
-- Container として扱うべき component は `features` / `widgets` / `pages` に配置する
+| 処理                                     | 担当                         | 判断基準                                                                        |
+| ---------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
+| レイアウト、文言、表示の分岐             | Presenter                    | propsと表示内の状態で描画できる                                                 |
+| ダイアログの開閉、表示フィルター         | Presenter                    | その部品を閉じたら消えてよい                                                    |
+| フォーカス移動、DOMの計測                | Presenter                    | 表示と操作に閉じた副作用である                                                  |
+| 金額計算、注文の絞り込み、取消可否の導出 | `model`または`lib`の純粋関数 | 通信やReactの状態を必要としない。Presenterからも利用できる                      |
+| API取得・更新、購読、キャッシュ操作      | Containerまたはそのフック    | 外部の状態との接続を必要とする                                                  |
+| 権限に応じた取得・操作の許可             | Containerまたはそのフック    | 表示上の無効化だけに依存しない                                                  |
+| 保存領域や共有状態への接続               | Containerまたはそのフック    | 表示部品より長い寿命を持つ                                                      |
+| 宣言的なリンクの表示                     | Presenter                    | 通常の`href`または注入された要素を表示する。Routerの`Link`はContainerで構築する |
+| API成功後の`navigate`                    | Containerまたはそのフック    | 副作用の結果に応じた遷移である                                                  |
 
-`app`:
+Reactの描画中の純粋性は、PresenterとContainerの両方で守る。入力の破壊的変更や、描画中の通信開始をしない。
 
-- UI を伴う component 実装は行わない
-- app shell、global style、provider、application-wide configuration を扱う
-- Presenter / Container として管理する必要はない
+Presenterは状態を持てるため、「同じpropsなら常に同じ表示」とは限らない。APIや業務用ストアへ接続せずに表示と操作を検証できることを基準にする。DOM操作用の`useEffect`は許すが、API、保存領域、分析送信、業務用ストアとの同期は置かない。
 
-`features` / `widgets` / `pages`:
+テーマ・ロケール・局所的なUI部品のContextは表示環境として利用できる。`useEffect`や`useContext`の名前だけで禁止しない。セッション・権限・注文のストアやRouterへの直接接続は厳密なPresenterへ入れない。
 
-- 原則として公開入口は Container にする
-- 上位 layer は公開入口から得た component を、実装が Presenter であっても Container として扱う
-- Presenter は Storybook / test / slice 内部の検証対象として扱う
-- Presenter の Storybook では、`features` / `widgets` / `pages` の公開 component を slot に入れない
-- slot が必要な Presenter の Storybook では、story-local な mock component または private fixture element を `slots.*` に渡す
+`KitchenPageUI`と`HandoffPageUI`は取得状態に応じた表示と操作の無効化を担当する。注文カードは渡された注文を表示し、操作対象の識別子をコールバックで親へ返す。
 
-例:
+ContainerはPresenterへ渡す値とハンドラーを組み立てる。小さなContainerは直接`useQuery`や`useMutation`を呼んでよい。複雑な同期や状態遷移はフックへ分け、細かなレイアウトや装飾はPresenterへ置く。
 
-```text
-src/widgets/about/
-  index.ts
-  ui/
-    about-section.tsx
-    about-section.ui.tsx
-```
+## フックと純粋関数を分ける
 
----
+フックは一つの状態管理や操作のまとまりを扱う。呼び出すReact APIの種類ごとには分割しない。
 
-## Presenter とは
+- `useCookingStateUpdate`は、調理状態の更新、同じ明細の連打防止、処理中の明細、更新エラーをまとめて扱う。再取得するキャッシュは呼び出し元から渡す。
+- `useKitchen`と`useHandoff`は、各画面の注文取得、同期、操作、再取得を結線する。認証とページへのアクセス許可は上位の`AuthGuard`が担当し、フックは注文APIのアクセス拒否を取得状態として返す。両者の違いを設定値で吸収する汎用画面フックは作らない。
+- `useRealtime`は同期状態と認可拒否をQueryへ接続する。スタッフ情報を参照するため、業務に依存しない`shared`には置かない。
+- Reactの状態やライフサイクルを使わない計算は通常の関数にする。`useMemo`や`useCallback`の追加自体をフック抽出の目的にしない。
 
-Presenter は、**表示責務に限定された UI コンポーネント**である。
-アプリケーションロジックや外部副作用を持たず、受け取った props をもとに表示を行う。
+`useQuery(options)`を呼ぶだけなら、専用のQueryフックで包まず、所有するContainerやフックからQuery定義を直接使う。
 
-### やってよいこと
+## 入力値は必要な寿命に合わせて置く
 
-- props の表示
-- UI 固有の状態を持つこと
-  - 例: 開閉、hover、選択中、フォーカス、ローカルな入力状態
-- 同層・下層の Presenter / UI コンポーネントのレンダリング
-- 表示に閉じた hooks の利用
-  - 例: `useState`, `useMemo`, `useCallback`, `useId`
+フォーム内で完結する入力はPresenterで保持することを第一候補にする。短命かどうかだけでなく、共有範囲・復元・保存の要件で所有者を選ぶ。確定した値を`onSubmit(values)`などでContainerへ渡す。必須・形式・範囲でも業務契約なら規則はモデルが所有し、フォームはその純粋な関数やスキーマを利用する。エラーを表示するタイミングはUIが決める。
 
-### やってはいけないこと
+注文候補、預かり金、再送に必要な値など、業務処理と一緒に保持する入力はContainer側のフックへ置く。単純に「入力値はすべてPresenter」とは決めない。画面をまたぐ保持が必要な場合は、その状態の所有者が共有状態を管理する。
 
-- データ取得や更新などの副作用
-  - 例: API 呼び出し、routing/navigation、副作用を伴う store 更新
-- アプリケーションロジックを含む custom hook の実行
-- グローバル状態や外部 I/O への直接依存
-- `Date.now()` / `Math.random()` / `window` / `localStorage` など、参照透過性を崩す要素に依存した描画制御
-- props や外部データの破壊的変更
-- Container の import / render
+抽出や移動では、状態を持つ部品の`key`、マウント条件、初期値の適用タイミングを維持する。部品の配置を変えることと、入力の破棄条件を変えることを同じ変更に混ぜない。
 
-### Presenter の責務イメージ
+## Compositionは必要な差し替え先に使う
 
-Presenter は以下を担当する。
+スライスの公開入口は`index.ts`である。公開されている部品の責務は、配置された層だけでは決まらない。
 
-- 何を表示するか
-- どのような見た目で表示するか
-- ユーザー操作を props のイベントとして外に通知すること
-  Presenter は、**見た目を作ることに専念するコンポーネント**として扱う。
+- 下位の純粋な表示部品はPresenterから直接使える。調理・受け渡しの注文カードは、`features/cooking-state`の`CookingStateControlUI`を直接使う。
+- 厳密なPresenterへ接続済み部品を入れる場合は、親が要素を渡す。通常のページや機能は接続済み部品を直接配置できる。
+- 操作は`onUpdate`などの通常のprops、主内容は`children`、複数の配置先は名前付きpropsを基本とする。意味のある操作群には`actions`、拡張点のまとまりには`slots`を使ってよい。一律のグルーピングはしない。
 
-### Presenter が持ってよい「内部ロジック」
+`KitchenPageUI`は注文の取得状態に応じた表示を選び、`KitchenOrderCardUI`は渡された注文と明細を表示する。カードと`CookingStateControlUI`の単独の操作は`onUpdate`で受け取る。
 
-Presenter は state を持たない（stateless）という意味ではない。
-ここで禁止されるのは **副作用・業務ロジック** であり、**UI に閉じた状態遷移** は Presenter の責務として許容する。
+注入はimportの依存を切るが、実行時の子の通信を消すわけではない。単体検証では表示用の要素、本番の結合検証では実物を渡す。使わず下へ渡すだけの中継が続く場合は、組み合わせを最寄りの所有者へ戻す。
 
-以下は Presenter に閉じるロジックとして許容する。
+開閉状態などを注入先へ渡す必要がある場合だけrender propを使う。子の順序や型を解析して役割を推測しない。Dialogなどの局所的な部品間協調には既存のMantineのAPIを使い、共通Contextを新設しない。
 
-- フォームの入力値保持（`useState`）と onChange ハンドラ
-- 表示用バリデーション（必須、形式、文字数）と `canSubmit` の導出
-- 表示整形（日時のフォーマット、トリム、表示順のソート / フィルタ）
-- タブ切替、モーダル開閉、ホバー、フォーカスなどの短命 state
-- dialog / popover / menu の開閉、active panel、focus management、Escape key による close などの UI interaction
-- 親から渡された `onSubmit` / `onClick` を純粋に呼ぶだけのハンドラ
+下位のPresenterまで`slots`へ押し出す必要はない。逆に、部品名に`UI`が付いていても、内部で通信していればPresenterとして扱わない。
 
-判断基準は以下のとおり。
+## 表示契約と非同期処理
 
-- **外界（API, routing, storage, グローバル state）に触れるか**
-  - 触れる場合は Container に切り出す
-- **同じ入力で同じ UI を得られるか（参照透過性）**
-  - 保たれる場合は Presenter に閉じてよい
-- **コンポーネントを閉じて再起動したら消えてよい state か**
-  - 消えてよい場合は Presenter の state として持ってよい
-- **モックの作成が必要になるか**
-  - 必要になる依存（API, storage, router 等）は Container 側で吸収する
-
-「state を持つかどうか」ではなく「副作用を持つかどうか」で分離することで、UI に閉じたロジックまで Container に押し出して Props が肥大化することを避ける。
-
-例: floating navigation の `closed` / `menu` / `about` / `theme` のような view state は、その component を閉じれば消えてよい UI-local state である。
-そのため Presenter 内に置いてよい。
-一方で theme の永続化や global state との接続は `features/theme` の責務なので Container から Presenter に渡す。
-
----
-
-## Container とは
+UIのpropsは必要な値と操作を明示し、`ReturnType<typeof usePage>`やQueryの結果全体を公開契約にしない。APIの型をそのまま利用できるならViewModelを複製しない。排他的な状態には判別可能なユニオンを使えるが、データを表示しながら再取得するような独立した状態を無理に一つにまとめない。
 
-Container は、**データ取得・副作用・状態変換・依存注入**を担当するコンポーネントである。
-Presenter を描画するために必要な値やイベントハンドラを組み立てて渡す。
+送信はイベントから開始する。失敗を内部で表示状態へ変換する操作は`void`、結果を呼び出し側が待つ操作は結果の型と例外の扱いを明示する。既存のQueryや更新フックの処理中状態を、別の状態として重複管理しない。フックを呼び出すだけでは、そのローカル状態は共有されない。
 
-### やってよいこと
+## 型・取得処理・Queryの所有者
 
-- Presenter に props を渡して描画する
-- データ取得や更新処理の実行
-- 副作用を持つ処理の記述
-- アプリケーションロジックを含む hooks の実行
-- 表示に必要な状態の組み立て
-  - 例: `isLoading`, `canSubmit`, `errorMessage`, `items`
+`entities/orders/model`の`Order`は、Eden Treatyの注文応答から導出する。`OrderLine`と`CookingState`はその型から取り出し、画面名だけが違う同じ型を増やさない。利用項目を限定する`OrderSummary`は`Pick`と`Readonly`で表す。APIと異なる画面専用の状態は、ページや機能が独自の型として持つ。
 
-### やってはいけないこと
+通信契約を表す型と独立した画面用の型を使う場合は、取得関数の戻り値で両者の整合性を検査する。単純な項目選択のためだけに実行時の変換処理を追加しない。
 
-- UI の詳細な見た目を記述すること
-  - 例: 細かいレイアウト構造、スタイル指定、装飾表現
-- Presenter の代わりに UI 実装を抱え込むこと
-- 「表示に必要な状態の決定」を超えて、見た目の詳細まで持つこと
+取得関数は要求、応答、通信エラーを扱い、Query定義はキャッシュキー、取得関数、再試行・再取得の設定を扱う。共通の注文取得とリビジョン取得は`entities/orders/api`に置く。
 
-### Container の責務イメージ
+注文管理・調理・受け渡しは、それぞれ`ordersQueries`・`kitchenQueries`・`handoffQueries`と対応する範囲キーを持つ。取消済み注文の取得条件と、更新後に無効化するキャッシュの範囲を利用側で読み分けられるようにする。
 
-Container は以下を担当する。
-
-- どこからデータを取得するか
-- どのロジックを適用するか
-- Presenter にどの props を渡すか
-- どの Presenter / Container を組み合わせるか
-  Container は、**表示そのものではなく、表示を成立させるための結線を行う**。
-
----
-
-## 責務の判断基準
-
-| 項目                                       | Presenter | Container |
-| ------------------------------------------ | --------- | --------- |
-| 見た目の定義                               | ✅        | ❌        |
-| 細かいレイアウト構造                       | ✅        | ❌        |
-| props の表示                               | ✅        | ❌        |
-| UI 固有の local state                      | ✅        | △         |
-| フォーム入力値の保持                       | ✅        | △         |
-| 表示用バリデーション（必須・形式・文字数） | ✅        | ❌        |
-| `canSubmit` 等の UI 派生値の導出           | ✅        | △         |
-| 業務バリデーション（API 越しの重複など）   | ❌        | ✅        |
-| 送信処理の実行                             | ❌        | ✅        |
-| API 呼び出し                               | ❌        | ✅        |
-| routing / navigation の実行                | ❌        | ✅        |
-| custom hook による業務ロジック             | ❌        | ✅        |
-| グローバル状態の参照                       | ❌        | ✅        |
-| 表示用 props の組み立て                    | ❌        | ✅        |
-| Storybook で単体検証する対象               | ✅        | △         |
-| Test 用の表示検証対象                      | ✅        | △         |
-
-> `△` は状況によって許容されるが、原則は Presenter 優先または Container 優先で考えること。
-
----
-
-## 依存関係のルール
-
-### 許可される関係
-
-| 関係                  | 許可 | 備考                               |
-| --------------------- | ---- | ---------------------------------- |
-| Presenter → Presenter | ✅   | 同層・下層の UI を組み合わせてよい |
-| Container → Presenter | ✅   | 基本形                             |
-| Container → Container | ✅   | 画面や機能の結線として許可         |
-| Presenter → Container | ❌   | Composition で注入する             |
-
-### 原則
-
-- Presenter は Container を知らない
-- Container は Presenter を使ってよい
-- Container 同士の組み合わせは、画面や機能の結線のために許可する
-- Presenter に Container を入れたい場合は、親 Container から注入する
-- `entities` / `shared` の component は Presenter として扱うため、Presenter の中で直接使用してよい
-- `features` / `widgets` / `pages` の公開 component を Presenter で使う場合は、Composition で注入する
-
-## Storybook の方針
-
-Storybook は Presenter を副作用なしで検証するための場所である。
-そのため、Presenter story は実際の Container composition を再現しない。
-
-- `features` / `widgets` / `pages` の Presenter story は `*.ui.tsx` を対象にする
-- props / slots / 表示状態は Storybook の `args` で渡す
-- event handler は `actions.on*` に `storybook/test` の `fn()` を渡す
-- provider や context が必要な場合は decorator で mock する
-- import module の差し替えが必要な場合は Storybook の module mock を使う
-- API request が必要な場合は MSW を使う
-- `features` / `widgets` / `pages` の公開 component は Container として扱うため、Presenter story から import しない
-- `entities` / `shared` の component は Presenter として扱うため、必要なら story の中で直接使ってよい
-- production data をそのまま使うより、表示状態が明確な fixture を優先する
-- 複数 story / test で再利用する fixture は `*.fixtures.ts(x)` に切り出す
-- `*.fixtures.ts(x)` は story / test のための private helper とし、slice の `index.ts` から公開しない
-- `__DEV_*` のような開発時用 public API は、この project では原則として作らない
-
-page Presenter のように slot で widget を受け取る story では、実 widget を入れず、layout を検証するための mock element を渡す。
-実 widget を入れると、story が page Presenter の検証ではなく、複数 Container の integration preview になってしまうためである。
+更新APIは操作の所有者へ置く。複数画面で使う調理状態の更新は`features/cooking-state/api`、在庫管理専用の更新は`pages/inventory-management/api`が所有する。エラー表示や再取得の方針は、その操作を組み立てるフックまたはContainerが決める。
 
----
+## 共通の表示と検証
 
-## Composition による注入
+`shared/ui`の`ErrorAlert`、`ConnectingIndicator`、`LoadingNotice`は表示だけを共通化する。認可判定、再試行、下書きの保持、エラー時に子を描画するかどうかは、利用側が決める。共通化でマウント条件や操作の可否を変えない。
 
-Presenter が Container を直接 import / render してはならない。
-Container を組み込みたい場合は、**親 Container が Presenter に要素として注入する**。
+独立した表示境界は`*.ui.tsx`、部品名は`*UI`とする。通常の機能、Container、Compositionは`*.tsx`、部品名は`*`とする。関連する実装・テスト・ストーリーは同じ部品の近くに置く。`entities`・`shared`の表示部品には`UI`を付けない。表示だけの部品にはContainerを作らない。
 
-ただし `entities` / `shared` の component は Presenter として扱うため、Presenter の中で直接使用してよい。
-これらまで Composition で注入すると props が過剰に増えるためである。
+StorybookはPresenterの表示と操作を確認する。`args`へデータと表示状態を渡し、操作には`storybook/test`の`fn()`を使う。JSXの差し込み要素はストーリーの`render`で組み立てる。Container用の`slots`には表示用の要素を渡す。下位の純粋な表示部品は実物を使える。単体ストーリーはMantineなどの表示環境だけを用意する。RouterやQueryを含む実物の構成は結合テスト、または依存を用意した結合ストーリーで確認する。fixtureはテスト用入口から読み、本番の公開入口へ出さない。
 
-`features` / `widgets` / `pages` で公開されている component は Container として扱う。
-これらを Presenter に組み込みたい場合は、親 Container から `slots.*` で注入する。
-event handler は `actions.on*` で渡す。
+テストはPresenterだけに限定しない。純粋関数では業務規則、フックとContainerでは権限、重複送信、競合、再試行を確認する。ファイル移動だけなら既存の挙動テストを使い、ライブラリの標準動作や固定文言だけを確かめるテストを増やさない。
 
-### 例
+リポジトリのルートで`pnpm staff test`、`pnpm staff typecheck`、`pnpm staff lint`、`pnpm staff fmt:check`を実行する。リンターは上位層への参照、公開入口を迂回する参照、同層の別スライスへの参照を検査する。`*.ui.tsx`からのQuery・Router・Jotai・`api`への直接の実行時参照も検査する。型だけの参照は許可する。barrelやヘルパー経由の間接接続までは保証しないため、依存条件、状態の寿命、再取得の範囲はコードレビューと挙動テストで確認する。
 
-```tsx
-// Presenter
-type ScreenUIProps = {
-  actions: {
-    onSubmit: () => void;
-  };
-  slots: {
-    Header: React.ReactNode;
-    Form: React.ReactNode;
-  };
-};
-
-export const ScreenUI = ({ actions: { onSubmit }, slots: { Header, Form } }: ScreenUIProps) => {
-  return (
-    <section>
-      {Header}
-      {Form}
-      <button type="button" onClick={onSubmit}>
-        送信
-      </button>
-    </section>
-  );
-};
-
-// Container
-export const Screen = () => {
-  return <ScreenUI actions={{ onSubmit: handleSubmit }} slots={{ Header: <UserHeader />, Form: <LoginForm /> }} />;
-};
-```
-
-このように、Presenter はあくまで受け取った要素を配置するだけに留める。
-Container の選択や組み立ては親 Container が担当する。
-
-⸻
-
-hooks の方針
-
-Presenter で使ってよい hooks
-
-Presenter では、表示に閉じた hooks のみ使用してよい。
-
-- useState
-- useEffect (表示と interaction に閉じたもののみ)
-- useMemo
-- useCallback
-- useId
-- useRef
-
-用途は以下に限定する。
-
-- UI 固有の開閉状態
-- focus management や keyboard interaction などの accessibility behavior
-- 入力補助
-- 一時的な表示制御
-- 描画上の軽微な最適化
-
-`useEffect` は無条件に禁止しない。
-ただし Presenter で許可するのは、DOM focus の移動、Escape key の処理、animation / measurement など、表示と interaction に閉じたものだけである。
-API request、storage、analytics、global store 連携、routing など外界へ影響する処理は Container または lower layer の hook に置く。
-
-Presenter で使ってはいけない hooks
-
-- データ取得系 hook
-- 副作用を伴う custom hook
-- 業務ロジックを含む custom hook
-- navigation / routing 系 hook
-- グローバル store 接続 hook
-
-Container で使う hooks
-
-Container では、アプリケーションロジックを含む hooks を使用する。
-
-- データ取得
-- 更新処理
-- 状態遷移
-- バリデーション
-- 権限制御
-- イベント処理の組み立て
-
-アプリケーションロジックは、原則として hooks に切り出して再利用可能にする。
-
-⸻
-
-命名規則
-
-`UI` suffix は Presenter / Container を分離する `features` / `widgets` / `pages` でのみ使う。
-`entities` / `shared` の component は Presenter であることが layer から自明なため、component 名に `UI` を付けない。
-
-`features` / `widgets` / `pages` の Presenter:
-
-- ファイル名: \*.ui.tsx
-- コンポーネント名: \*UI
-
-例:
-
-- foo.ui.tsx
-- FooUI
-
-`features` / `widgets` / `pages` の Container:
-
-- ファイル名: \*.tsx
-- コンポーネント名: \*
-
-例:
-
-- foo.tsx
-- Foo
-
-`Foo` という component を作る場合:
-
-- Presenter: `FooUI`
-- Container: `Foo`
-
-`entities` / `shared` で `Foo` という component を作る場合:
-
-- ファイル名: `foo.tsx`
-- コンポーネント名: `Foo`
-
-責務としては Presenter だが、名前で Presenter であることを表現しない。
-
-⸻
-
-配置方針
-
-Presenter
-
-- slice の `ui/` に配置する
-- 表示責務のコンポーネントとして管理する
-
-Container
-
-- slice の `ui/` に配置してよい
-- ただし役割は Presenter と明確に分ける
-- hooks や model 層と結線する入口として扱う
-
-hooks
-
-- アプリケーションロジックを含む hooks は同じ slice の `model/` などに配置する
-- Presenter 専用の軽量な表示 hook は、必要に応じて近接配置してよい
-
-⸻
-
-レイヤー別の公開方針
-
-`entities` / `shared`:
-
-- Presenter のみ公開する
-- 原則として Container は置かない
-- Storybook / test は Presenter として行う
-- UI 部品やドメイン表示部品として再利用可能な形を保つ
-
-`features` / `widgets` / `pages`:
-
-- 外部公開の入口は基本的に Containerとする
-- 公開されているものは、使用側からは Container として扱う
-- Presenter は内部実装として扱う
-- Presenter は Storybook / Test / 組み込み用途で参照可能にする
-- Presenter が他の `features` / `widgets` / `pages` の公開 component を必要とする場合は `slots.*` で注入する
-- handler は `actions.on*` で渡す
-
-⸻
-
-実装例
-
-Presenter の実装例
-
-フォームの入力値と表示用バリデーションは Presenter 内で完結させ、
-Container へは「確定した値」と「副作用を要する処理」のみ渡す。
-
-```tsx
-// layers/features/auth/ui/login-form.ui.tsx
-import { useState } from "react";
-
-export type LoginFormValues = {
-  email: string;
-  password: string;
-};
-
-export type LoginFormUIProps = {
-  isLoading: boolean;
-  error: string | null;
-  onSubmit: (values: LoginFormValues) => void;
-};
-
-const isValidEmail = (value: string) => /.+@.+\..+/.test(value);
-
-export const LoginFormUI = ({ isLoading, error, onSubmit }: LoginFormUIProps) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const canSubmit = isValidEmail(email) && password.length > 0 && !isLoading;
-
-  return (
-    <form className="grid gap-4 p-4" onSubmit={(event) => event.preventDefault()}>
-      <label className="grid gap-1">
-        <span>メールアドレス</span>
-        <input
-          type="email"
-          value={email}
-          autoCapitalize="none"
-          onChange={(event) => setEmail(event.currentTarget.value)}
-        />
-      </label>
-      <label className="grid gap-1">
-        <span>パスワード</span>
-        <input type="password" value={password} onChange={(event) => setPassword(event.currentTarget.value)} />
-      </label>
-      {error && <p className="text-red-500">{error}</p>}
-      <button type="button" disabled={!canSubmit} onClick={() => onSubmit({ email, password })}>
-        {isLoading ? "ログイン中..." : "ログイン"}
-      </button>
-    </form>
-  );
-};
-```
-
-Container の実装例
-
-Container は副作用（API 呼び出し、遷移）と、その結果としての表示状態（`isLoading`, `error`）だけを受け持つ。
-
-```tsx
-// layers/features/auth/ui/login-form.tsx
-import { LoginFormUI, type LoginFormValues } from "./login-form.ui";
-import { useLogin } from "../model/hooks/use-login";
-
-export type LoginFormProps = {
-  onSuccess?: () => void;
-};
-
-export const LoginForm = ({ onSuccess }: LoginFormProps) => {
-  const { isLoading, error, submit } = useLogin({ onSuccess });
-
-  const handleSubmit = (values: LoginFormValues) => {
-    submit(values);
-  };
-
-  return <LoginFormUI isLoading={isLoading} error={error} onSubmit={handleSubmit} />;
-};
-```
-
-⸻
-
-NG 例
-
-NG 1: Presenter でデータ取得を行う
-
-```tsx
-export const UserProfileUI = () => {
-const { data } = useQuery(...);
-return <p>{data.name}</p>;
-};
-```
-
-理由: Presenter が副作用やデータ取得に依存しているため。
-
-⸻
-
-NG 2: Presenter で navigation を実行する
-
-```tsx
-export const ItemRowUI = ({ id }: { id: string }) => {
-  const router = useRouter();
-  return (
-    <button type="button" onClick={() => router.push(`/items/${id}`)}>
-      詳細へ
-    </button>
-  );
-};
-```
-
-理由: routing はアプリケーションロジックであり、Presenter の責務ではない。
-
-⸻
-
-NG 3: Container に UI を書き込みすぎる
-
-```tsx
-export const LoginForm = () => {
-  const { email, password, error, ...handlers } = useLoginForm();
-  return (
-    <div className="grid gap-4 p-4">
-      <h2 className="text-xl font-bold">ログイン</h2>
-      ...
-    </div>
-  );
-};
-```
-
-理由: Container が見た目の責務まで持ち始めているため。UI は Presenter に寄せる。
-
-⸻
-
-NG 4: Presenter が Container を直接 import する
-
-```tsx
-import { UserHeader } from "./user-header";
-export const ScreenUI = () => {
-  return (
-    <div>
-      <UserHeader />
-    </div>
-  );
-};
-```
-
-理由: Presenter が Container に依存しており、依存方向が崩れるため。
-
-⸻
-
-フォームの設計指針
-
-フォームは Presenter / Container の境界が最も議論になる領域である。
-本プロジェクトでは以下を原則とする。
-
-- 入力値・表示用バリデーション・送信可否判定は **Presenter 側** に置く
-- `onSubmit(values)` の形で **確定した値だけ Container に渡す**
-- 業務バリデーション（API 越しの重複チェック、社内規定チェックなど）、送信処理、遷移、永続化は **Container / hooks 側** に置く
-- 入力値を 1 つずつ Props で受け渡し、Container 側で state を持つ設計（Props 祭り）は避ける
-- 初期値を外から与えたい場合は `defaultValues` のような uncontrolled な初期値 props として受け取り、以降の更新は Presenter 内に閉じる
-
-ただし以下の場合は、入力 state を Container（または hooks）に昇格してよい。
-
-- ウィザードで複数ステップに値をまたいで保持する必要がある
-- 入力中の値をリアルタイムに外部へ反映する（自動保存、他コンポーネントからのプレビュー参照など）
-- 下書き保存などで `localStorage` / サーバへ永続化する必要がある
-
-### フォームライブラリ利用時の扱い
-
-- `useForm`, `register`, `handleSubmit`（react-hook-form など）は UI の入力制御に閉じるため **Presenter 側で使用してよい**
-- zod 等の **形式バリデーションスキーマ** は Presenter 側に置いてよい
-- **業務バリデーション**（API 照合、権限、社内規定）は hooks / Container 側で実行する
-- ライブラリ側の `onSubmit` に業務処理を直接書かず、確定値を親の `onSubmit(values)` に渡して Container 側で処理する
-
-⸻
-
-例外ルール
-
-すべてのコンポーネントを必ず Presenter / Container に分割しなければならないわけではない。
-
-以下の条件では、単一コンポーネントとして実装してよい。
-
-- shared / entities の単純な表示コンポーネントである
-- ロジックや副作用を持たない
-- 分割コストがメリットを上回るほど小さい
-- 画面固有の一時的な UI であり、再利用性を要求しない
-
-ただし、以下のいずれかが発生した場合は分離を検討すること。
-
-- データ取得が入る
-- 外部副作用が入る
-- 業務ロジックが増える
-- Storybook / Test で UI だけ切り出したくなる
-- UI とロジックの変更頻度がずれてきた
-
-⸻
-
-運用上の指針
-
-- 迷ったら、まず Presenter を先に作る
-- Presenter に副作用や業務ロジックが入り始めたら Container 分離を検討する
-- Container が UI を書き始めたら Presenter へ戻す
-- Presenter は Storybook で検証しやすい形を保つ
-- Container は「表示のための結線」として薄く保つ
-- 複雑な処理は Container 自体ではなく hooks に寄せる
-
-⸻
-
-まとめ
-
-Presenter/Container Pattern では、以下を守る。
-
-- Presenter は表示責務に専念する（ただし UI に閉じた state / ロジックは保持してよい）
-- Container は副作用・業務ロジック・依存注入を担当する
-- 分離の基準は「state を持つか」ではなく「副作用を持つか」
-- Presenter から Container へ依存しない
-- Container を差し込みたい場合は Composition を使う
-- 業務ロジックは hooks に切り出す
-- フォームは入力 state を Presenter に閉じ、確定値を `onSubmit(values)` で Container に渡す
-- features / widgets / pages では Container を公開入口とする
-
-このルールにより、UI の再利用性、テスト容易性、保守性を高める。
+参考: [FSDの層](https://feature-sliced.design/docs/reference/layers)、[FSDとTanStack Query](https://feature-sliced.design/docs/guides/tech/with-react-query)、[Reactのカスタムフック](https://react.dev/learn/reusing-logic-with-custom-hooks)。

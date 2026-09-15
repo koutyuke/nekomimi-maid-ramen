@@ -1,10 +1,10 @@
 import { Context } from "effect";
 import type { Effect, Option } from "effect";
 
-import type { MenuItemId, OrderId } from "../../../../../core/domain/ids";
+import type { OrderId } from "../../../../../core/domain/ids";
 import type { PersistenceError } from "../../../../../core/domain/persistence-error";
 import type { Snapshot } from "../../../../../core/domain/revision";
-import type { ConfirmationRequestId, OperationalOrder, Order, OrderLine } from "../../../domain/order";
+import type { ConfirmationRequestId, OperationalOrder, Order } from "../../../domain/order";
 
 export type OrderLookup = { readonly businessDate: string; readonly includeCancelled?: boolean };
 
@@ -12,10 +12,6 @@ export class OrderRepository extends Context.Tag("OrderRepository")<
   OrderRepository,
   {
     readonly findById: (id: OrderId) => Effect.Effect<Option.Option<OperationalOrder>, PersistenceError>;
-    readonly findLine: (
-      id: OrderId,
-      menuItemId: MenuItemId,
-    ) => Effect.Effect<Option.Option<OrderLine>, PersistenceError>;
     readonly findByRequestId: (
       requestId: ConfirmationRequestId,
     ) => Effect.Effect<Option.Option<Order>, PersistenceError>;

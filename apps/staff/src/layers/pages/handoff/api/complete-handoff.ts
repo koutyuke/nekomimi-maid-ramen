@@ -1,7 +1,7 @@
 import { api } from "../../../shared/api";
-import type { HandoffOrder } from "../../../entities/handoff";
+import type { Order } from "../../../entities/orders";
 
-export const completeHandoff = async (order: HandoffOrder) => {
+export const completeHandoff = async (order: Order) => {
   const { data, error } = await api.staff.orders({ id: order.id }).handoff.post();
   if (error) {
     if (error.status === 409) {

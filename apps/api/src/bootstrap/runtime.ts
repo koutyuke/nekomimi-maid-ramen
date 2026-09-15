@@ -3,8 +3,8 @@ import { Layer, ManagedRuntime } from "effect";
 
 import { makeDatabaseLive } from "../core/infra/drizzle";
 import { connectWebSocketHub } from "../core/infra/websocket";
-import { makeMenuLayer } from "../features/menu/layer";
-import { makeOrdersLayer } from "../features/orders/layer";
+import { MenuLayer as MenuServices } from "../features/menu/layer";
+import { OrdersLayer as OrderServices } from "../features/orders/layer";
 import { makeRealtimeLayer } from "../features/realtime/layer";
 import { makeStaffLayer } from "../features/staff/layer";
 import { getAPIBaseURL, getStaffBaseURL } from "@nekomimi/core/http";
@@ -17,10 +17,8 @@ const googleCallbackPath = "/auth/google/callback";
 const authenticationResultPath = "/";
 
 const RealtimeLayer = makeRealtimeLayer(env.STAFF_UPDATES);
-const MenuLayer = makeMenuLayer(env.OWNER_EMAIL ?? "").pipe(Layer.provide(RealtimeLayer));
-const OrdersLayer = makeOrdersLayer(env.OWNER_EMAIL ?? "").pipe(
-  Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer)),
-);
+const MenuLayer = MenuServices.pipe(Layer.provide(RealtimeLayer));
+const OrdersLayer = OrderServices.pipe(Layer.provide(Layer.mergeAll(MenuLayer, RealtimeLayer)));
 const AppLayer = Layer.mergeAll(
   RealtimeLayer,
   MenuLayer,

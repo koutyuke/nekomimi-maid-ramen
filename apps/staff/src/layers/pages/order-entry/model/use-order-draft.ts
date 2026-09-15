@@ -1,66 +1,51 @@
 import { useState } from "react";
 
-import { calculateCheckout, stockShortages } from "./checkout";
+import { calculateCheckout, changeLineQuantity, stockShortages } from "../lib/checkout";
 import type { MenuItem } from "../../../entities/menu";
-import type { DraftLine } from "./checkout";
+import type { DraftLine } from "../lib/checkout";
 
-export const useOrderDraft = (items: readonly MenuItem[], frozen: boolean) => {
+export const useOrderDraft = (items: readonly MenuItem[], freezeMenuUpdates: boolean) => {
   const [lines, setLines] = useState<DraftLine[]>([]);
-  const [received, setReceived] = useState("");
+  const [received, setReceived] = useState<number | null>(null);
 
-  const currentLines = frozen
+  const currentLines = freezeMenuUpdates
     ? lines
     : lines.map((line) => ({
         quantity: line.quantity,
         item: items.find((item) => item.id === line.item.id) ?? line.item,
       }));
 
-  const step = (item: MenuItem, delta: -1 | 1) => {
-    setLines((current) => {
-      const line = current.find((candidate) => candidate.item.id === item.id);
-      const quantity = Number(line?.quantity ?? 0) + delta;
-      if (!Number.isInteger(quantity) || quantity < 0 || quantity > 10 || (delta > 0 && !item.sellable)) {
-        return current;
-      }
-      if (quantity === 0) {
-        return current.filter((candidate) => candidate.item.id !== item.id);
-      }
-      return line
-        ? current.map((candidate) =>
-            candidate.item.id === item.id ? { ...candidate, quantity: String(quantity) } : candidate,
-          )
-        : [...current, { item, quantity: String(quantity) }];
-    });
+  const changeQuantity = (item: MenuItem, delta: -1 | 1) => {
+    setLines((current) => changeLineQuantity(current, item, delta));
   };
 
-  const receive = (value: string) => {
-    if (value === "" || (/^\d+$/.test(value) && Number.isSafeInteger(Number(value)) && Number(value) % 100 === 0)) {
+  const changeReceived = (value: number | null) => {
+    if (value === null || (Number.isSafeInteger(value) && value >= 0 && value % 100 === 0)) {
       setReceived(value);
     }
   };
 
-  const snapshot = () => {
+  const capture = () => {
     setLines(currentLines);
     return { lines: currentLines, received };
   };
 
   const reset = () => {
     setLines([]);
-    setReceived("");
+    setReceived(null);
   };
 
-  const checkout = calculateCheckout(currentLines, received);
+  const checkout = calculateCheckout(currentLines, received === null ? "" : String(received));
   const shortages = stockShortages(currentLines, items);
 
   return {
-    lines: currentLines,
-    received,
+    values: { lines: currentLines, received },
     checkout,
     shortages,
-    canConfirm: checkout.change !== null && shortages.length === 0,
-    step,
-    receive,
-    snapshot,
+    isValid: checkout.change !== null && shortages.length === 0,
+    changeQuantity,
+    changeReceived,
+    capture,
     reset,
   };
 };

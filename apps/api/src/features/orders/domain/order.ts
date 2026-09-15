@@ -87,6 +87,15 @@ export class OperationalOrder extends Schema.Class<OperationalOrder>("Operationa
 export const canChangeCookingState = (from: CookingState, to: CookingState) =>
   (from === "unstarted" && to === "cooking") || (from === "cooking" && (to === "unstarted" || to === "completed"));
 
+export const canUpdateCookingState = (order: OperationalOrder, from: CookingState, to: CookingState): boolean =>
+  order.cancelledAt === null && order.handedOffAt === null && canChangeCookingState(from, to);
+
+export const canCompleteHandoff = (order: OperationalOrder): boolean =>
+  order.cancelledAt === null &&
+  order.handedOffAt === null &&
+  order.lines.length > 0 &&
+  order.lines.every((line) => line.cookingState === "completed");
+
 export const canCancelOrder = (order: OperationalOrder): boolean =>
   order.cancelledAt === null &&
   order.handedOffAt === null &&
@@ -146,6 +155,10 @@ export class OutOfStock extends Data.TaggedError("OutOfStock")<{
   readonly shortages: ReadonlyArray<OrderStockShortage>;
 }> {}
 
+export class OrderConfirmationConflict extends Data.TaggedError("OrderConfirmationConflict")<{
+  readonly requestId: ConfirmationRequestId;
+}> {}
+
 /**
  * 同じ要求識別子の注文がすでに確定していることを表すエラー。
  */
@@ -154,7 +167,7 @@ export class DuplicateConfirmation extends Data.TaggedError("DuplicateConfirmati
 }> {}
 
 /**
- * 確定の直前に別の確定へ在庫を奪われたことを表すエラー。
+ * 保存時の在庫が不足していたため、確定バッチ全体を取り消したことを表すエラー。
  */
 export class ConfirmationLostStockRace extends Data.TaggedError("ConfirmationLostStockRace")<{
   readonly requestId: ConfirmationRequestId;

@@ -1,26 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-
-import { staffQueries } from "../../../entities/staff";
-import { StaffRoleManagement } from "../../../features/staff-role-management";
-import { AdminGuard } from "../../../widgets/admin-guard";
+import { useStaffManagement } from "../model/use-staff-management";
 import { StaffManagementPageUI } from "./staff-management-page.ui";
 
 export const StaffManagementPage = () => {
-  const staff = useQuery(staffQueries.current());
-  const administrator =
-    staff.data?.role === "Owner" || staff.data?.role === "Admin" ? { id: staff.data.id, role: staff.data.role } : null;
+  const state = useStaffManagement();
+  if (!state) {
+    return null;
+  }
 
   return (
-    <AdminGuard>
-      {administrator ? (
-        <StaffManagementPageUI
-          administrator={administrator}
-          onRetry={() => void staff.refetch()}
-          slots={{
-            roleManagement: <StaffRoleManagement currentStaff={administrator} />,
-          }}
-        />
-      ) : null}
-    </AdminGuard>
+    <StaffManagementPageUI
+      currentStaff={state.currentStaff}
+      members={state.members}
+      roleUpdate={state.roleUpdate}
+      onRetry={state.retry}
+      onUpdateRole={state.update}
+    />
   );
 };

@@ -7,16 +7,12 @@ export const Staff = Schema.Struct({
   id: Schema.String.annotations({ description: "利用者ID" }),
   email: Schema.String.annotations({ description: "学校アカウントのメールアドレス" }),
   name: Schema.String.annotations({ description: "Googleアカウントの表示名" }),
-  role: StaffRole.annotations({ description: "現在の実効ロール。Ownerは設定で固定され、Noneは業務権限なしを表す。" }),
+  role: StaffRole.annotations({ description: "DBに保存された現在のロール。Noneは業務権限なしを表す。" }),
 });
 export type Staff = typeof Staff.Type;
 
-export const resolveRole = (storedRole: string, email: string, ownerEmail: string): StaffRole => {
-  if (email === ownerEmail) {
-    return "Owner";
-  }
-  return storedRole === "Admin" || storedRole === "Staff" ? storedRole : "None";
-};
+export const resolveRole = (storedRole: string): StaffRole =>
+  storedRole === "Owner" || storedRole === "Admin" || storedRole === "Staff" ? storedRole : "None";
 
 export const canOperate = (role: StaffRole, required: "Staff" | "Admin") =>
   role === "Owner" || role === "Admin" || (role === "Staff" && required === "Staff");

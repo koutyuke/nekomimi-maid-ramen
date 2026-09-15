@@ -32,7 +32,6 @@ const repositoryWith = (value: OperationalOrder | null = order) =>
   Layer.succeed(OrderRepository, {
     findById: () => Effect.succeed(Option.fromNullable(value)),
     findByRequestId: () => Effect.succeedNone,
-    findLine: () => Effect.succeedNone,
     getRevision: () => Effect.succeed(0),
     findMany: () => Effect.succeed({ data: [], revision: 0 }),
   });

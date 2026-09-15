@@ -1,1 +1,1 @@
-export { HandoffPage } from "./ui/handoff-page/handoff-page";
+export { HandoffPage } from "./ui/handoff-page";

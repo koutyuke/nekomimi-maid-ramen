@@ -1,10 +1,9 @@
 import { Badge, Button, Group, Modal, Paper, Stack, Text, Title } from "@mantine/core";
 import { useState } from "react";
 
+import { CookingStateControlUI } from "../../../../features/cooking-state";
 import { handoffStatusLabels } from "../../lib/handoff-status";
-import { HandoffOrderLineUI } from "../handoff-order-line/handoff-order-line.ui";
-import type { HandoffOrder, HandoffOrderLine } from "../../../../entities/handoff";
-import type { CookingState } from "../../../../entities/kitchen";
+import type { Order, CookingState } from "../../../../entities/orders";
 import type { HandoffStatus } from "../../lib/handoff-status";
 
 const statusColors = {
@@ -15,14 +14,12 @@ const statusColors = {
 } as const;
 
 type HandoffOrderCardUIProps = {
-  order: HandoffOrder;
+  order: Order;
   status: HandoffStatus;
   disabled: boolean;
   pendingItemIds: readonly string[];
-  actions: {
-    onUpdate: (line: HandoffOrderLine, to: CookingState) => void;
-    onComplete: () => void;
-  };
+  onUpdate: (menuItemId: string, to: CookingState) => void;
+  onComplete: () => void;
 };
 
 export const HandoffOrderCardUI = ({
@@ -30,7 +27,8 @@ export const HandoffOrderCardUI = ({
   status,
   disabled,
   pendingItemIds,
-  actions: { onUpdate, onComplete },
+  onUpdate,
+  onComplete,
 }: HandoffOrderCardUIProps) => {
   const [opened, setOpened] = useState(false);
 
@@ -86,13 +84,13 @@ export const HandoffOrderCardUI = ({
         </Group>
         <Stack gap="xs">
           {order.lines.map((line) => (
-            <HandoffOrderLineUI
+            <CookingStateControlUI
               key={line.menuItemId}
               line={line}
               orderNumber={order.orderNumber}
               editable={!order.handedOffAt && line.category === "drink"}
               disabled={disabled || pendingItemIds.includes(line.menuItemId)}
-              actions={{ onUpdate: (to) => onUpdate(line, to) }}
+              onUpdate={(to) => onUpdate(line.menuItemId, to)}
             />
           ))}
         </Stack>

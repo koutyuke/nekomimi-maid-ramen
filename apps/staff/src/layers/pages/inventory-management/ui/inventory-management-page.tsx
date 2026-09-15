@@ -1,9 +1,10 @@
-import { StockManagement } from "../../../features/stock-management";
-import { AdminGuard } from "../../../widgets/admin-guard";
+import { useInventoryManagement } from "../model/use-inventory-management";
 import { InventoryManagementPageUI } from "./inventory-management-page.ui";
 
-export const InventoryManagementPage = () => (
-  <AdminGuard>
-    <InventoryManagementPageUI slots={{ stockManagement: <StockManagement /> }} />
-  </AdminGuard>
-);
+export const InventoryManagementPage = () => {
+  const { inventory, stockUpdate, retry, update } = useInventoryManagement();
+
+  return (
+    <InventoryManagementPageUI inventory={inventory} stockUpdate={stockUpdate} onRetry={retry} onUpdate={update} />
+  );
+};

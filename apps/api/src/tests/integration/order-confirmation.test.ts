@@ -8,13 +8,13 @@ import { realtimeMock, upgradeWebSocketMock } from "../../../testing";
 import { createApp } from "../../bootstrap/create-app";
 import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { MenuLayer } from "../../features/menu/layer";
-import { makeOrdersLayer } from "../../features/orders/layer";
+import { OrdersLayer as OrderServices } from "../../features/orders/layer";
 import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../features/staff/testing";
 
 const db = drizzle(env.DB);
 
 const MenuLayerWithUpdates = MenuLayer.pipe(Layer.provide(realtimeMock));
-const OrdersLayer = makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(MenuLayerWithUpdates, realtimeMock)));
+const OrdersLayer = OrderServices.pipe(Layer.provide(Layer.mergeAll(MenuLayerWithUpdates, realtimeMock)));
 const AppLayer = Layer.mergeAll(
   realtimeMock,
   MenuLayerWithUpdates,

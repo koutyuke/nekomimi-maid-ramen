@@ -1,4 +1,4 @@
-import { Layer, ManagedRuntime } from "effect";
+import { Effect, Layer, ManagedRuntime } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { realtimeMock, upgradeWebSocketMock } from "../../../../testing";
@@ -13,6 +13,8 @@ import {
   stockRepositoryMock,
 } from "../../../features/menu/testing";
 import {
+  ConfirmationLostStockRace,
+  ConfirmationRequestId,
   failingOrderRepositoryMock,
   orderOperationsMock,
   orderPricingGatewayMock,
@@ -94,6 +96,24 @@ describe("SPEC-SAL-005 注文確定の応答", () => {
 });
 
 describe("SPEC-INV-002 在庫不足の応答", () => {
+  it("保存競合後に不足が解消していても確定扱いにせず409を返す", async () => {
+    const app = appWith(
+      Layer.mergeAll(
+        orderPricingGatewayMock([ramen]),
+        orderStockAvailabilityGatewayMock([stockFixture("item-ramen", 3)]),
+        orderRepositoryMock({
+          confirm: () =>
+            Effect.fail(new ConfirmationLostStockRace({ requestId: ConfirmationRequestId.make("request-1") })),
+        }),
+        inventoryAvailabilityFacadeMock([]),
+        menuItemRepositoryMock([]),
+      ),
+    );
+    const response = await confirm(app, { requestId: "request-1", lines: [{ menuItemId: "item-ramen", quantity: 1 }] });
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ code: "order_confirmation_conflict" });
+  });
+
   it("不足商品と理由を409で返す", async () => {
     const response = await confirm(sellingApp([stockFixture("item-ramen", 1)]), {
       requestId: "request-1",

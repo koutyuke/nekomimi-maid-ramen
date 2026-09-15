@@ -92,6 +92,8 @@ export const OutOfStockResponse = Schema.Struct({
 }).annotations({ description: "在庫不足で確定できなかった注文" });
 export type OutOfStockResponse = Schema.Schema.Type<typeof OutOfStockResponse>;
 
+export const OrderConfirmationConflictResponse = Schema.Struct({ code: Schema.Literal("order_confirmation_conflict") });
+
 export const UnknownMenuItemResponse = Schema.Struct({
   code: Schema.Literal("unknown_menu_item").annotations({ description: "確定できない理由" }),
   menuItemIds: Schema.Array(Schema.String).annotations({ description: "販売していない商品の識別子" }),

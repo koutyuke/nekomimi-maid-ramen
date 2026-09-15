@@ -8,6 +8,7 @@ import {
   InvalidOrderInput,
   LineQuantity,
   OrderLine,
+  OrderConfirmationConflict,
   OutOfStock,
   totalAmountOf,
   UnknownMenuItem,
@@ -72,11 +73,15 @@ export const confirmOrder = (input: ConfirmOrderInput) =>
     const unknownMenuItemIds = validatedInput.lines.flatMap((line) =>
       priceByMenuItemId.has(line.menuItemId) ? [] : [line.menuItemId],
     );
-    if (unknownMenuItemIds.length > 0) {
-      return yield* new UnknownMenuItem({ menuItemIds: unknownMenuItemIds });
-    }
-
-    if (shortages.length > 0) {
+    if (unknownMenuItemIds.length > 0 || shortages.length > 0) {
+      // 事前確認の間に同じ要求が確定していれば、その結果を優先する。
+      const confirmedMeanwhile = yield* orderRepository.findByRequestId(validatedInput.requestId);
+      if (Option.isSome(confirmedMeanwhile)) {
+        return confirmedMeanwhile.value;
+      }
+      if (unknownMenuItemIds.length > 0) {
+        return yield* new UnknownMenuItem({ menuItemIds: unknownMenuItemIds });
+      }
       return yield* new OutOfStock({ shortages });
     }
 
@@ -120,10 +125,12 @@ const reloadConfirmed = (requestId: ConfirmationRequestId): Effect.Effect<Order,
 
 const reportShortagesAfterRace = (
   input: ValidatedConfirmOrderInput,
-): Effect.Effect<never, OutOfStock | PersistenceError, OrderStockAvailabilityGateway> =>
+): Effect.Effect<never, OutOfStock | OrderConfirmationConflict | PersistenceError, OrderStockAvailabilityGateway> =>
   Effect.gen(function* () {
     const stockAvailabilityGateway = yield* OrderStockAvailabilityGateway;
     const shortages = yield* stockAvailabilityGateway.findShortages(input.lines);
 
-    return yield* new OutOfStock({ shortages });
+    return yield* shortages.length > 0
+      ? new OutOfStock({ shortages })
+      : new OrderConfirmationConflict({ requestId: input.requestId });
   });

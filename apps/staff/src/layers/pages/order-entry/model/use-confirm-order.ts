@@ -3,26 +3,31 @@ import { useEffect, useRef, useState } from "react";
 
 import { menuQueryScopes } from "../../../entities/menu";
 import { confirmOrder } from "../api/confirm-order";
-import { calculateCheckout } from "./checkout";
+import { calculateCheckout } from "../lib/checkout";
 import type { Confirmation, OrderRequest } from "../api/confirm-order";
-import type { DraftLine, Receipt } from "./checkout";
+import type { DraftLine, Receipt } from "../lib/checkout";
 
 type ConfirmationAttempt = {
   request: OrderRequest;
   receipt: Omit<Receipt, "order">;
 };
 
-export const useConfirmOrder = () => {
-  const [pending, setPending] = useState(false);
-  const [uncertain, setUncertain] = useState(false);
-  const [result, setResult] = useState<Confirmation | null>(null);
-  const [previousOrder, setPreviousOrder] = useState<Receipt | null>(null);
+type ConfirmationState =
+  | { status: "idle" }
+  | { status: "pending"; attempt: ConfirmationAttempt }
+  | { status: "uncertain"; attempt: ConfirmationAttempt; rejection: Extract<Confirmation, { kind: "rejected" }> | null }
+  | { status: "failed"; result: Exclude<Confirmation, { kind: "confirmed" }> }
+  | { status: "confirmed"; result: Extract<Confirmation, { kind: "confirmed" }> };
 
-  const attempt = useRef<ConfirmationAttempt | null>(null);
+export const useConfirmOrder = () => {
+  const [state, setState] = useState<ConfirmationState>({ status: "idle" });
+  const [previousOrder, setPreviousOrder] = useState<Receipt | null>(null);
   const sending = useRef(false);
 
   const client = useQueryClient();
-  const locked = pending || uncertain || result?.kind === "confirmed";
+  const awaitingResult = state.status === "pending" || state.status === "uncertain";
+  const locked = awaitingResult || state.status === "confirmed";
+  const isLocked = () => locked || sending.current;
 
   // 送信後にページを閉じると再送用の識別子を失うため、結果の確認まで離脱を警告する。
   useEffect(() => {
@@ -30,80 +35,85 @@ export const useConfirmOrder = () => {
       event.preventDefault();
     };
 
-    if (pending || uncertain) {
+    if (awaitingResult) {
       window.addEventListener("beforeunload", warn);
     }
 
     return () => window.removeEventListener("beforeunload", warn);
-  }, [pending, uncertain]);
+  }, [awaitingResult]);
 
-  const submit = async (lines: readonly DraftLine[], received: string) => {
-    if (sending.current || result?.kind === "confirmed") {
+  const send = async (attempt: ConfirmationAttempt, retrying: boolean) => {
+    if (sending.current) {
       return;
     }
-    // 再送では呼び出し元の入力を使わず、最初の要求と精算情報を一緒に再利用する。
-    const currentAttempt = attempt.current ?? {
-      request: {
-        requestId: crypto.randomUUID(),
-        lines: lines.map((line) => ({
-          menuItemId: line.item.id,
-          quantity: Number(line.quantity),
-        })),
-      },
-
-      receipt: {
-        names: Object.fromEntries(lines.map((line) => [line.item.id, line.item.name])),
-        received: Number(received),
-        quotedTotal: calculateCheckout(lines, received).total,
-      },
-    };
-
-    attempt.current = currentAttempt;
     sending.current = true;
-    setPending(true);
-    setUncertain(false);
+    setState({ status: "pending", attempt });
 
     try {
-      const response = await confirmOrder(currentAttempt.request);
-      setResult(response);
+      const response = await confirmOrder(attempt.request);
 
       if (response.kind === "confirmed") {
         setPreviousOrder({
-          ...currentAttempt.receipt,
+          ...attempt.receipt,
           order: response.order,
         });
-      }
-
-      // 結果不明の再送が権限などで拒否されても、最初の送信が未確定とは限らない。
-      if (uncertain && response.kind === "rejected") {
-        setUncertain(true);
+        setState({ status: "confirmed", result: response });
+      } else if (retrying && response.kind === "rejected") {
+        // 再送の拒否では最初の送信が未確定とは判断できないため、要求を保持する。
+        setState({ status: "uncertain", attempt, rejection: response });
       } else {
-        attempt.current = null;
+        setState({ status: "failed", result: response });
       }
 
       void client.invalidateQueries({
         queryKey: menuQueryScopes.all(),
       });
     } catch {
-      setUncertain(true);
+      setState({ status: "uncertain", attempt, rejection: null });
     } finally {
       sending.current = false;
-      setPending(false);
+    }
+  };
+
+  const submit = async (lines: readonly DraftLine[], received: number | null) => {
+    if (isLocked() || received === null) {
+      return;
+    }
+    await send(
+      {
+        request: {
+          requestId: crypto.randomUUID(),
+          lines: lines.map((line) => ({ menuItemId: line.item.id, quantity: Number(line.quantity) })),
+        },
+        receipt: {
+          names: Object.fromEntries(lines.map((line) => [line.item.id, line.item.name])),
+          received,
+          quotedTotal: calculateCheckout(lines, String(received)).total,
+        },
+      },
+      false,
+    );
+  };
+
+  const retry = async () => {
+    if (state.status === "uncertain") {
+      await send(state.attempt, true);
+    }
+  };
+
+  const reset = () => {
+    if (!sending.current && !awaitingResult) {
+      setState({ status: "idle" });
     }
   };
 
   return {
-    pending,
-    uncertain,
-    result,
+    state,
     previousOrder,
     locked,
-    isLocked: () => locked || sending.current,
+    isLocked,
     submit,
-    clearResult: () => {
-      if (!sending.current && !uncertain) {
-        setResult(null);
-      }
-    },
+    retry,
+    reset,
   };
 };

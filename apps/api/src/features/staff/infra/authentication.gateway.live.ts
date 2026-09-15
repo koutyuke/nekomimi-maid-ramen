@@ -86,12 +86,16 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
           if (!claims || claims["hd"] !== config.schoolDomain || claims["email_verified"] !== true) {
             return null;
           }
-          return googleProvider.getUserInfo(tokens);
+          const info = await googleProvider.getUserInfo(tokens);
+          return info ? { ...info, user: { ...info.user, registrationSubject: claims.sub } } : null;
         },
       },
     },
     user: {
-      additionalFields: { role: { type: "string", defaultValue: "None", input: false } },
+      additionalFields: {
+        role: { type: "string", defaultValue: "None", input: false },
+        registrationSubject: { type: "string", required: false, returned: false },
+      },
       validateUserInfo: async ({ user, source }) => {
         if (source.action !== "link-account") {
           return undefined;
@@ -99,7 +103,7 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
         if (!user.id) {
           return { error: "account_not_linked" };
         }
-        // D1で初回登録が途中失敗した、権限も認証履歴もない利用者だけを再開する。
+        // メールの再割り当てで登録途中のOwnerを奪われないよう、検証済みsubも照合する。
         const [storedUser] = await db.select().from(Database.tables.users).where(eq(Database.tables.users.id, user.id));
         const accounts = await db
           .select({ id: Database.tables.accounts.id })
@@ -111,7 +115,14 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
           .from(Database.tables.sessions)
           .where(eq(Database.tables.sessions.userId, user.id))
           .limit(1);
-        if (storedUser?.role !== "None" || accounts.length > 0 || sessions.length > 0) {
+        if (
+          !storedUser ||
+          (storedUser.role !== "None" && storedUser.role !== "Owner") ||
+          !storedUser.registrationSubject ||
+          storedUser.registrationSubject !== user["registrationSubject"] ||
+          accounts.length > 0 ||
+          sessions.length > 0
+        ) {
           return { error: "account_not_linked" };
         }
         return undefined;
@@ -142,17 +153,33 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
     databaseHooks: {
       user: {
         create: {
-          before: async (user) => ({ data: { ...user, image: null, role: "None" } }),
+          before: async (user) => ({
+            data: {
+              ...user,
+              image: null,
+              role: config.ownerEmail && user.email === config.ownerEmail ? "Owner" : "None",
+            },
+          }),
         },
         update: {
-          before: async (user) => ({ data: { ...user, image: null } }),
+          before: async ({ role: _role, registrationSubject: _subject, ...user }) => ({
+            data: { ...user, image: null },
+          }),
         },
       },
       session: {
         create: { before: async (session) => ({ data: { ...session, ipAddress: null, userAgent: null } }) },
       },
       account: {
-        create: { before: async (account) => ({ data: { ...account, ...privateAccountFields } }) },
+        create: {
+          before: async (account) => ({ data: { ...account, ...privateAccountFields } }),
+          after: async (account) => {
+            await db
+              .update(Database.tables.users)
+              .set({ registrationSubject: null })
+              .where(eq(Database.tables.users.id, account.userId));
+          },
+        },
         update: { before: async (account) => ({ data: { ...account, ...privateAccountFields } }) },
       },
     },
@@ -175,7 +202,7 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
             id: session.user.id,
             email: session.user.email,
             name: session.user.name,
-            role: resolveRole(session.user.role, session.user.email, config.ownerEmail),
+            role: resolveRole(session.user.role),
           },
         });
       },

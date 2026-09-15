@@ -11,7 +11,7 @@ import { Database, makeDatabaseLive } from "../../core/infra/drizzle";
 import { connectWebSocketHub } from "../../core/infra/websocket";
 import { MenuLayer } from "../../features/menu/layer";
 import { adjustStock, StockQuantity } from "../../features/menu/public";
-import { makeOrdersLayer } from "../../features/orders/layer";
+import { OrdersLayer } from "../../features/orders/layer";
 import { cancelOrder, confirmOrder } from "../../features/orders/public";
 import { makeRealtimeLayer } from "../../features/realtime/layer";
 import { failingUpdateNotifierMock } from "../../features/realtime/testing";
@@ -26,7 +26,7 @@ const runtime = (realtime = realtimeLive, staff = staffFixture) => {
   return ManagedRuntime.make(
     Layer.mergeAll(
       menu,
-      makeOrdersLayer("").pipe(Layer.provide(Layer.mergeAll(menu, realtime))),
+      OrdersLayer.pipe(Layer.provide(Layer.mergeAll(menu, realtime))),
       realtime,
       authenticationGatewayMock(staff),
       staffRepositoryMock(),
@@ -150,7 +150,9 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     const socket = await connect();
     const message = nextMessage(socket);
 
-    await live.runPromise(adjustStock(staffFixture.id, MenuItemId.make("ramen"), StockQuantity.make(8)));
+    await live.runPromise(
+      adjustStock({ ...staffFixture, role: "Admin" }, MenuItemId.make("ramen"), StockQuantity.make(8)),
+    );
 
     expect(JSON.parse(await message)).toMatchObject({ type: "changed", revisions: { menu: expect.any(Number) } });
   });

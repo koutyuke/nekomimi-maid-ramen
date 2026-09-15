@@ -24,17 +24,20 @@ export type AdjustStockRequirements =
 export const adjustStockRoute = (run: EffectRunner<AdjustStockRequirements>, origin: string) =>
   new Elysia().use(staffAccessPlugin(run, origin)).put(
     "/staff/menu/:menuItemId/stock",
-    ({ staff, params, body, set }) => {
+    ({ staff, params, body, set, status }) => {
       set.headers["cache-control"] = "no-store";
       return run(
         logAndDie(
-          adjustStock(staff.id, params.menuItemId, StockQuantity.make(body.quantity)).pipe(
+          adjustStock(staff, params.menuItemId, StockQuantity.make(body.quantity)).pipe(
             Effect.map((adjustment) => ({
               menuItemId: adjustment.menuItemId,
               previousQuantity: adjustment.previousQuantity,
               quantity: adjustment.quantity,
               adjustedAt: adjustment.adjustedAt.toISOString(),
             })),
+            Effect.catchTag("StockAdjustmentForbidden", () =>
+              Effect.succeed(status(403, { code: "forbidden" } as const)),
+            ),
           ),
         ),
       );

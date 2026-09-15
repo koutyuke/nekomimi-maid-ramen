@@ -183,14 +183,14 @@ Google OAuthはテスト状態とし、利用する学校アカウントをテ�
 
 対象とする学校ドメインは`apps/api/wrangler.jsonc`の`SCHOOL_DOMAIN`で設定する。
 
-| 設定                   | 内容                                                |
-| ---------------------- | --------------------------------------------------- |
-| `GOOGLE_CLIENT_ID`     | Google OAuthクライアントID                          |
-| `GOOGLE_CLIENT_SECRET` | Google OAuthクライアントの秘密情報                  |
-| `BETTER_AUTH_SECRET`   | `openssl rand -base64 32`で生成する認証用の秘密情報 |
-| `OWNER_EMAIL`          | Ownerにする学校アカウントのメールアドレス           |
+| 設定                   | 内容                                                  |
+| ---------------------- | ----------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`     | Google OAuthクライアントID                            |
+| `GOOGLE_CLIENT_SECRET` | Google OAuthクライアントの秘密情報                    |
+| `BETTER_AUTH_SECRET`   | `openssl rand -base64 32`で生成する認証用の秘密情報   |
+| `OWNER_EMAIL`          | 初回登録でOwnerを付与する学校メール。登録後は省略可能 |
 
-D1へ移行を適用してから`pnpm dev`を起動し、スタッフ側の開発サーバーが示す`http://localhost:ポート番号/`からログインする。認証ではAPIとホスト名を揃えるため、画面も`localhost`で開く。Owner以外の初期ロールはNoneである。OwnerまたはAdminでログインし、「管理者ページ」から「スタッフ管理」を開くと、ログインしたことがある利用者の名前・メールアドレス・現在のロールを確認できる。「在庫管理」では、商品ごとの現在在庫数を登録・修正できる。
+D1へ移行を適用してから`pnpm dev`を起動し、スタッフ側の開発サーバーが示す`http://localhost:ポート番号/`からログインする。認証ではAPIとホスト名を揃えるため、画面も`localhost`で開く。初回登録では設定メールと一致した利用者へOwner、それ以外へNoneをDBに保存する。再ログインや設定変更では保存済みロールを維持する。OwnerまたはAdminでログインし、「管理者ページ」から「スタッフ管理」を開くと、ログインしたことがある利用者の名前・メールアドレス・現在のロールを確認できる。「在庫管理」では、商品ごとの現在在庫数を登録・修正できる。
 
 担当者が一度ログインした後、OwnerまたはAdminが一覧で対象者を確認し、Staffを選んで「変更する」を押す。権限を外す場合はNoneを選ぶ。Adminの付与・剥奪はOwnerだけが行える。AdminはNoneとStaffの間だけ変更できる。Ownerと自分自身のロールは変更できない。成功表示を確認し、対象者の画面で「権限を再確認」を押すと新しいロールを確認できる。APIへの次の操作には、再ログインせずに変更が適用される。
 
@@ -209,7 +209,33 @@ Google Cloudの戻り先は、共有パッケージで定義した環境別のAP
 
 設定後はOwnerと通常の学校アカウントでログインし、OwnerとNoneになること、ログアウト後に再ログインが必要になることを確認する。学校外の拒否を確認するときは、管理する学校外のテスト用アカウントもGoogleのテストユーザーへ登録し、Googleの同意画面を通過した後にアプリ側がログインを拒否することを確かめる。Google側で拒否された場合はアプリ側のドメイン判定を確認したことにはならない。
 
-セッションは12時間で失効する。期限切れやアカウントの選択違いでは、学校アカウントを選んで再ログインする。再試行しても失敗する場合は管理者へ連絡し、管理者が4つの秘密情報、`SCHOOL_DOMAIN`、Googleのテストユーザー登録、戻り先URLと環境別のAPI公開先の一致、D1への移行適用を確認する。
+セッションは12時間で失効する。期限切れやアカウントの選択違いでは、学校アカウントを選んで再ログインする。再試行しても失敗する場合は管理者へ連絡し、管理者が3つの認証用秘密情報、初回Owner付与に使う`OWNER_EMAIL`、`SCHOOL_DOMAIN`、Googleのテストユーザー登録、戻り先URLと環境別のAPI公開先の一致、D1への移行適用を確認する。
+
+### オーナーの移行・交代・復旧
+
+本番DBの更新は、この手順の追加だけでは許可されない。開発担当者が対象の環境、利用者ID、Googleの`sub`、変更前後のロール、取り消し方針を確認し、DB更新の明示的な承認を得てから営業外に実施する。ローカルでは以下の`--remote`を`--local`に置き換える。
+
+既存DBのOwner移行が終わるまで新APIを配備しない。CIは移行ファイルを適用した後、認証アカウントがあるのに保存済みOwnerがいなければ配備を停止する。手動配備でも同じ確認を行う。
+
+1. 移行前のAPIで現在のOwnerがログインし、`/auth/session`の利用者IDとOwnerロールを確認する。Cloudflareで配備先D1と復元可能なバックアップを確認し、現在のAPI版、`OWNER_EMAIL`、対象者の保存済みロールを非公開の作業記録へ残す。バックアップには認証用トークンが含まれるためGitへ入れず、アクセスを開発担当者に限定する。
+2. 承認後に`pnpm --filter @nekomimi/api db:migrate:remote`で`0010_stored_owner_role.sql`まで適用する。この移行は利用者・認証アカウント・セッションを保持し、Ownerへの昇格は行わない。次の照会で`USER_ID`を対象IDへ置き換え、本人の検証済みGoogleアカウントと`GOOGLE_SUBJECT`を確定する。一致しなければ停止する。
+
+   ```sh
+   pnpm --filter @nekomimi/api exec wrangler d1 execute nekomimi-ramen --remote --command "SELECT users.id, users.email, users.email_verified, users.role, accounts.account_id FROM users INNER JOIN accounts ON accounts.user_id = users.id WHERE users.id = 'USER_ID' AND accounts.provider_id = 'google';"
+   ```
+
+3. 承認された対象だけを変更する。以下の両識別子を確認済みの値へ置き換える。変更件数が1件であること、同じ照会でOwnerとなること、`PRAGMA foreign_key_check`が空であることを確認する。0件またはエラーなら配備せず原因を調べる。
+
+   ```sh
+   pnpm --filter @nekomimi/api exec wrangler d1 execute nekomimi-ramen --remote --command "UPDATE users SET role = 'Owner', updated_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000 WHERE id = 'USER_ID' AND email_verified = 1 AND EXISTS (SELECT 1 FROM accounts WHERE accounts.user_id = users.id AND provider_id = 'google' AND account_id = 'GOOGLE_SUBJECT');"
+   pnpm --filter @nekomimi/api exec wrangler d1 execute nekomimi-ramen --remote --command "PRAGMA foreign_key_check;"
+   ```
+
+4. 新APIを配備し、同じOwnerの既存セッションと再ログインでOwnerとなること、スタッフ一覧取得・在庫修正ができることを確認する。通常のロール変更ではOwnerの付与・変更と自分自身の変更が拒否されることも確認する。失敗したら`OWNER_EMAIL`を元の対象へ設定し、移行前のAPIへ戻して管理権限を確認する。その後、承認済み対象のロールを記録した移行前の値へ戻す。DBの追加列と制約はそのまま残し、認証データを失う表の削除や古い移行の再適用はしない。
+
+初期設定後は、DBのOwnerとGoogleアカウントの対応、および実ログインで管理操作ができることを確認してから、本番の`OWNER_EMAIL`秘密情報を削除し、手元の`.dev.vars`からも外せる。未設定は空として扱う。`wrangler.jsonc`では必須秘密情報のリストを指定せず、任意の`OWNER_EMAIL`も`.dev.vars`から読み込む。3つの認証用秘密情報が不足する場合はアプリ側で認証を拒否する。別メールを設定すると、既存Ownerは維持したまま、そのメールの**新規登録者**もOwnerとなる。既存利用者の昇格やオーナー交代には使わない。
+
+交代・復旧では、対象者が通常の学校Googleアカウントでログインを完了してから、上の本人・識別子確認と承認を経てOwnerへ変更する。新Ownerの管理操作が成功するまで旧Ownerを降格しない。成功後に旧Ownerを承認済みのAdmin・Staff・Noneへ変更し、次の操作と通知接続で新ロールが適用されることを確認する。失敗したら新Ownerのロールを記録した値へ戻し、旧Ownerを維持する。登録途中で`registration_subject`のない古い利用者は自動再開できないため、認証アカウント・セッションがどちらもないことと本人を確認し、対象利用者だけの削除・再登録について別途承認を得る。
 
 `nekomimi-ramen.com`、`staff.nekomimi-ramen.com`、`api.nekomimi-ramen.com` の Custom Domain 割り当ては、初回の配備時に `wrangler` が作成する。
 
