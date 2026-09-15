@@ -23,5 +23,6 @@ export const kitchenPageFixture: KitchenPageUIProps = {
   realtimeConnected: true,
   pendingLines: [],
   updateError: null,
-  actions: { onRetry: () => {}, onUpdate: () => {} },
+  onRetry: () => {},
+  onUpdate: () => {},
 };

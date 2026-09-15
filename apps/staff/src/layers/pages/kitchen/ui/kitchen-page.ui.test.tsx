@@ -12,7 +12,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
       <KitchenPageUI
         {...kitchenPageFixture}
         pendingLines={[{ orderId: "order-1", menuItemId: "ramen" }]}
-        actions={{ onRetry: vi.fn(), onUpdate }}
+        onUpdate={onUpdate}
       />,
     );
     expect(screen.getByRole("button", { name: "注文1のラーメンの調理を開始" }).hasAttribute("disabled")).toBe(true);
@@ -65,7 +65,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
 
   it("未調理は着手でき、調理中は確認後の完成または着手取消だけを選べる", async () => {
     const onUpdate = vi.fn();
-    render(<KitchenPageUI {...kitchenPageFixture} actions={{ onRetry: vi.fn(), onUpdate }} />);
+    render(<KitchenPageUI {...kitchenPageFixture} onUpdate={onUpdate} />);
     fireEvent.click(screen.getByRole("button", { name: "注文1のラーメンの調理を開始" }));
     expect(onUpdate).toHaveBeenCalledWith(
       kitchenOrdersFixture[0]!.id,
@@ -97,7 +97,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
   });
   it.each(["キャンセル", "確認を閉じる"])("完成の確認で「%s」を選んでも更新しない", async (name) => {
     const onUpdate = vi.fn();
-    render(<KitchenPageUI {...kitchenPageFixture} actions={{ onRetry: vi.fn(), onUpdate }} />);
+    render(<KitchenPageUI {...kitchenPageFixture} onUpdate={onUpdate} />);
     fireEvent.click(screen.getByRole("button", { name: "注文2のラーメンを完成" }));
     const dialog = await screen.findByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name }));
@@ -108,7 +108,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
     { pendingLines: [{ orderId: "order-2", menuItemId: "ramen" }] },
   ])("完成の確認中に更新不可になったら送信を止める: %o", async (state) => {
     const onUpdate = vi.fn();
-    const props = { ...kitchenPageFixture, actions: { onRetry: vi.fn(), onUpdate } };
+    const props = { ...kitchenPageFixture, onUpdate };
     const page = render(<KitchenPageUI {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "注文2のラーメンを完成" }));
     await screen.findByRole("dialog");
@@ -120,7 +120,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
   });
   it("確認中に他の担当者が着手を取り消したら確認を閉じ、再着手しても再承認を求める", async () => {
     const onUpdate = vi.fn();
-    const props = { ...kitchenPageFixture, actions: { onRetry: vi.fn(), onUpdate } };
+    const props = { ...kitchenPageFixture, onUpdate };
     const page = render(<KitchenPageUI {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "注文2のラーメンを完成" }));
     await screen.findByRole("dialog");
@@ -153,20 +153,14 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
   });
   it("取得失敗を注文なしと誤表示せず、再試行を提供する", () => {
     const onRetry = vi.fn();
-    render(
-      <KitchenPageUI
-        {...kitchenPageFixture}
-        orders={{ status: "error", data: undefined }}
-        actions={{ onRetry, onUpdate: vi.fn() }}
-      />,
-    );
+    render(<KitchenPageUI {...kitchenPageFixture} orders={{ status: "error", data: undefined }} onRetry={onRetry} />);
     expect(screen.queryByText("表示する注文はありません。")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "注文情報を更新" }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
   it("アクセス拒否でも再取得でき、復帰後も担当範囲を維持する", () => {
     const onRetry = vi.fn();
-    const props = { ...kitchenPageFixture, actions: { onRetry, onUpdate: vi.fn() } };
+    const props = { ...kitchenPageFixture, onRetry };
     const page = render(<KitchenPageUI {...props} />);
     fireEvent.change(screen.getByRole("combobox", { name: "表示する商品" }), { target: { value: "side" } });
     page.rerender(<KitchenPageUI {...props} orders={{ status: "denied", data: undefined }} />);
@@ -180,7 +174,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
 
   it.each(["pending", "denied"] as const)("確認中に%sとなったら対象を隠し、復帰後は再承認を求める", async (status) => {
     const onUpdate = vi.fn();
-    const props = { ...kitchenPageFixture, actions: { onRetry: vi.fn(), onUpdate } };
+    const props = { ...kitchenPageFixture, onUpdate };
     const page = render(<KitchenPageUI {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "注文2のラーメンを完成" }));
     const dialog = await screen.findByRole("dialog");
@@ -196,9 +190,7 @@ describe("SPEC-KIT-001 SPEC-KIT-002 調理画面の操作", () => {
 
   it("WebSocketだけ切断した場合は接続状況を示して更新を継続する", () => {
     const onUpdate = vi.fn();
-    render(
-      <KitchenPageUI {...kitchenPageFixture} realtimeConnected={false} actions={{ onRetry: vi.fn(), onUpdate }} />,
-    );
+    render(<KitchenPageUI {...kitchenPageFixture} realtimeConnected={false} onUpdate={onUpdate} />);
     expect(screen.getByText("接続中")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "注文1のラーメンの調理を開始" }));
     expect(onUpdate).toHaveBeenCalledWith("order-1", "ramen", "cooking");

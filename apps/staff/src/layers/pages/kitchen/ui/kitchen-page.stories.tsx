@@ -7,7 +7,7 @@ import { KitchenPageUI } from "./kitchen-page.ui";
 const meta = {
   component: KitchenPageUI,
   title: "Pages/Kitchen/KitchenPage",
-  args: { ...kitchenPageFixture, actions: { onRetry: fn(), onUpdate: fn() } },
+  args: { ...kitchenPageFixture, onRetry: fn(), onUpdate: fn() },
 } satisfies Meta<typeof KitchenPageUI>;
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -5,13 +5,13 @@ import {
   Container,
   Divider,
   Flex,
-  Group,
   Select,
   SimpleGrid,
   Stack,
   Text,
   Title,
 } from "@mantine/core";
+import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import { ErrorAlert, ConnectingIndicator } from "../../../shared/ui";
@@ -27,7 +27,8 @@ export type KitchenPageUIProps = {
   realtimeConnected: boolean;
   pendingLines: readonly PendingCookingLine[];
   updateError: string | null;
-  actions: { onRetry: () => void; onUpdate: (orderId: string, menuItemId: string, to: CookingState) => void };
+  onRetry: () => void;
+  onUpdate: (orderId: string, menuItemId: string, to: CookingState) => void;
 };
 
 export const KitchenPageUI = ({
@@ -35,7 +36,8 @@ export const KitchenPageUI = ({
   realtimeConnected,
   pendingLines,
   updateError,
-  actions,
+  onRetry,
+  onUpdate,
 }: KitchenPageUIProps) => {
   const [filter, setFilter] = useState<KitchenFilter>("all");
   const [hideHandled, setHideHandled] = useState(true);
@@ -45,35 +47,35 @@ export const KitchenPageUI = ({
   return (
     <Container size="md" py="lg">
       <Stack>
-        <Group justify="space-between">
+        <Flex gap="xs" align="center">
           <Title order={1}>調理</Title>
-          {!realtimeConnected && (orders.status === "pending" || orders.status === "success") && (
-            <ConnectingIndicator />
-          )}
-        </Group>
-
-        <Flex align="end" justify="start" gap="md">
-          <Select
-            label="表示する商品"
-            value={filter}
-            onChange={(_value, option) => {
-              setFilter(option.value);
-            }}
-            data={[
-              { value: "all", label: "すべて表示" },
-              { value: "main", label: "ラーメンのみ" },
-              { value: "side", label: "サイドのみ" },
-            ]}
-          />
-          <Checkbox
-            label="対応済みを非表示"
-            checked={hideHandled}
-            onChange={(event) => setHideHandled(event.currentTarget.checked)}
-          />
+          <Flex flex={1} align="center" justify="end">
+            {!realtimeConnected && (orders.status === "pending" || orders.status === "success") && (
+              <ConnectingIndicator />
+            )}
+          </Flex>
+          <Button variant="light" onClick={onRetry} h={44} w={44} p={0}>
+            <RefreshCw size={20} />
+          </Button>
         </Flex>
-        <Button variant="light" onClick={actions.onRetry}>
-          注文情報を更新
-        </Button>
+
+        <Select
+          label="表示する商品"
+          value={filter}
+          onChange={(_value, option) => {
+            setFilter(option.value);
+          }}
+          data={[
+            { value: "all", label: "すべて表示" },
+            { value: "main", label: "ラーメンのみ" },
+            { value: "side", label: "サイドのみ" },
+          ]}
+        />
+        <Checkbox
+          label="対応済みを非表示"
+          checked={hideHandled}
+          onChange={(event) => setHideHandled(event.currentTarget.checked)}
+        />
 
         <Divider />
 
@@ -98,7 +100,7 @@ export const KitchenPageUI = ({
               status={status}
               disabled={disabled}
               pendingItemIds={pendingLines.filter((line) => line.orderId === order.id).map((line) => line.menuItemId)}
-              onUpdate={(menuItemId, to) => actions.onUpdate(order.id, menuItemId, to)}
+              onUpdate={(menuItemId, to) => onUpdate(order.id, menuItemId, to)}
             />
           ))}
         </SimpleGrid>

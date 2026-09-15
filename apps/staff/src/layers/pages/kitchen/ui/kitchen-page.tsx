@@ -10,7 +10,8 @@ export const KitchenPage = () => {
       realtimeConnected={realtimeConnected}
       pendingLines={cooking.pendingLines}
       updateError={cooking.error}
-      actions={{ onRetry: retry, onUpdate: cooking.update }}
+      onRetry={retry}
+      onUpdate={cooking.update}
     />
   );
 };
