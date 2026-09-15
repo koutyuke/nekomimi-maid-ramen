@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { StaffPage } from "../layers/pages/staff";
+import { HomePage } from "../layers/pages/home";
 import { AuthGuard } from "../layers/widgets/auth-guard";
 
 const Layout = () => (
   <AuthGuard unauthenticated="login-prompt">
-    <StaffPage />
+    <HomePage />
   </AuthGuard>
 );
 

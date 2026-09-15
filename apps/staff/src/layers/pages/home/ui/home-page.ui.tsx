@@ -4,13 +4,13 @@ import { StaffAccountCard } from "../../../entities/staff";
 import { NavigationUI } from "../../../widgets/layout";
 import type { Staff } from "../../../entities/staff";
 
-export type StaffPageUIProps = {
+export type HomePageUIProps = {
   staff: Staff;
   onRetry: () => void;
   onLogout: () => void;
 };
 
-export const StaffPageUI = ({ staff, onRetry, onLogout }: StaffPageUIProps) => (
+export const HomePageUI = ({ staff, onRetry, onLogout }: HomePageUIProps) => (
   <Container py="lg" size="sm">
     <Stack>
       <Title order={1}>スタッフ</Title>

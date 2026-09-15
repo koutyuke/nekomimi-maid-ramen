@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
-import { StaffPage } from "./staff-page";
+import { HomePage } from "./home-page";
 
 let loggedIn = true;
 let logoutFails = false;
@@ -47,7 +47,7 @@ const renderPage = () => {
   queryClient.setQueryData(["private-orders"], [{ id: "sensitive-order" }]);
   render(
     <QueryClientProvider client={queryClient}>
-      <StaffPage />
+      <HomePage />
     </QueryClientProvider>,
   );
   return queryClient;

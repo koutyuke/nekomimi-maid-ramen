@@ -2,9 +2,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { staffQueries } from "../../../entities/staff";
 import { useAuth } from "../../../features/auth";
-import { StaffPageUI } from "./staff-page.ui";
+import { HomePageUI } from "./home-page.ui";
 
-export const StaffPage = () => {
+export const HomePage = () => {
   const staff = useSuspenseQuery(staffQueries.current());
   const { logout } = useAuth();
 
@@ -12,5 +12,5 @@ export const StaffPage = () => {
     return null;
   }
 
-  return <StaffPageUI staff={staff.data} onRetry={() => void staff.refetch()} onLogout={logout} />;
+  return <HomePageUI staff={staff.data} onRetry={() => void staff.refetch()} onLogout={logout} />;
 };
