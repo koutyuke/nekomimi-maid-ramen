@@ -18,7 +18,7 @@ export const InventoryManagementPageUI = ({
   onRetry,
   onUpdate,
 }: InventoryManagementPageUIProps) => (
-  <Container py="xl" size="lg">
+  <Container py="lg" size="lg">
     <Stack>
       <Group align="flex-end" gap="sm" justify="space-between">
         <Title order={1}>在庫管理</Title>
