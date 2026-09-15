@@ -20,13 +20,13 @@ const staffNavigations: readonly Navigation[] = [
   {
     href: "/kitchen",
     label: "調理",
-    description: "確定した注文を確認し、調理状況を更新するページ",
+    description: "注文の確認と調理状況を更新するページ",
     roles: ["Owner", "Admin", "Staff"],
   },
   {
     href: "/handoff",
     label: "受け渡し",
-    description: "注文番号と商品を照合し、受け渡しを記録するページ",
+    description: "注文番号と商品を確認し、受け渡しを記録するページ",
     roles: ["Owner", "Admin", "Staff"],
   },
   {
@@ -41,13 +41,13 @@ const adminNavigations: readonly Navigation[] = [
   {
     href: "/staff-management",
     label: "スタッフ管理",
-    description: "スタッフ一覧と管理を行うページ",
+    description: "スタッフ一覧と権限管理を行うページ",
     roles: ["Owner", "Admin"],
   },
   {
     href: "/inventory-management",
     label: "在庫管理",
-    description: "商品ごとの在庫確認・管理を行うページ",
+    description: "商品ごとの在庫確認と管理を行うページ",
     roles: ["Owner", "Admin"],
   },
 ];
