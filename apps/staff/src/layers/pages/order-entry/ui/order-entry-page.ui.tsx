@@ -113,7 +113,15 @@ export const OrderEntryPageUI = ({
           <Flex flex={1} align="center" justify="end">
             {!realtimeConnected && (menu.status === "pending" || menu.status === "success") && <ConnectingIndicator />}
           </Flex>
-          <Button variant="light" disabled={locked} onClick={onRefreshMenu} h={44} w={44} p={0}>
+          <Button
+            aria-label="商品情報を更新"
+            variant="light"
+            disabled={locked}
+            onClick={onRefreshMenu}
+            h={44}
+            w={44}
+            p={0}
+          >
             <RefreshCw size={20} />
           </Button>
         </Flex>

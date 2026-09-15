@@ -90,6 +90,7 @@ export const OrderItemsUI = ({ items, lines, disabled, canIncrease, onChangeQuan
                   <Plus />
                 </Button>
               </Group>
+              {quantity > 0 && <Text ta="right">小計：{yen((line?.item.price ?? item.price) * quantity)}</Text>}
             </Stack>
           </Paper>
         );

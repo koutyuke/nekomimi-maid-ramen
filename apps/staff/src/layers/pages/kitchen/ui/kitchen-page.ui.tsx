@@ -5,7 +5,7 @@ import {
   Container,
   Divider,
   Flex,
-  Select,
+  NativeSelect,
   SimpleGrid,
   Stack,
   Text,
@@ -54,16 +54,19 @@ export const KitchenPageUI = ({
               <ConnectingIndicator />
             )}
           </Flex>
-          <Button variant="light" onClick={onRetry} h={44} w={44} p={0}>
+          <Button aria-label="注文情報を更新" variant="light" onClick={onRetry} h={44} w={44} p={0}>
             <RefreshCw size={20} />
           </Button>
         </Flex>
 
-        <Select
+        <NativeSelect
           label="表示する商品"
           value={filter}
-          onChange={(_value, option) => {
-            setFilter(option.value);
+          onChange={(event) => {
+            const value = event.currentTarget.value;
+            if (value === "all" || value === "main" || value === "side") {
+              setFilter(value);
+            }
           }}
           data={[
             { value: "all", label: "すべて表示" },

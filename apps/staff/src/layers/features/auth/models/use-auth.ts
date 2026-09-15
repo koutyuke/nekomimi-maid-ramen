@@ -26,5 +26,7 @@ export const useAuth = () => {
   return {
     login: loginMutation.mutate,
     logout: logoutMutation.mutate,
+    logoutError: logoutMutation.isError,
+    logoutPending: logoutMutation.isPending,
   };
 };

@@ -46,7 +46,7 @@ export const HandoffPageUI = ({
               <ConnectingIndicator />
             )}
           </Flex>
-          <Button variant="light" onClick={onRetry} h={44} w={44} p={0}>
+          <Button aria-label="注文情報を更新" variant="light" onClick={onRetry} h={44} w={44} p={0}>
             <RefreshCw size={20} />
           </Button>
         </Flex>

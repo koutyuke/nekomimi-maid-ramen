@@ -7,11 +7,21 @@ type StaffAccountCardProps = {
   name: Staff["name"];
   email: Staff["email"];
   role: Staff["role"];
+  busy?: boolean;
+  failed?: boolean;
   onRetry: () => void;
   onLogout: () => void;
 };
 
-export const StaffAccountCard = ({ name, email, role, onRetry, onLogout }: StaffAccountCardProps) => (
+export const StaffAccountCard = ({
+  name,
+  email,
+  role,
+  busy = false,
+  failed = false,
+  onRetry,
+  onLogout,
+}: StaffAccountCardProps) => (
   <Paper aria-label="ログイン中のスタッフ" component="section" p="lg" radius="md" withBorder>
     <Stack gap="md">
       <Group gap="md" wrap="nowrap">
@@ -38,6 +48,11 @@ export const StaffAccountCard = ({ name, email, role, onRetry, onLogout }: Staff
           業務操作の権限がありません。管理者に権限の付与を依頼してください。
         </Alert>
       )}
+      {failed && (
+        <Alert color="red" role="alert">
+          ログアウトできませんでした。通信状況を確認して、もう一度お試しください。
+        </Alert>
+      )}
 
       <Divider />
 
@@ -45,7 +60,7 @@ export const StaffAccountCard = ({ name, email, role, onRetry, onLogout }: Staff
         <Button onClick={onRetry} variant="light">
           権限を再確認
         </Button>
-        <Button onClick={onLogout} variant="filled" color="red">
+        <Button disabled={busy} loading={busy} onClick={onLogout} variant="filled" color="red">
           ログアウト
         </Button>
       </Group>
