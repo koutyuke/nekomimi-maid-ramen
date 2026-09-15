@@ -1,4 +1,4 @@
-import { Paper, Stack, Group, Avatar, Flex, Alert, Divider, Button, Text } from "@mantine/core";
+import { Paper, Stack, Group, Avatar, Flex, Alert, Text } from "@mantine/core";
 
 import { StaffRoleBadge } from "./staff-role-badge";
 import type { Staff } from "../model/staff";
@@ -7,21 +7,9 @@ type StaffAccountCardProps = {
   name: Staff["name"];
   email: Staff["email"];
   role: Staff["role"];
-  busy?: boolean;
-  failed?: boolean;
-  onRetry: () => void;
-  onLogout: () => void;
 };
 
-export const StaffAccountCard = ({
-  name,
-  email,
-  role,
-  busy = false,
-  failed = false,
-  onRetry,
-  onLogout,
-}: StaffAccountCardProps) => (
+export const StaffAccountCard = ({ name, email, role }: StaffAccountCardProps) => (
   <Paper aria-label="ログイン中のスタッフ" component="section" p="lg" radius="md" withBorder>
     <Stack gap="md">
       <Group gap="md" wrap="nowrap">
@@ -37,7 +25,7 @@ export const StaffAccountCard = ({
             <StaffRoleBadge role={role} />
           </Group>
 
-          <Text c="dimmed" size="sm" truncate>
+          <Text c="dimmed" size="sm" style={{ overflowWrap: "anywhere" }}>
             {email}
           </Text>
         </Stack>
@@ -48,22 +36,6 @@ export const StaffAccountCard = ({
           業務操作の権限がありません。管理者に権限の付与を依頼してください。
         </Alert>
       )}
-      {failed && (
-        <Alert color="red" role="alert">
-          ログアウトできませんでした。通信状況を確認して、もう一度お試しください。
-        </Alert>
-      )}
-
-      <Divider />
-
-      <Group gap="sm" grow>
-        <Button onClick={onRetry} variant="light">
-          権限を再確認
-        </Button>
-        <Button disabled={busy} loading={busy} onClick={onLogout} variant="filled" color="red">
-          ログアウト
-        </Button>
-      </Group>
     </Stack>
   </Paper>
 );

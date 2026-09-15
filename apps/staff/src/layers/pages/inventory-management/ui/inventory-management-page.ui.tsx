@@ -1,13 +1,14 @@
-import { Alert, Button, Container, Group, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Container, Flex, Stack, Text, Title } from "@mantine/core";
 import { RefreshCw } from "lucide-react";
 
-import { ErrorAlert, LoadingNotice } from "../../../shared/ui";
+import { ConnectingIndicator, ErrorAlert, LoadingNotice } from "../../../shared/ui";
 import { StockTableUI } from "./stock-table/stock-table.ui";
 import type { InventoryState, StockUpdateState } from "../model/use-inventory-management";
 
 export type InventoryManagementPageUIProps = {
   inventory: InventoryState;
   stockUpdate: StockUpdateState;
+  realtimeConnected: boolean;
   onRetry: () => void;
   onUpdate: (menuItemId: string, quantity: number) => void;
 };
@@ -15,13 +16,19 @@ export type InventoryManagementPageUIProps = {
 export const InventoryManagementPageUI = ({
   inventory,
   stockUpdate,
+  realtimeConnected,
   onRetry,
   onUpdate,
 }: InventoryManagementPageUIProps) => (
-  <Container py="lg" size="lg">
+  <Container py="lg" size="md">
     <Stack>
-      <Group align="flex-end" gap="sm" justify="space-between">
+      <Flex align="center" gap="sm">
         <Title order={1}>在庫管理</Title>
+        <Flex flex={1} align="center" justify="end">
+          {!realtimeConnected && (inventory.status === "pending" || inventory.status === "success") && (
+            <ConnectingIndicator />
+          )}
+        </Flex>
         <Button
           aria-label="再読み込み"
           disabled={stockUpdate.status === "pending"}
@@ -33,7 +40,7 @@ export const InventoryManagementPageUI = ({
         >
           <RefreshCw size={20} />
         </Button>
-      </Group>
+      </Flex>
       <Stack gap="md">
         <Text c="dimmed" size="sm">
           商品ごとの現在在庫数を登録・修正します。

@@ -1,11 +1,5 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRoute } from "@tanstack/react-router";
 
-import { Layout } from "../layers/widgets/layout";
+import { AuthenticatedLayout } from "../layers/app/layout";
 
-const RootLayout = () => (
-  <Layout>
-    <Outlet />
-  </Layout>
-);
-
-export const Route = createRootRoute({ component: RootLayout });
+export const Route = createRootRoute({ component: AuthenticatedLayout });

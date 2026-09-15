@@ -30,27 +30,6 @@ it("相対パスの書き方や再公開にかかわらず同じ層の別スラ�
   }
 });
 
-it("表示境界のアプリ接続を拒否し、表示環境と型だけの参照を許す", () => {
-  for (const [source, importKind, forbidden] of [
-    ["@tanstack/react-router", "value", true],
-    ["@tanstack/react-query", "value", true],
-    ["jotai", "value", true],
-    ["../../api/confirm-order", "value", true],
-    ["../../api/confirm-order", "type", false],
-    ["@mantine/core", "value", false],
-    ["react", "value", false],
-    ["../../model/checkout", "value", false],
-  ]) {
-    const reports = [];
-    const rule = plugin.rules["presenter-dependencies"].create({
-      filename: "/app/example.ui.tsx",
-      report: (report) => reports.push(report),
-    });
-    rule.ImportDeclaration({ source: { value: source }, importKind });
-    expect(reports.length, source).toBe(forbidden ? 1 : 0);
-  }
-});
-
 it("テスト用入口は実装を持たず、別ファイルから再公開する", () => {
   const reports = [];
   const declaration = { type: "ExportNamedDeclaration", declaration: { type: "VariableDeclaration" } };

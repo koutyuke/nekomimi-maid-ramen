@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
 import { menuFixture } from "../../../entities/menu/testing";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { OrderEntryPage } from "./order-entry-page";
 
 let role = "Staff";
@@ -102,8 +102,10 @@ const open = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}
     >
-      <AuthGuard permission="Staff">
-        <OrderEntryPage />
+      <AuthGuard>
+        <PermissionGuard permission="Staff">
+          <OrderEntryPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );

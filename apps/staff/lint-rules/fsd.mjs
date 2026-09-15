@@ -51,39 +51,6 @@ export default {
         };
       },
     },
-    "presenter-dependencies": {
-      meta: {
-        type: "problem",
-        schema: [],
-        messages: {
-          connection:
-            "表示境界はアプリの通信・ストア・ルーターへ直接接続しない。接続をContainerへ移すか、通常の部品として構成する。",
-        },
-      },
-      create(context) {
-        if (!context.filename.endsWith(".ui.tsx")) {
-          return {};
-        }
-        const check = (node) => {
-          if (node.importKind === "type" || node.exportKind === "type") {
-            return;
-          }
-          const source = node.source?.value;
-          if (
-            typeof source === "string" &&
-            (/^(?:@tanstack\/react-(?:query|router)|jotai)(?:\/|$)/.test(source) || /(?:^|\/)api(?:\/|$)/.test(source))
-          ) {
-            context.report({ node: node.source, messageId: "connection" });
-          }
-        };
-        return {
-          ImportDeclaration: check,
-          ExportNamedDeclaration: check,
-          ExportAllDeclaration: check,
-          ImportExpression: check,
-        };
-      },
-    },
     "no-cross-slice-imports": {
       meta: {
         type: "problem",

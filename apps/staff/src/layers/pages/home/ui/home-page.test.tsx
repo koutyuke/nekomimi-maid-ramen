@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { routeTree } from "../../../../routeTree.gen";
 import { render } from "../../../../testing/render";
-import { AuthGuard } from "../../../widgets/auth-guard";
-import { HomePage } from "./home-page";
 
 let loggedIn = true;
 let logoutFails = false;
@@ -45,12 +45,11 @@ afterEach(() => vi.unstubAllGlobals());
 
 const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: ["/"] }) });
   queryClient.setQueryData(["private-orders"], [{ id: "sensitive-order" }]);
   render(
     <QueryClientProvider client={queryClient}>
-      <AuthGuard unauthenticated="login-prompt">
-        <HomePage />
-      </AuthGuard>
+      <RouterProvider router={router} />
     </QueryClientProvider>,
   );
   return queryClient;
@@ -59,6 +58,7 @@ const renderPage = () => {
 describe("SPEC-SYS-006 ログアウトと認証状態の表示", () => {
   it("ログアウト成功後は前の担当者のキャッシュを消し、ログインを案内する", async () => {
     const queryClient = renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "アカウントメニュー" }));
     fireEvent.click(await screen.findByRole("button", { name: "ログアウト" }));
     await screen.findByRole("button", { name: "Googleでログイン" });
     expect(queryClient.getQueryData(["private-orders"])).toBeUndefined();
@@ -67,6 +67,7 @@ describe("SPEC-SYS-006 ログアウトと認証状態の表示", () => {
   it("ログアウト失敗時は完了扱いにせず、再試行できる", async () => {
     logoutFails = true;
     const queryClient = renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "アカウントメニュー" }));
     fireEvent.click(await screen.findByRole("button", { name: "ログアウト" }));
     await screen.findByRole("alert");
     expect(screen.queryByRole("button", { name: "Googleでログイン" })).toBeNull();
@@ -87,7 +88,7 @@ describe("SPEC-SYS-006 ログアウトと認証状態の表示", () => {
     expect(screen.queryByText("PRIVATE_INTERNAL_ERROR")).toBeNull();
     sessionFails = false;
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
-    await screen.findByRole("button", { name: "ログアウト" });
+    await screen.findByRole("region", { name: "ログイン中のスタッフ" });
   });
 });
 

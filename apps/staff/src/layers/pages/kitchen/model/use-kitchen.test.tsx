@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { kitchenOrdersFixture } from "../testing";
 import { useKitchen } from "./use-kitchen";
 
@@ -133,7 +133,7 @@ describe("SPEC-KIT-002 調理画面の通信と再確認", () => {
     expect(init?.body).toBe(JSON.stringify({ to: "cooking" }));
     hook.unmount();
   });
-  it("AuthGuardがNoneを拒否し、一覧取得も通知接続も始めない", async () => {
+  it("PermissionGuardがNoneを拒否し、一覧取得も通知接続も始めない", async () => {
     const fetch = vi.fn(async () =>
       Response.json({
         staff: { id: "staff-1", role: "None", name: "担当者", email: "staff@gm.ibaraki-ct.ac.jp" },
@@ -143,8 +143,10 @@ describe("SPEC-KIT-002 調理画面の通信と再確認", () => {
     vi.stubGlobal("WebSocket", TestWebSocket);
     render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <AuthGuard permission="Staff">
-          <Kitchen />
+        <AuthGuard>
+          <PermissionGuard permission="Staff">
+            <Kitchen />
+          </PermissionGuard>
         </AuthGuard>
       </QueryClientProvider>,
     );

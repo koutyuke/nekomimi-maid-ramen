@@ -7,7 +7,7 @@ type AuthErrorUIProps = {
 };
 
 export const AuthErrorUI = ({ onRetry }: AuthErrorUIProps) => (
-  <Container py="xl">
+  <Container py="xl" size="md">
     <ErrorAlert title="ログイン状態を確認できません">
       <Stack align="flex-start">
         <Text>通信状況を確認して、もう一度お試しください。</Text>

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { orderManagementOrdersFixture } from "../testing";
 import { OrderManagementPage } from "./order-management-page";
 
@@ -69,8 +69,10 @@ afterEach(() => vi.unstubAllGlobals());
 const open = () =>
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <AuthGuard permission="Staff">
-        <OrderManagementPage />
+      <AuthGuard>
+        <PermissionGuard permission="Staff">
+          <OrderManagementPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );

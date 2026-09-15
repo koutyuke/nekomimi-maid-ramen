@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { InventoryManagementPage } from "./inventory-management-page";
 
 let quantity = 8;
@@ -83,8 +83,10 @@ const renderPage = () =>
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}
     >
-      <AuthGuard permission="Admin">
-        <InventoryManagementPage />
+      <AuthGuard>
+        <PermissionGuard permission="Admin">
+          <InventoryManagementPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );
@@ -116,6 +118,7 @@ describe("SPEC-INV-004 在庫管理画面", () => {
     menuFails = true;
     renderPage();
     await screen.findByText("在庫を取得できません");
+    expect(screen.queryByText("接続中")).toBeNull();
     expect(screen.queryByRole("table", { name: "商品別在庫" })).toBeNull();
 
     menuFails = false;
@@ -154,6 +157,7 @@ describe("SPEC-INV-004 在庫管理画面", () => {
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
 
     await screen.findByText("在庫情報へのアクセスが拒否されました。ログイン状態とスタッフ権限を確認してください。");
+    expect(screen.queryByText("接続中")).toBeNull();
     expect(screen.queryByRole("table", { name: "商品別在庫" })).toBeNull();
     expect(screen.queryByText("在庫を読み込んでいます")).toBeNull();
 
@@ -179,5 +183,29 @@ describe("SPEC-INV-004 在庫管理画面", () => {
     await act(async () => release?.());
     await screen.findByText("ラーメンの在庫を8個から2個へ更新しました。");
     expect(screen.getByRole("button", { name: "再読み込み" }).hasAttribute("disabled")).toBe(false);
+  });
+});
+
+describe("SPEC-SYS-009 在庫管理の接続状態", () => {
+  it("接続待ちと切断中に表示し、在庫更新を継続でき、再接続すると表示を消す", async () => {
+    renderPage();
+    await screen.findByText("8個");
+    expect(screen.getByText("接続中")).toBeDefined();
+
+    act(() => TestWebSocket.instances[0]!.open());
+    expect(screen.queryByText("接続中")).toBeNull();
+
+    act(() => TestWebSocket.instances[0]!.disconnect());
+    expect(screen.getByText("接続中")).toBeDefined();
+    fireEvent.change(screen.getByRole("textbox", { name: "ラーメンの現在在庫数" }), {
+      target: { value: "3" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "ラーメンの在庫を更新" }));
+    await screen.findByText("ラーメンの在庫を8個から3個へ更新しました。");
+    expect(quantity).toBe(3);
+
+    await waitFor(() => expect(TestWebSocket.instances.length).toBeGreaterThan(1), { timeout: 2500 });
+    act(() => TestWebSocket.instances.at(-1)!.open());
+    expect(screen.queryByText("接続中")).toBeNull();
   });
 });

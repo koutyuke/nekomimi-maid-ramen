@@ -106,7 +106,7 @@ export const OrderEntryPageUI = ({
   };
 
   return (
-    <Container size="sm" py="lg">
+    <Container size="md" py="lg">
       <Stack>
         <Flex gap="xs" align="center">
           <Title order={1}>注文・会計</Title>

@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
-import { AuthGuard } from "../../../widgets/auth-guard";
+import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
 import { handoffOrdersFixture } from "../testing";
 import { HandoffPage } from "./handoff-page";
 
@@ -59,8 +59,10 @@ it("SPEC-HAND-002 SPEC-HAND-003 ドリンク更新と受け渡しを記録し、
   vi.stubGlobal("WebSocket", TestWebSocket);
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <AuthGuard permission="Staff">
-        <HandoffPage />
+      <AuthGuard>
+        <PermissionGuard permission="Staff">
+          <HandoffPage />
+        </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );

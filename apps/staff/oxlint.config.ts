@@ -40,7 +40,6 @@ export default defineConfig({
   rules: {
     "staff-fsd/testing-entrypoint": "error",
     "staff-fsd/no-hook-spread": "error",
-    "staff-fsd/presenter-dependencies": "error",
     "staff-fsd/no-cross-slice-imports": "error",
     "no-restricted-imports": restrictedImports([]),
     // 新しいJSX変換を使うため、`React`を読み込む必要がない。

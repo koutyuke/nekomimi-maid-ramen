@@ -50,7 +50,7 @@ export const StaffManagementPageUI = ({
   onUpdateRole,
   onRetry,
 }: StaffManagementPageUIProps) => (
-  <Container py="lg" size="lg">
+  <Container py="lg" size="md">
     <Stack>
       <Group align="flex-end" gap="sm" justify="space-between">
         <Title order={1}>スタッフ管理</Title>
