@@ -33,10 +33,15 @@ const restrictedImports = (patterns: readonly unknown[]) =>
 export default defineConfig({
   extends: [baseConfig],
   plugins: ["react", "jsx-a11y"],
+  jsPlugins: ["./lint-rules/fsd.mjs"],
   env: {
     browser: true,
   },
   rules: {
+    "staff-fsd/testing-entrypoint": "error",
+    "staff-fsd/no-hook-spread": "error",
+    "staff-fsd/presenter-dependencies": "error",
+    "staff-fsd/no-cross-slice-imports": "error",
     "no-restricted-imports": restrictedImports([]),
     // 新しいJSX変換を使うため、`React`を読み込む必要がない。
     "react/react-in-jsx-scope": "off",
@@ -88,9 +93,15 @@ export default defineConfig({
       rules: {
         "no-restricted-imports": restrictedImports([
           {
-            group: upperLayerImports(["shared", "entities", "features", "widgets"]).group,
-            message: "経路は画面(`pages`)を貼るだけにする。部品とデータ取得は`pages`より下の層へ置く。",
+            group: [
+              ...upperLayerImports(["shared", "entities", "features", "widgets"]).group,
+              "!**/widgets/layout",
+              "!**/widgets/layout/index",
+              "!**/widgets/layout/index.ts",
+            ],
+            message: "経路は画面と共通レイアウトを結線する。部品の見た目とデータ取得は経路へ書かない。",
           },
+          slicePublicEntryImports,
         ]),
       },
     },
