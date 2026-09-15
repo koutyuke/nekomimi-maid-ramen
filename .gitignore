@@ -7,6 +7,7 @@ dist
 dist-ssr
 storybook-static
 .turbo
+.tanstack
 
 # Cloudflare
 .wrangler
