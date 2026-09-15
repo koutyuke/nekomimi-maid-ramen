@@ -1,61 +1,85 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { match } from "ts-pattern";
 
-import { getKitchenRevision } from "../../../entities/kitchen";
-import { kitchenQueries, kitchenQueryScopes, useCookingStateUpdate } from "../../../entities/kitchen";
-import { staffQueries } from "../../../entities/staff";
+import { getOrdersRevision, kitchenQueries, kitchenQueryScopes } from "../../../entities/orders";
+import { useCookingStateUpdate } from "../../../features/cooking-state";
 import { useRealtime } from "../../../features/sync-data";
+import { isAccessDenied } from "../../../shared/api";
 import { currentBusinessDate } from "../../../shared/lib";
-import type { KitchenOrder, KitchenOrderLine, CookingState } from "../../../entities/kitchen";
+import type { Order, CookingState } from "../../../entities/orders";
+import type { PendingCookingLine } from "../../../features/cooking-state";
 
-export const useKitchen = () => {
+export type KitchenOrdersState =
+  | { status: "pending"; data: undefined }
+  | { status: "denied"; data: undefined }
+  | { status: "error"; data: readonly Order[] | undefined }
+  | { status: "success"; data: readonly Order[] };
+
+type KitchenState = {
+  orders: KitchenOrdersState;
+  realtimeConnected: boolean;
+  retry: () => void;
+  cooking: {
+    pendingLines: readonly PendingCookingLine[];
+    error: string | null;
+    update: (orderId: string, menuItemId: string, to: CookingState) => void;
+  };
+};
+
+export const useKitchen = (): KitchenState => {
   const client = useQueryClient();
-  const staff = useQuery(staffQueries.current());
   const [businessDate, setBusinessDate] = useState(currentBusinessDate);
-
-  const hasRole = !staff.isError && !!staff.data && staff.data.role !== "None";
-
   const options = kitchenQueries.list(businessDate);
   const realtime = useRealtime({
     scope: "orders",
-    checkRevision: getKitchenRevision,
+    checkRevision: getOrdersRevision,
     queryKey: options.queryKey,
-    enabled: hasRole,
     onCheck: () => setBusinessDate(currentBusinessDate()),
   });
+  const orders = useQuery({ ...options, enabled: !realtime.denied });
+  const cooking = useCookingStateUpdate(() => client.invalidateQueries({ queryKey: kitchenQueryScopes.all() }));
 
-  const allowed = hasRole && !realtime.denied;
-  const orders = useQuery({ ...options, enabled: allowed });
-  const update = useCookingStateUpdate(() => client.invalidateQueries({ queryKey: kitchenQueryScopes.all() }));
+  const ordersState = match(orders)
+    .returnType<KitchenOrdersState>()
+    .when(
+      () => realtime.denied || isAccessDenied(orders.error),
+      () => ({ status: "denied", data: undefined }),
+    )
+    .when(
+      () => realtime.failed,
+      () => ({ status: "error", data: orders.data }),
+    )
+    .with({ status: "error" }, ({ data }) => ({ status: "error", data }))
+    .with({ status: "pending" }, () => ({ status: "pending", data: undefined }))
+    .with({ status: "success" }, ({ data }) => ({ status: "success", data }))
+    .exhaustive();
+
+  const retry = () => {
+    const today = currentBusinessDate();
+    setBusinessDate(today);
+    realtime.retry();
+    if (today === businessDate) {
+      void orders.refetch();
+    }
+  };
+
+  const update = (orderId: string, menuItemId: string, to: CookingState) => {
+    if (ordersState.status !== "success") {
+      return;
+    }
+    const order = ordersState.data.find((candidate) => candidate.id === orderId);
+    const line = order?.lines.find((candidate) => candidate.menuItemId === menuItemId);
+    if (!order || order.cancelledAt || order.handedOffAt || !line || line.category === "drink") {
+      return;
+    }
+    cooking.mutate({ order, line, to });
+  };
 
   return {
-    access: staff.isPending
-      ? ("loading" as const)
-      : staff.isError
-        ? ("error" as const)
-        : allowed
-          ? ("allowed" as const)
-          : ("denied" as const),
-    orders: allowed ? (orders.data ?? []) : [],
-    loading: orders.isPending,
-    failed: orders.isError || realtime.failed,
-    connected: allowed && realtime.connected,
-    pendingLines: update.pendingLines,
-    error: update.error,
-    actions: {
-      onRetry: () => {
-        realtime.retry();
-        setBusinessDate(currentBusinessDate());
-        void staff.refetch();
-        if (allowed) {
-          void orders.refetch();
-        }
-      },
-      onUpdate: (order: KitchenOrder, line: KitchenOrderLine, to: CookingState) => {
-        if (allowed && !realtime.failed && !orders.isError && !orders.isPending) {
-          update.mutate({ order, line, to });
-        }
-      },
-    },
+    orders: ordersState,
+    realtimeConnected: realtime.connected,
+    retry,
+    cooking: { pendingLines: cooking.pendingLines, error: cooking.error, update },
   };
 };

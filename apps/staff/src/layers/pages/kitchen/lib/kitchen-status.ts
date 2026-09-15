@@ -1,12 +1,12 @@
-import { cookingStateLabels } from "../../../entities/kitchen";
-import type { CookingState, KitchenOrder, KitchenOrderLine } from "../../../entities/kitchen";
+import { cookingStateLabels } from "../../../entities/orders";
+import type { CookingState, Order, OrderLine } from "../../../entities/orders";
 
 export type KitchenFilter = "all" | "main" | "side";
 
 export const kitchenStatusLabels = { ...cookingStateLabels, completed: "対応済み" } as const;
 const statusRank = { cooking: 0, unstarted: 1, completed: 2 } as const;
 
-const statusOf = (lines: readonly KitchenOrderLine[]): CookingState => {
+const statusOf = (lines: readonly OrderLine[]): CookingState => {
   if (lines.every((line) => line.cookingState === "completed")) {
     return "completed";
   }
@@ -16,7 +16,7 @@ const statusOf = (lines: readonly KitchenOrderLine[]): CookingState => {
   return "cooking";
 };
 
-export const visibleKitchenOrders = (orders: readonly KitchenOrder[], filter: KitchenFilter, hideHandled: boolean) =>
+export const visibleKitchenOrders = (orders: readonly Order[], filter: KitchenFilter, hideHandled: boolean) =>
   orders
     .map((order) => {
       const lines = order.lines.filter(
