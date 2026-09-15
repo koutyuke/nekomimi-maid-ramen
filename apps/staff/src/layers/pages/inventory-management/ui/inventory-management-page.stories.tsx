@@ -10,6 +10,7 @@ const meta = {
   args: {
     inventory: { status: "success", data: menuFixture },
     stockUpdate: { status: "idle" },
+    realtimeConnected: true,
     onRetry: fn(),
     onUpdate: fn(),
   },
@@ -18,6 +19,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Inventory: Story = {};
+export const Connecting: Story = { args: { realtimeConnected: false } };
 export const Empty: Story = { args: { inventory: { status: "success", data: [] } } };
 export const Loading: Story = { args: { inventory: { status: "pending" } } };
 export const Failed: Story = { args: { inventory: { status: "error" } } };

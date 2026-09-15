@@ -76,5 +76,11 @@ export const useInventoryManagement = () => {
     }
   };
 
-  return { inventory, stockUpdate, retry, update };
+  return {
+    inventory,
+    stockUpdate,
+    realtimeConnected: realtime.connected,
+    retry,
+    update,
+  };
 };
