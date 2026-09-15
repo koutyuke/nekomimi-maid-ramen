@@ -54,6 +54,9 @@ export const OrderItemsUI = ({ items, lines, disabled, canIncrease, onChangeQuan
                   aria-label={`${item.name}を1個減らす`}
                   disabled={disabled || quantity === 0}
                   onClick={() => onChangeQuantity(item, -1)}
+                  h={48}
+                  w={72}
+                  p={0}
                 >
                   <Minus />
                 </Button>
@@ -65,8 +68,8 @@ export const OrderItemsUI = ({ items, lines, disabled, canIncrease, onChangeQuan
                     pos="absolute"
                     right={"-0.25rem"}
                     bottom={"0.25rem"}
+                    w={60}
                     style={{
-                      width: 60,
                       translate: "100%",
                     }}
                   >
@@ -80,11 +83,13 @@ export const OrderItemsUI = ({ items, lines, disabled, canIncrease, onChangeQuan
                   aria-label={`${item.name}を1個増やす`}
                   disabled={disabled || !canIncrease || !item.sellable || quantity >= Math.min(10, item.quantity)}
                   onClick={() => onChangeQuantity(item, 1)}
+                  h={48}
+                  w={72}
+                  p={0}
                 >
                   <Plus />
                 </Button>
               </Group>
-              {quantity > 0 ? <Text ta="right">小計：{yen((line?.item.price ?? item.price) * quantity)}</Text> : null}
             </Stack>
           </Paper>
         );

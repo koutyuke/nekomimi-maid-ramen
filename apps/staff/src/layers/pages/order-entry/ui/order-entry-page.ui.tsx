@@ -1,4 +1,5 @@
-import { Alert, Button, Container, Divider, Group, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Container, Divider, Flex, Stack, Text, Title } from "@mantine/core";
+import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import { ErrorAlert, ConnectingIndicator } from "../../../shared/ui";
@@ -107,25 +108,27 @@ export const OrderEntryPageUI = ({
   return (
     <Container size="sm" py="lg">
       <Stack>
-        <Group justify="space-between">
-          <Title order={1}>注文・会計</Title>
-          {!realtimeConnected && (menu.status === "pending" || menu.status === "success") && <ConnectingIndicator />}
-        </Group>
-        <Group justify="space-between">
-          {previousOrder && (
-            <Button
-              variant="default"
-              disabled={pending || uncertain}
-              onClick={() => setDialog({ kind: "previous", opened: true, receipt: previousOrder })}
-              flex={1}
-            >
-              前回の注文を確認
-            </Button>
-          )}
-          <Button variant="light" disabled={locked} onClick={onRefreshMenu} flex={1}>
-            商品情報を更新
+        <Flex gap="xs" align="center">
+          <Title order={1}>注文</Title>
+          <Flex flex={1} align="center" justify="end">
+            {!realtimeConnected && (menu.status === "pending" || menu.status === "success") && <ConnectingIndicator />}
+          </Flex>
+          <Button variant="light" disabled={locked} onClick={onRefreshMenu} h={44} w={44} p={0}>
+            <RefreshCw size={20} />
           </Button>
-        </Group>
+        </Flex>
+        <Button
+          variant="default"
+          disabled={pending || uncertain || !previousOrder}
+          onClick={() => {
+            if (!previousOrder) {
+              return;
+            }
+            setDialog({ kind: "previous", opened: true, receipt: previousOrder });
+          }}
+        >
+          前回の注文を確認
+        </Button>
         <Divider />
 
         {!locked && menu.status === "success" && shortages.length > 0 && (
