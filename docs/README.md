@@ -21,6 +21,7 @@
 - 初めて参加する人は、[プロジェクト概要](product/overview.md) → [利用者](product/users.md) → [体験](product/experience.md)の順に読む。
 - 要件を判断する人は、対象領域の[`meta/requirements/`](meta/requirements/)と[`meta/questions/`](meta/questions/)を確認する。
 - 実装・検証する人は、要件の`specs`に記載された`SPEC-*`を対象領域の[`specs/`](specs/sales.md)から確認する。
+- 開発環境、配備、認証設定、復旧を扱う人は、[開発・運用 Runbook](runbook.md)を確認する。
 - 文書を更新する人とAgentは、先に[ドキュメント管理](documentation-management.md)を読む。
 - 変更を提案する人とAgentは、[変更管理](change-management.md)を読む。
 - 不具合や作業を登録する人は、[Issue の起票](issue-management.md)を読む。

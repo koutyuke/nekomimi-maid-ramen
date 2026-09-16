@@ -208,7 +208,7 @@ D1の保存後に通知が失敗した場合は、通知失敗を記録する。
 
 プライバシーポリシーは`SPEC-SYS-007`の取得・保存内容と`SPEC-OPS-004`の保持・削除方針に一致させ、利用目的、Cookieとテーマの保存、外部サービス、運営主体と問い合わせ先を記載する。利用規約は公開サイトとスタッフ機能を対象とし、アカウント管理、禁止事項、提供の変更・停止、問い合わせ先を記載する。問い合わせ先は`ac25302@gm.ibaraki-ct.ac.jp`である。
 
-Google Auth Platformでは、ExternalのOAuthアプリへホームページ`https://nekomimi-ramen.com`、ポリシー`https://nekomimi-ramen.com/privacy`、規約`https://nekomimi-ramen.com/terms`、承認済みドメイン`nekomimi-ramen.com`を登録し、本番公開とブランド確認を行う。要求スコープは`openid`、`email`、`profile`から増やさない。学校ドメインの判定とロール管理は変更しない。設定手順は[READMEのOAuth本番公開](../../README.md#oauthの本番公開)に従う。
+Google Auth Platformでは、ExternalのOAuthアプリへホームページ`https://nekomimi-ramen.com`、ポリシー`https://nekomimi-ramen.com/privacy`、規約`https://nekomimi-ramen.com/terms`、承認済みドメイン`nekomimi-ramen.com`を登録し、本番公開とブランド確認を行う。要求スコープは`openid`、`email`、`profile`から増やさない。学校ドメインの判定とロール管理は変更しない。設定手順は[RunbookのOAuth本番公開](../runbook.md#oauthの本番公開)に従う。
 
 ### 受け入れ例
 
