@@ -15,9 +15,16 @@ export const sessionRoute = (run: EffectRunner<SessionRouteRequirements>) =>
     .get(
       "/auth/session",
       async ({ request, set }) => {
+        const responseHeaders = new Headers();
+        const staff = await run(logAndDie(getCurrentStaff(request.headers, responseHeaders)));
+        const setCookies = responseHeaders.getSetCookie();
+
         set.headers["cache-control"] = "no-store";
+        if (setCookies.length > 0) {
+          set.headers["set-cookie"] = setCookies;
+        }
         return {
-          staff: Option.getOrNull(await run(logAndDie(getCurrentStaff(request.headers)))),
+          staff: Option.getOrNull(staff),
         };
       },
       {

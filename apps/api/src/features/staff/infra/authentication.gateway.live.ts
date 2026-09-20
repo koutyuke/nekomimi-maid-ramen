@@ -129,9 +129,11 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
       },
     },
     session: {
-      expiresIn: 60 * 60 * 12,
-      disableSessionRefresh: true,
-      cookieCache: { enabled: false },
+      expiresIn: 60 * 60 * 24 * 7,
+      updateAge: 60 * 60 * 24,
+      cookieCache: {
+        enabled: false,
+      },
     },
     account: {
       accountLinking: { enabled: true },
@@ -185,13 +187,21 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
     },
   });
 
-  const getSession = (headers: Headers) =>
+  const getSession = (headers: Headers, responseHeaders?: Headers) =>
     Effect.tryPromise({
       try: async () => {
-        const session = await auth.api.getSession({
+        const result = await auth.api.getSession({
           headers,
-          query: { disableCookieCache: true },
+          query: {
+            disableCookieCache: true,
+            disableRefresh: !responseHeaders,
+          },
+          returnHeaders: true,
         });
+        for (const cookie of result.headers.getSetCookie()) {
+          responseHeaders?.append("set-cookie", cookie);
+        }
+        const session = result.response;
         if (!session) {
           return Option.none();
         }

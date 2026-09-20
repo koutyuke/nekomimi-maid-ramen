@@ -359,6 +359,20 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     await db.update(Database.tables.sessions).set({ expiresAt: new Date(0) });
     expect(Option.isNone(await session(cookies(response)))).toBe(true);
   });
+  it.each(["/auth/session", "/staff"])("%sの利用中セッションは1日ごとに有効期限を7日後へ延長する", async (path) => {
+    const response = await login();
+    const now = Date.now();
+    await db.update(Database.tables.sessions).set({
+      expiresAt: new Date(now + 60 * 60 * 24 * 6 * 1000),
+      updatedAt: new Date(now - 60 * 60 * 24 * 1000),
+    });
+
+    const refreshed = await handle(new Request(`${apiOrigin}${path}`, { headers: { cookie: cookies(response) } }));
+    const [storedSession] = await db.select().from(Database.tables.sessions);
+
+    expect(refreshed.headers.getSetCookie().some((cookie) => cookie.includes("Max-Age=604800"))).toBe(true);
+    expect(storedSession?.expiresAt.getTime()).toBeGreaterThanOrEqual(now + 60 * 60 * 24 * 7 * 1000);
+  });
   it("公開ホストからは認証・ログアウトを許可せずセッションを維持する", async () => {
     const response = await login();
     const cookie = cookies(response);
