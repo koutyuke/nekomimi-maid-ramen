@@ -16,6 +16,9 @@ export class AuthenticationGateway extends Context.Tag("AuthenticationGateway")<
     readonly request: (request: Request) => Effect.Effect<Response, PersistenceError>;
     readonly callback: (request: Request) => Effect.Effect<Response, PersistenceError>;
     readonly logout: (request: Request) => Effect.Effect<Response, PersistenceError>;
-    readonly getSession: (headers: Headers) => Effect.Effect<Option.Option<StaffSession>, PersistenceError>;
+    readonly getSession: (
+      headers: Headers,
+      responseHeaders?: Headers,
+    ) => Effect.Effect<Option.Option<StaffSession>, PersistenceError>;
   }
 >() {}

@@ -12,17 +12,7 @@ export type StaffAccessPluginRequirements = Effect.Effect.Context<ReturnType<typ
 export const staffAccessPlugin = (run: EffectRunner<StaffAccessPluginRequirements>, origin: string) =>
   new Elysia({ name: "staff-access" }).macro({
     staffRole: (required: "Staff" | "Admin") => ({
-      resolve: async ({ request, status }) => {
-        const staff = await run(logAndDie(getCurrentStaff(request.headers)));
-
-        if (Option.isNone(staff)) {
-          return status(401, { code: "authentication_required" } as const);
-        }
-
-        if (!canOperate(staff.value.role, required)) {
-          return status(403, { code: "forbidden" } as const);
-        }
-
+      resolve: async ({ request, set, status }) => {
         if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
           const requestOrigin = request.headers.get("origin");
           const trusted = isTrustedOrigin(requestOrigin, origin);
@@ -30,6 +20,21 @@ export const staffAccessPlugin = (run: EffectRunner<StaffAccessPluginRequirement
           if (!trusted) {
             return status(403, { code: "forbidden" } as const);
           }
+        }
+
+        const responseHeaders = new Headers();
+        const staff = await run(logAndDie(getCurrentStaff(request.headers, responseHeaders)));
+        const setCookies = responseHeaders.getSetCookie();
+        if (setCookies.length > 0) {
+          set.headers["set-cookie"] = setCookies;
+        }
+
+        if (Option.isNone(staff)) {
+          return status(401, { code: "authentication_required" } as const);
+        }
+
+        if (!canOperate(staff.value.role, required)) {
+          return status(403, { code: "forbidden" } as const);
         }
         return { staff: staff.value };
       },
