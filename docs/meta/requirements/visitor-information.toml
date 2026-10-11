@@ -16,15 +16,15 @@ sources = []
 
 [[requirements]]
 id = "REQ-VIS-002"
-title = "販売可能な商品を確認できる"
+title = "メニューを確認できる"
 kind = "functional"
-statement = "来場者は、商品名、価格、説明、販売可否を含むメニューを確認できる。"
-reason = "来場者が注文前に商品を選び、売り切れ商品を把握できるようにするため。"
+statement = "来場者は、商品名、価格、説明を含むメニューを確認できる。"
+reason = "来場者が注文前に商品を選べるようにするため。"
 priority = "must"
 status = "draft"
-specs = ["SPEC-VIS-002", "SPEC-INV-001"]
-depends_on = ["REQ-INV-001"]
-sources = []
+specs = ["SPEC-VIS-002"]
+depends_on = []
+sources = ["DEC-SYS-006"]
 
 [[requirements]]
 id = "REQ-VIS-003"
