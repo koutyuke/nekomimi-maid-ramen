@@ -1,7 +1,7 @@
 import { HeadContent, Outlet } from "@tanstack/react-router";
 
-import { SiteFooter } from "../ui/site-footer";
-import { SiteHeader } from "../ui/site-header";
+import { SiteFooter } from "../ui/site-footer/site-footer";
+import { SiteHeader } from "../ui/site-header/site-header";
 
 export const SiteLayout = () => (
   <>

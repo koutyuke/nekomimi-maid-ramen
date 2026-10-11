@@ -1,4 +1,6 @@
-import { ScribbleArrow } from "./scribble-arrow";
+import { useId } from "react";
+
+import { ScribbleArrow } from "../scribble-arrow/scribble-arrow";
 
 // 角を丸めた長方形を斜めに置いたブース。座標はデザインの地図(320×240)のまま使う。
 const BOOTHS: readonly { d: string; ours?: boolean }[] = [
@@ -34,63 +36,66 @@ const BUILDINGS: readonly { d: string; label: string; x: number }[] = [
 
 const FACILITY_CLASS = "fill-slate-4 stroke-slate-7";
 
-export const VenueMap = () => (
-  <figure className="relative w-80">
-    {/* 地図は見た目で示し、出店位置は同じ内容を文章で伝える。 */}
-    <figcaption className="sr-only">
-      会場の地図。サッカーグラウンドの右上、テニスコートの近くに弧を描いて並ぶ4つのブースのうち、左から2番目の赤いブースが猫耳メイドラーメンのブースです。下側には工場、体育館、プールがあります。
-    </figcaption>
-    <svg viewBox="0 0 320 240" aria-hidden className="block w-full overflow-hidden rounded-3xl text-base font-normal">
-      <rect width="320" height="240" rx="24" className="fill-slate-1" />
-      <rect x="21" y="32" width="238" height="158" rx="79" strokeWidth="2" className="fill-grass-3 stroke-grass-6" />
-      <text x="140" y="111" textAnchor="middle" className="fill-slate-12">
-        <tspan x="140" dy="-4">
-          サッカー
-        </tspan>
-        <tspan x="140" dy="24">
-          グラウンド
-        </tspan>
-      </text>
+export const VenueMap = () => {
+  const captionId = useId();
+  return (
+    <figure aria-labelledby={captionId} className="relative w-80">
+      {/* 地図は見た目で示し、出店位置は同じ内容を文章で伝える。 */}
+      <figcaption id={captionId} className="sr-only">
+        会場の地図。サッカーグラウンドの右上、テニスコートの近くに弧を描いて並ぶ4つのブースのうち、左から2番目の赤いブースが猫耳メイドラーメンのブースです。下側には工場、体育館、プールがあります。
+      </figcaption>
+      <svg viewBox="0 0 320 240" aria-hidden className="block w-full overflow-hidden rounded-3xl text-base font-normal">
+        <rect width="320" height="240" rx="24" className="fill-slate-1" />
+        <rect x="21" y="32" width="238" height="158" rx="79" strokeWidth="2" className="fill-grass-3 stroke-grass-6" />
+        <text x="140" y="111" textAnchor="middle" className="fill-slate-12">
+          <tspan x="140" dy="-4">
+            サッカー
+          </tspan>
+          <tspan x="140" dy="24">
+            グラウンド
+          </tspan>
+        </text>
 
-      <path
-        d="M292 32H316C317.657 32 319 33.3431 319 35V187C319 188.657 317.657 190 316 190H292C290.343 190 289 188.657 289 187V35C289 33.3431 290.343 32 292 32Z"
-        strokeWidth="2"
-        className={FACILITY_CLASS}
-      />
-      <text
-        x="304"
-        y="111"
-        textAnchor="middle"
-        dominantBaseline="central"
-        transform="rotate(90 304 111)"
-        className="fill-slate-12"
-      >
-        テニスコート
-      </text>
-
-      {BUILDINGS.map(({ d, label, x }) => (
-        <g key={label}>
-          <path d={d} strokeWidth="2" className={FACILITY_CLASS} />
-          <text x={x} y="229" textAnchor="middle" className="fill-slate-12">
-            {label}
-          </text>
-        </g>
-      ))}
-
-      {BOOTHS.map(({ d, ours }) => (
         <path
-          key={d}
-          d={d}
+          d="M292 32H316C317.657 32 319 33.3431 319 35V187C319 188.657 317.657 190 316 190H292C290.343 190 289 188.657 289 187V35C289 33.3431 290.343 32 292 32Z"
           strokeWidth="2"
-          className={ours ? "fill-tomato-4 stroke-tomato-8" : "fill-blue-4 stroke-blue-8"}
+          className={FACILITY_CLASS}
         />
-      ))}
-      <rect x="2" y="2" width="316" height="236" rx="22" fill="none" strokeWidth="4" className="stroke-slate-6" />
-    </svg>
-    {/* 自分たちのブースを指す手書きの注記。地図の枠の上にはみ出して置く。 */}
-    <div aria-hidden className="absolute -top-8 left-[245px] flex rotate-5 flex-col items-start">
-      <span className="-mb-0.5 font-caveat text-2xl font-[400] text-pink">Here</span>
-      <ScribbleArrow className="ml-2 h-8 w-3.5 -rotate-139 text-pink" />
-    </div>
-  </figure>
-);
+        <text
+          x="304"
+          y="111"
+          textAnchor="middle"
+          dominantBaseline="central"
+          transform="rotate(90 304 111)"
+          className="fill-slate-12"
+        >
+          テニスコート
+        </text>
+
+        {BUILDINGS.map(({ d, label, x }) => (
+          <g key={label}>
+            <path d={d} strokeWidth="2" className={FACILITY_CLASS} />
+            <text x={x} y="229" textAnchor="middle" className="fill-slate-12">
+              {label}
+            </text>
+          </g>
+        ))}
+
+        {BOOTHS.map(({ d, ours }) => (
+          <path
+            key={d}
+            d={d}
+            strokeWidth="2"
+            className={ours ? "fill-tomato-4 stroke-tomato-8" : "fill-blue-4 stroke-blue-8"}
+          />
+        ))}
+        <rect x="2" y="2" width="316" height="236" rx="22" fill="none" strokeWidth="4" className="stroke-slate-6" />
+      </svg>
+      {/* 自分たちのブースを指す手書きの注記。地図の枠の上にはみ出して置く。 */}
+      <div aria-hidden className="absolute -top-8 left-[245px] flex rotate-5 flex-col items-start">
+        <span className="-mb-0.5 font-caveat text-2xl font-[400] text-pink">Here</span>
+        <ScribbleArrow className="ml-2 h-8 w-3.5 -rotate-139 text-pink" />
+      </div>
+    </figure>
+  );
+};

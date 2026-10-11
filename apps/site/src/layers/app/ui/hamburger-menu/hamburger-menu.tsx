@@ -5,10 +5,10 @@ import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { HOME_SECTION_IDS } from "../../pages/home";
-import brandIcon from "../../shared/assets/brand-icon.svg";
-import brandLogo from "../../shared/assets/brand-logo-start.svg";
-import { CatMenuIcon, GitHubIcon, InstagramIcon } from "../../shared/ui";
+import { HOME_SECTION_IDS } from "../../../pages/home";
+import brandIcon from "../../../shared/assets/brand-icon.svg";
+import brandLogo from "../../../shared/assets/brand-logo-start.svg";
+import { CatMenuIcon, GitHubIcon, InstagramIcon } from "../../../shared/ui";
 
 const SECTION_LINKS: readonly { hash: string; label: string; Icon: LucideIcon }[] = [
   { hash: HOME_SECTION_IDS.top, label: "Top", Icon: House },

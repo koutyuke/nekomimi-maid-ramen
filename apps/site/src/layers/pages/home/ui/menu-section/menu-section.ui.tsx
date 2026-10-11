@@ -3,16 +3,15 @@ import { X } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRef, useState } from "react";
 
-import { Wave } from "../../../shared/ui";
-import { MENU_ITEMS } from "../model/menu";
-import { HOME_SECTION_IDS } from "../model/sections";
-import { DrinkCard, FoodCard } from "./product-card";
-import { PRODUCT_TITLE_ID, ProductDetail } from "./product-detail";
-import { SectionTitle } from "./section-title";
-import type { MenuItem } from "../model/menu";
+import { Wave } from "../../../../shared/ui";
+import { HOME_SECTION_IDS } from "../../model/sections";
+import { DrinkCard, FoodCard } from "../product-card/product-card";
+import { PRODUCT_TITLE_ID, ProductDetail } from "../product-detail/product-detail";
+import { SectionTitle } from "../section-title/section-title";
+import type { MenuItem } from "../../model/menu";
 
-const foods = MENU_ITEMS.filter((item) => item.category !== "drink");
-const drinks = MENU_ITEMS.filter((item) => item.category === "drink");
+// 区画と、上端の波で同じ背景を使う。
+const BACKGROUND = "bg-tomato-3 bg-dashed-grid [--grid-color:var(--tomato-4)]";
 
 const FOOD_ROTATIONS = [2, -2];
 
@@ -24,7 +23,13 @@ const DRINK_LAYOUTS = [
   { rotate: 4, className: "col-start-2 row-span-2 row-start-4" },
 ];
 
-export const MenuSection = () => {
+type MenuSectionUIProps = {
+  items: readonly MenuItem[];
+};
+
+export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
+  const foods = items.filter((item) => item.category !== "drink");
+  const drinks = items.filter((item) => item.category === "drink");
   const [selected, setSelected] = useState<MenuItem | null>(null);
   const selectedCard = useRef<HTMLButtonElement | null>(null);
   const dialogActions = useRef<Dialog.Root.Actions>(null);
@@ -38,9 +43,9 @@ export const MenuSection = () => {
       <section
         id={HOME_SECTION_IDS.menu}
         aria-label="メニュー"
-        className="bg-dashed-grid relative flex scroll-mt-24 flex-col items-center bg-tomato-3 px-4 pt-2 pb-24 [--grid-color:var(--tomato-4)]"
+        className={`relative flex scroll-mt-24 flex-col items-center px-4 pt-2 pb-24 ${BACKGROUND}`}
       >
-        <Wave className="absolute bottom-full left-0 h-18 w-full text-tomato-3" />
+        <Wave className={BACKGROUND} />
         <SectionTitle>お料理</SectionTitle>
         <div className="mt-6 flex flex-col gap-4">
           {foods.map((item, index) => (

@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 
-import { ProductImage } from "./product-image";
-import type { MenuItem } from "../model/menu";
+import { ProductImage } from "../product-image/product-image";
+import type { MenuItem } from "../../model/menu";
 
 type ProductCardProps = {
   item: MenuItem;

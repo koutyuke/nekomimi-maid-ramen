@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 
-import { BlurImage } from "./blur-image";
-import type { MenuItem } from "../model/menu";
+import { BlurImage } from "../blur-image/blur-image";
+import type { MenuItem } from "../../model/menu";
 
 type ProductImageProps = {
   item: MenuItem;

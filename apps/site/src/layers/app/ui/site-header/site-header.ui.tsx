@@ -1,12 +1,16 @@
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
-import { ThemeMenu } from "../../features/theme";
-import { HOME_SECTION_IDS } from "../../pages/home";
-import brandIcon from "../../shared/assets/brand-icon.svg";
-import brandLogo from "../../shared/assets/brand-logo-start.svg";
-import { HamburgerMenu } from "./hamburger-menu";
+import { HOME_SECTION_IDS } from "../../../pages/home";
+import brandIcon from "../../../shared/assets/brand-icon.svg";
+import brandLogo from "../../../shared/assets/brand-logo-start.svg";
+import { HamburgerMenu } from "../hamburger-menu/hamburger-menu";
 
-export const SiteHeader = () => (
+type SiteHeaderUIProps = {
+  themeMenu: ReactNode;
+};
+
+export const SiteHeaderUI = ({ themeMenu }: SiteHeaderUIProps) => (
   <header className="fixed inset-x-0 top-4 z-10 mx-auto flex h-13 w-[calc(100%-32px)] max-w-100 items-center justify-between rounded-xl border-2 border-slate-6 bg-slate-1/70 p-2.5 shadow-md backdrop-blur-lg">
     <HamburgerMenu />
     <Link
@@ -17,6 +21,6 @@ export const SiteHeader = () => (
       <img src={brandIcon} alt="" className="size-11" />
       <img src={brandLogo} alt="猫耳メイドラーメン" className="h-9 w-[71px]" />
     </Link>
-    <ThemeMenu />
+    {themeMenu}
   </header>
 );

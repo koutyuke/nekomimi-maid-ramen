@@ -1,12 +1,12 @@
-import { HOME_SECTION_IDS } from "../model/sections";
-import { InstaxCard } from "./instax-card";
-import { ScribbleArrow } from "./scribble-arrow";
+import { HOME_SECTION_IDS } from "../../model/sections";
+import { InstaxCard } from "../instax-card/instax-card";
+import { ScribbleArrow } from "../scribble-arrow/scribble-arrow";
 
 export const HeroSection = () => (
   <section
     id={HOME_SECTION_IDS.top}
     aria-labelledby="hero-title"
-    className="flex scroll-mt-24 flex-col items-center bg-slate-1 px-5 pt-24 pb-34 text-center"
+    className="bg-dots flex min-h-[calc(100svh+72px)] scroll-mt-24 flex-col items-center justify-center bg-slate-1 px-5 pt-24 pb-34 text-center [--grid-color:var(--slate-8)]"
   >
     <p className="font-caveat text-xl font-[400] text-pink">welcome home, master!</p>
     <h1 id="hero-title" className="text-3xl leading-10 font-black text-slate-12">

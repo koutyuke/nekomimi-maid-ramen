@@ -1,16 +1,16 @@
 import { Link } from "@tanstack/react-router";
 
-import { HOME_SECTION_IDS } from "../../pages/home";
-import brandIcon from "../../shared/assets/brand-icon.svg";
-import brandLogo from "../../shared/assets/brand-logo-center.svg";
-import { Wave } from "../../shared/ui";
+import { HOME_SECTION_IDS } from "../../../pages/home";
+import brandIcon from "../../../shared/assets/brand-icon.svg";
+import brandLogo from "../../../shared/assets/brand-logo-center.svg";
+import { Wave } from "../../../shared/ui";
 
 const linkClassName =
   "rounded text-base leading-6 text-slate-11 outline-none hover:text-slate-12 focus-visible:ring-2 focus-visible:ring-blue-8";
 
 export const SiteFooter = () => (
   <footer className="relative flex flex-col items-center bg-tomato-1 px-4 pt-2 pb-18">
-    <Wave className="absolute bottom-full left-0 h-18 w-full -scale-x-100 text-tomato-1" />
+    <Wave className="bg-tomato-1" variant="inverted" />
     <p className="text-center font-black text-slate-12">
       <span className="text-lg leading-7">
         \ <span className="text-pink">萌え♥</span>・<span className="text-tomato-9">燃え🔥</span>/

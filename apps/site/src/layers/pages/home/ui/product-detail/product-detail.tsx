@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import type { LucideIcon } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 
-import { ALLERGENS } from "../model/menu";
+import { ALLERGENS } from "../../model/menu";
 import {
   BuckwheatIcon,
   CashewIcon,
@@ -14,9 +14,9 @@ import {
   ShrimpIcon,
   WalnutIcon,
   WheatIcon,
-} from "./allergen-icons";
-import { ProductImage } from "./product-image";
-import type { AllergenId, AllergenStatus, MenuItem } from "../model/menu";
+} from "../allergen-icons/allergen-icons";
+import { ProductImage } from "../product-image/product-image";
+import type { AllergenId, AllergenStatus, MenuItem } from "../../model/menu";
 
 export const PRODUCT_TITLE_ID = "product-detail-title";
 

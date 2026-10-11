@@ -3,13 +3,12 @@ import { Monitor, Moon, Sun, SunMoon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import type { LucideIcon } from "lucide-react";
 
-import { useTheme } from "../model/theme";
-import type { Theme } from "../model/theme";
+import type { Theme } from "../../model/theme";
 
 const THEME_OPTIONS: readonly { value: Theme; label: string; Icon: LucideIcon }[] = [
   { value: "light", label: "ライト", Icon: Sun },
   { value: "dark", label: "ダーク", Icon: Moon },
-  { value: "system", label: "端末設定に合わせる", Icon: Monitor },
+  { value: "system", label: "システム", Icon: Monitor },
 ];
 
 const isTheme = (value: unknown): value is Theme => THEME_OPTIONS.some((option) => option.value === value);
@@ -41,8 +40,12 @@ const AnimatedCheck = () => {
   );
 };
 
-export const ThemeMenu = () => {
-  const [theme, setTheme] = useTheme();
+type ThemeMenuUIProps = {
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
+};
+
+export const ThemeMenuUI = ({ theme, onThemeChange }: ThemeMenuUIProps) => {
   return (
     <Menu.Root>
       <Menu.Trigger
@@ -58,7 +61,7 @@ export const ThemeMenu = () => {
               value={theme}
               onValueChange={(value: unknown) => {
                 if (isTheme(value)) {
-                  setTheme(value);
+                  onThemeChange(value);
                 }
               }}
               className="flex flex-col gap-2"

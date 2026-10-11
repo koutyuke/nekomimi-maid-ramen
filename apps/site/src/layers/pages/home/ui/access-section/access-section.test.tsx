@@ -2,7 +2,6 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { AccessSection } from "./access-section";
-import { SponsorSection } from "./sponsor-section";
 
 describe("SPEC-VIS-001 出店情報を表示する", () => {
   it("開催日・一般公開日・営業時間・注文受付の終了時刻・場所・雨天時の場所と、出店位置の地図を表示する", () => {
@@ -25,13 +24,5 @@ describe("SPEC-VIS-001 出店情報を表示する", () => {
     for (const facility of ["サッカー", "グラウンド", "テニスコート", "工場", "体育館", "プール"]) {
       expect(within(map).getByText(facility)).toBeDefined();
     }
-  });
-});
-
-describe("SPEC-VIS-003 承認されたスポンサー情報を表示する", () => {
-  it("承認済みのスポンサー情報がない間は、ご協賛にComing soonだけを表示する", () => {
-    render(<SponsorSection />);
-    const section = screen.getByRole("region", { name: "ご協賛" });
-    expect(section.textContent?.replaceAll(/[\\/\s]/g, "")).toBe("ご協賛Comingsoon");
   });
 });
