@@ -1,2 +1,2 @@
-export { default as PrivacyPage } from "./ui/privacy-page.astro";
-export { default as TermsPage } from "./ui/terms-page.astro";
+export { PrivacyPage } from "./ui/privacy-page";
+export { TermsPage } from "./ui/terms-page";

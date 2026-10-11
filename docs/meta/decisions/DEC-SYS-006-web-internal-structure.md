@@ -17,15 +17,15 @@ evidence: []
 
 スタッフ画面の内部をFeature-Sliced Design(FSD)の層で分け、層の中を業務領域(スライス)で切る。独立した表示検証や変更に価値がある箇所でPresenterとContainerを分ける。通常のページは接続済み部品を直接組み合わせ、全階層での二分を要求しない。サーバーから取得する状態はTanStack Query(`@tanstack/react-query`、5系)、画面をまたいで保持するクライアント状態はJotai(`jotai`、2系)で扱う。
 
-公開側もFSDの依存方向を使うが、現在必要な`app`、`pages`、`features`、`shared`だけを置く。Astroが経路として要求する`src/pages`は、`layers/app`のレイアウトと`layers/pages`の画面を結線するだけにする。`app` → `pages` → `features` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
+公開側もFSDの依存方向を使うが、現在必要な`app`、`pages`、`features`、`shared`だけを置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、ページの`title`を指定するだけにする。`app` → `pages` → `features` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
 
-Astro部品では、表示だけを担う`.ui.astro`をPresenter、副作用と結線を担う`.astro`をContainerとする。ブラウザーで取得後に変わる表示は、DOMへ状態を反映する`*.view.ts`をPresenter、API取得と再試行を制御する`model`をContainerとして分ける。副作用のないトップ画面にはContainerを作らない。
+公開側の部品もスタッフ側と同じく、表示だけを担う`{部品}.ui.tsx`をPresenter、API取得と再試行を制御する`{部品}.tsx`をContainerとする。メニュー画面は取得中・失敗・成功を一つの状態で表し、Presenterへ渡す。副作用のない画面と、`useTheme`を呼ぶだけのテーマ選択にはContainerを作らない。
 
-公開トップと見出しは静的HTMLとして生成し、現在の販売可否はブラウザーから公開APIへ問い合わせる。取得中・失敗・商品なしを区別し、失敗時は商品一覧を消す。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。端末設定への追従はCSSの`color-scheme`を使う。
+公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。現在の販売可否はブラウザーから公開APIへ問い合わせる。取得中・失敗・商品なしを区別し、失敗時は商品一覧を表示しない。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。暗い配色は`html`要素の`dark`クラスで表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこのクラスへ反映する。Radix Colorsの暗い配色とTailwind CSSの`dark:`は、このクラスで切り替わる。
 
-公開側のStorybookは`@storybook-astro/framework`でAstro部品を描画し、アプリと同じCSSを読み込む。ストーリーは部品の隣に`{部品}.stories.ts`として置く。静的ビルドではAstroのpropsが事前描画されるため、Controlsによる変更は開発サーバーで確認する。
+公開側のStorybookは`@storybook/react-vite`で部品を描画し、アプリと同じCSSを読み込む。共通デコレーターでメモリー履歴のRouterを用意する。ストーリーは部品の隣に`{部品}.stories.tsx`として置く。
 
-Astroを採用するのは、静的な情報提供と独自デザインをスタッフ側のProviderやMantineから分離できるためである。Astro 7.3.2で、見出しを含む静的HTMLとブラウザーからAPIを取得するスクリプトを小規模にビルドできることを確認した。Reactのアイランドは現在のメニュー取得とテーマ切り替えには不要で、標準のDOM操作で足りる。APIクライアントは既存のEden Treatyを利用し、描画時はAPIの文字列をHTMLとして解釈しない。
+公開側の基盤をスタッフ側と同じVite、React、TanStack Routerにそろえるのは、ビルド、経路、試験、Storybookの扱いを一つの方法で済ませるためである。独自デザインは、スタッフ側のMantineと分けて、Tailwind CSS、Radix Colors、Base UIで組み立てる。Base UIは様式を持たないため、見た目はTailwind CSSだけで決まる。APIクライアントは既存のEden Treatyを利用する。
 
 公開側とスタッフ側のUI・スタイル・Providerは共有しない。`packages/core`ではURLと、APIと公開側が使うメニューの分類値・分類型を共有する。
 
@@ -33,17 +33,19 @@ Astroを採用するのは、静的な情報提供と独自デザインをスタ
 
 `@nekomimi/api`が画面へ公開するのは`App`型だけとする。画面からの参照は各アプリの`no-restricted-imports`で検査する。HTTP応答はEden Treatyを通じて参照し、スタッフ側のキャッシュ形式`Snapshot`と通知の対象範囲`ResourceScope`は`shared/api`が所有する。
 
-参考: [Astroのスクリプト処理](https://docs.astro.build/en/guides/client-side-scripts/)、[Cloudflareへの配備](https://docs.astro.build/en/guides/deploy/cloudflare/)。
+参考: [Base UIの導入](https://base-ui.com/react/overview/quick-start)、[Radix Colors](https://www.radix-ui.com/colors)、[TanStack Routerの文書ヘッド管理](https://tanstack.com/router/latest/docs/framework/react/guide/document-head-management)。
 
 ```
 apps/site/
 ├── src/
-│   ├── pages/          Astroの経路。レイアウトと画面の結線だけを行う
-│   └── layers/
-│       ├── app/        共通レイアウト、ヘッダー、スタイル
-│       ├── pages/      画面ごとのスライス
-│       ├── features/   利用者の操作と副作用を伴う機能
-│       └── shared/     APIクライアントなど領域に属さない基盤
+│   ├── routes/         TanStack Routerのファイル経路。レイアウトと画面の結線だけを行う
+│   ├── layers/
+│   │   ├── app/        共通レイアウト、ヘッダー、スタイル
+│   │   ├── pages/      画面ごとのスライス
+│   │   ├── features/   利用者の操作と副作用を伴う機能
+│   │   └── shared/     APIクライアントなど領域に属さない基盤
+│   ├── testing/        試験の初期化
+│   └── main.tsx        ブラウザの入口
 └── .storybook/
 ```
 

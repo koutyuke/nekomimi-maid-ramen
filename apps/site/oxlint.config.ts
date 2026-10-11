@@ -25,12 +25,15 @@ const restrictedImports = (patterns: RestrictedImportPattern[]) =>
 
 export default defineConfig({
   extends: [baseConfig],
+  plugins: ["react", "jsx-a11y"],
   env: { browser: true },
   rules: {
     "no-restricted-imports": restrictedImports([]),
+    // 新しいJSX変換を使うため、`React`を読み込む必要がない。
+    "react/react-in-jsx-scope": "off",
     "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],
   },
-  ignorePatterns: ["dist/**", ".astro/**", ".wrangler/**"],
+  ignorePatterns: ["dist/**", ".wrangler/**", "routeTree.gen.ts"],
   overrides: [
     {
       files: ["src/layers/shared/**"],
@@ -51,7 +54,7 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/pages/**"],
+      files: ["src/routes/**"],
       rules: {
         "no-restricted-imports": restrictedImports([upperLayerImports(["shared", "features"])]),
       },

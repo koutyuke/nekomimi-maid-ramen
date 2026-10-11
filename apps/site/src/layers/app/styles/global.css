@@ -1,54 +1,69 @@
 @import "tailwindcss";
+@import "./colors.css";
+
+/* テーマの選択は`html.dark`で表す。端末設定への追従も同じクラスへ反映する。 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Zen Maru Gothicは通常を500、太字を700だけ読み込む。他の太さを指定すると合成された字形になる。 */
+@theme {
+  --font-sans: "Zen Maru Gothic", system-ui, sans-serif;
+  --font-weight-normal: 500;
+  --font-weight-bold: 700;
+}
+
+/* Caveatは500だけを読み込むため、太さも同時に指定する。 */
+@utility font-caveat {
+  font-family: "Caveat", cursive;
+  font-weight: 500;
+}
 
 @layer base {
   :root {
-    color-scheme: light dark;
-    font-family: system-ui, sans-serif;
+    color-scheme: light;
+    font-weight: var(--font-weight-normal);
     line-height: 1.6;
   }
-  :root[data-theme="light"] {
-    color-scheme: light;
-  }
-  :root[data-theme="dark"] {
+  :root.dark {
     color-scheme: dark;
   }
   body {
-    background: Canvas;
-    color: CanvasText;
+    background: var(--gray-1);
+    color: var(--gray-12);
+  }
+  /* Base UIのポップアップを、ページ内のz-indexに影響されず最前面へ出す。 */
+  #root {
+    isolation: isolate;
   }
   a {
-    color: LinkText;
+    color: var(--blue-11);
     text-decoration: underline;
   }
   h1 {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     margin-block: 1rem;
   }
   h2 {
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     margin-block: 1rem;
   }
   h3 {
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
   }
   p {
     margin-block: 1rem;
   }
-  select,
   button {
     font: inherit;
     padding: 0.5rem;
-  }
-  button {
-    border: 1px solid;
+    border: 1px solid var(--gray-7);
     border-radius: 0.25rem;
     cursor: pointer;
   }
   article {
-    border: 1px solid;
+    border: 1px solid var(--gray-6);
     border-radius: 0.5rem;
     padding: 1rem;
     margin-block: 1rem;
