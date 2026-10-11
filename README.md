@@ -45,8 +45,12 @@ Staff ------> Staff App ----+     |
 ## Workspace & Stack
 
 - `🌐 apps/site` - Public visitor site
-  - **Astro** 🪐 _generates the static site._
-  - **Tailwind CSS** 🎨 _styles the public interface._
+  - **React** ⚛️ _builds the public user interface._
+  - **Vite** ⚡ _provides the development server and production build._
+  - **TanStack Router** 🚦 _manages routing._
+  - **Tailwind CSS / Radix Colors** 🎨 _styles the public interface with light and dark themes._
+  - **Base UI** 🧩 _provides unstyled, accessible components._
+  - **Motion** 🎞️ _animates the interface._
   - **Storybook** 📕 _checks UI components and accessibility._
 - `🧑‍🍳 apps/staff` - Staff operations interface
   - **React** ⚛️ _builds the staff user interface._

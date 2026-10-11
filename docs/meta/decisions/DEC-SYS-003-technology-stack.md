@@ -19,7 +19,7 @@ Cloudflareへ登録した`nekomimi-ramen.com`の下で、3つのWorkerを別々�
 
 | ホスト                     | Worker                         | 配信する内容                                     |
 | -------------------------- | ------------------------------ | ------------------------------------------------ |
-| `nekomimi-ramen.com`       | Site (`nekomimi-ramen-web`)    | Astroでビルドした静的HTML                        |
+| `nekomimi-ramen.com`       | Site (`nekomimi-ramen-web`)    | React、Viteでビルドした静的アセット              |
 | `staff.nekomimi-ramen.com` | Staff (`nekomimi-ramen-staff`) | React、Viteでビルドした静的アセット              |
 | `api.nekomimi-ramen.com`   | API                            | ElysiaJS、Cloudflare D1、WebSocket、Google OAuth |
 
@@ -29,7 +29,7 @@ Cloudflareへ登録した`nekomimi-ramen.com`の下で、3つのWorkerを別々�
 
 | 層                   | 採用するもの                                                    |
 | -------------------- | --------------------------------------------------------------- |
-| 画面                 | 公開側はAstro、スタッフ側はTypeScript、React、Vite              |
+| 画面                 | TypeScript、React、Vite                                         |
 | API                  | ElysiaJS(`elysia/adapter/cloudflare-worker`のCloudflareAdapter) |
 | 実行基盤             | Cloudflare Workers                                              |
 | データストア         | Cloudflare D1、Drizzle ORM                                      |
@@ -61,7 +61,7 @@ WebSocketとDurable Objectsを使うのは、業務処理が保存した変更�
 
 通知への待ち時間は1秒で打ち切り、失敗を記録して保存済みの結果を成功として返す。通知先の不調によって、成立した注文の結果が端末へ返らなくなることを防ぐ。画面の取得と照合にも5秒の上限を設け、通信不調を表示して再試行できる状態へ戻す。
 
-公開側は静的HTMLと公開メニューの取得だけで足りる。スタッフ用の在庫残数や通知接続を公開側へ広げない。
+公開側は静的アセットと公開メニューの取得だけで足りる。スタッフ用の在庫残数や通知接続を公開側へ広げない。
 
 ## 影響
 

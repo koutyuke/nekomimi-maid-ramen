@@ -25,11 +25,11 @@ evidence: []
 | Gitフック                | lefthook                                                        |
 | 継続的検査と配備         | GitHub Actions                                                  |
 | TypeScriptの基本         | `@tsconfig/strictest`                                           |
-| スタッフ画面の経路       | TanStack Router                                                 |
+| 画面の経路               | TanStack Router                                                 |
 | スタッフ画面の部品と様式 | Mantine                                                         |
 | 画面部品のカタログ       | Storybook                                                       |
 
-作業単位は`apps/api`、`apps/site`、`apps/staff`の3つとし、それぞれ`nekomimi-ramen-api`、`nekomimi-ramen-web`、`nekomimi-ramen-staff`として配備する。公開側はAstroで静的HTMLを生成し、Tailwind CSSを使う。公開側のStorybookは`@storybook-astro/framework`、スタッフ側は`@storybook/react-vite`を使う。`pnpm site sb`は6007番、`pnpm staff sb`は6006番で起動する。CIは公開側のStorybookの静的ビルドも検証する。
+作業単位は`apps/api`、`apps/site`、`apps/staff`の3つとし、それぞれ`nekomimi-ramen-api`、`nekomimi-ramen-web`、`nekomimi-ramen-staff`として配備する。公開側はTailwind CSSで様式を指定し、色はRadix Colorsの不透明なスケールだけを使う。部品の振る舞いはBase UI、動きはMotionで実装する。Storybookは両方とも`@storybook/react-vite`を使う。`pnpm site sb`は6007番、`pnpm staff sb`は6006番で起動する。CIは公開側のStorybookの静的ビルドも検証する。
 
 APIは経路定義(`src/bootstrap/create-app.ts`)とWorkerの入口(`src/index.ts`)に分ける。経路定義は`cloudflare:workers`を参照せず、実行基盤の値は引数で受け取る。画面はこの経路定義の型だけを読む。この分割より内側の構造は[`DEC-SYS-005`](DEC-SYS-005-api-internal-structure.md)で定める。
 
