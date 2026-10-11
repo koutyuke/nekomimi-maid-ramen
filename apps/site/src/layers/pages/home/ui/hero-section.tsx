@@ -1,4 +1,6 @@
 import { HOME_SECTION_IDS } from "../model/sections";
+import { InstaxCard } from "./instax-card";
+import { ScribbleArrow } from "./scribble-arrow";
 
 export const HeroSection = () => (
   <section
@@ -20,6 +22,13 @@ export const HeroSection = () => (
       茨香祭の2日間の限定開催！
       <br />
       ぜひ、ご賞味あれ！！
+    </p>
+    <div className="mt-8">
+      <InstaxCard />
+    </div>
+    <p className="mt-4 flex -rotate-4 flex-col items-center font-caveat text-lg font-[400] text-slate-11">
+      <ScribbleArrow className="h-6 w-2.5" />
+      Tap to flip!
     </p>
   </section>
 );
