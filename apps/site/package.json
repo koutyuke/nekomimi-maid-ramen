@@ -20,6 +20,7 @@
     "@nekomimi/core": "workspace:*",
     "@radix-ui/colors": "^3.0.0",
     "@tanstack/react-router": "catalog:",
+    "lucide-react": "^1.45.0",
     "motion": "^14.1.0",
     "react": "catalog:",
     "react-dom": "catalog:"
