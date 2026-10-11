@@ -7,7 +7,8 @@ type ProductCardProps = {
   item: MenuItem;
   // カードの傾き(度)。詳細へ拡大するときに0度へ戻すため、Motionの`rotate`で持つ。
   rotate: number;
-  onSelect: () => void;
+  // 詳細を閉じたときにフォーカスを戻すため、選ばれたカードの要素を渡す。
+  onSelect: (card: HTMLButtonElement) => void;
 };
 
 const cardClassName =
@@ -19,7 +20,7 @@ export const FoodCard = ({ item, rotate, onSelect }: ProductCardProps) => (
     type="button"
     layoutId={`menu-card-${item.id}`}
     style={{ rotate }}
-    onClick={onSelect}
+    onClick={(event) => onSelect(event.currentTarget)}
     className={`${cardClassName} block aspect-[16/9] w-80 shadow-lg`}
   >
     <span className="absolute top-1/2 left-[-16.25%] w-[68.75%] -translate-y-1/2">
@@ -39,7 +40,7 @@ export const DrinkCard = ({ item, rotate, onSelect }: ProductCardProps) => (
     type="button"
     layoutId={`menu-card-${item.id}`}
     style={{ rotate }}
-    onClick={onSelect}
+    onClick={(event) => onSelect(event.currentTarget)}
     className={`${cardClassName} flex h-45 w-full flex-col items-center p-2.5 shadow-md`}
   >
     <ProductImage item={item} className="min-h-0 w-9 flex-1" />

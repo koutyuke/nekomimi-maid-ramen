@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Wave } from "../../../shared/ui";
 import { MENU_ITEMS } from "../model/menu";
@@ -26,6 +26,12 @@ const DRINK_LAYOUTS = [
 
 export const MenuSection = () => {
   const [selected, setSelected] = useState<MenuItem | null>(null);
+  const selectedCard = useRef<HTMLButtonElement | null>(null);
+  const dialogActions = useRef<Dialog.Root.Actions>(null);
+  const select = (item: MenuItem) => (card: HTMLButtonElement) => {
+    selectedCard.current = card;
+    setSelected(item);
+  };
 
   return (
     <MotionConfig reducedMotion="user">
@@ -42,7 +48,7 @@ export const MenuSection = () => {
               key={item.id}
               item={item}
               rotate={FOOD_ROTATIONS[index % FOOD_ROTATIONS.length] ?? 0}
-              onSelect={() => setSelected(item)}
+              onSelect={select(item)}
             />
           ))}
         </div>
@@ -54,7 +60,7 @@ export const MenuSection = () => {
             const layout = DRINK_LAYOUTS[index % DRINK_LAYOUTS.length];
             return (
               <div key={item.id} className={`flex items-center ${layout?.className ?? ""}`}>
-                <DrinkCard item={item} rotate={layout?.rotate ?? 0} onSelect={() => setSelected(item)} />
+                <DrinkCard item={item} rotate={layout?.rotate ?? 0} onSelect={select(item)} />
               </div>
             );
           })}
@@ -63,14 +69,16 @@ export const MenuSection = () => {
 
         <Dialog.Root
           open={selected !== null}
-          onOpenChange={(open) => {
+          actionsRef={dialogActions}
+          onOpenChange={(open, eventDetails) => {
             if (!open) {
+              // 元のカードへ縮むアニメーションの間も詳細を残すため、外す時期はAnimatePresenceの完了に合わせる。
+              eventDetails.preventUnmountOnClose();
               setSelected(null);
             }
           }}
         >
-          {/* 閉じるアニメーションの間も中身を残すため、Base UIではなくAnimatePresenceに外す時期を任せる。 */}
-          <AnimatePresence>
+          <AnimatePresence onExitComplete={() => dialogActions.current?.unmount()}>
             {selected && (
               <Dialog.Portal keepMounted>
                 <Dialog.Backdrop
@@ -78,10 +86,18 @@ export const MenuSection = () => {
                   render={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />}
                 />
                 {/* カードと同じ`layoutId`で、選んだカードの位置と大きさから詳細の枠へ拡大する。 */}
+                {/* タップでボタンにフォーカスが移らないブラウザもあるため、閉じた後の戻り先は選んだカードを指定する。 */}
                 <Dialog.Popup
                   aria-labelledby={PRODUCT_TITLE_ID}
+                  finalFocus={selectedCard}
                   className="fixed inset-0 m-auto h-[80svh] w-[min(calc(100vw-64px),476px)] overflow-hidden rounded-3xl border-4 border-tomato-6 bg-tomato-1 outline-none"
-                  render={<motion.div layoutId={`menu-card-${selected.id}`} style={{ rotate: 0 }} />}
+                  render={
+                    <motion.div
+                      layoutId={`menu-card-${selected.id}`}
+                      style={{ rotate: 0 }}
+                      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                    />
+                  }
                 >
                   <div className="h-full overflow-y-auto">
                     <ProductDetail item={selected} />
