@@ -30,8 +30,12 @@ export const useTheme = () => {
   // 描画前に反映し、保存したテーマと異なる配色が一瞬表示されることを防ぐ。
   useLayoutEffect(() => {
     const media = matchMedia("(prefers-color-scheme: dark)");
+    // Radix Colorsの暗い配色は`dark`クラスだけを見るため、`data-theme`属性と同時に付け替える。
     const apply = () => {
-      document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && media.matches));
+      const dark = theme === "dark" || (theme === "system" && media.matches);
+      const root = document.documentElement;
+      root.dataset["theme"] = dark ? "dark" : "light";
+      root.classList.toggle("dark", dark);
     };
     apply();
     media.addEventListener("change", apply);

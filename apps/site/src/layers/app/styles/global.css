@@ -1,20 +1,16 @@
 @import "tailwindcss";
 @import "./colors.css";
 
-/* テーマの選択は`html.dark`で表す。端末設定への追従も同じクラスへ反映する。 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* テーマの選択は`html`要素の`data-theme`属性で表す。端末設定への追従も同じ属性へ反映する。 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Zen Maru Gothicは通常を500、太字を700だけ読み込む。他の太さを指定すると合成された字形になる。 */
+/* 読み込んでいない太さを指定すると合成された字形になるため、`index.html`で読み込む太さだけを名前に割り当てる。 */
 @theme {
   --font-sans: "Zen Maru Gothic", system-ui, sans-serif;
+  --font-caveat: "Caveat", cursive;
   --font-weight-normal: 500;
   --font-weight-bold: 700;
-}
-
-/* Caveatは500だけを読み込むため、太さも同時に指定する。 */
-@utility font-caveat {
-  font-family: "Caveat", cursive;
-  font-weight: 500;
+  --font-weight-black: 900;
 }
 
 @layer base {
@@ -22,50 +18,73 @@
     color-scheme: light;
     font-weight: var(--font-weight-normal);
     line-height: 1.6;
+    scroll-behavior: smooth;
   }
-  :root.dark {
+  :root[data-theme="dark"] {
     color-scheme: dark;
   }
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      scroll-behavior: auto;
+    }
+  }
   body {
-    background: var(--gray-1);
-    color: var(--gray-12);
+    background: var(--slate-2);
+    color: var(--slate-12);
   }
   /* Base UIのポップアップを、ページ内のz-indexに影響されず最前面へ出す。 */
   #root {
     isolation: isolate;
   }
-  a {
-    color: var(--blue-11);
-    text-decoration: underline;
-  }
-  h1 {
+}
+
+/* 規約・ポリシーのような長文のページだけに、見出しと段落の既定の体裁を付ける。 */
+@utility legal-content {
+  & h1 {
     font-size: 2rem;
     font-weight: var(--font-weight-bold);
     margin-block: 1rem;
   }
-  h2 {
+  & h2 {
     font-size: 1.5rem;
     font-weight: var(--font-weight-bold);
     margin-block: 1rem;
   }
-  h3 {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-  }
-  p {
+  & p {
     margin-block: 1rem;
   }
-  button {
-    font: inherit;
-    padding: 0.5rem;
-    border: 1px solid var(--gray-7);
-    border-radius: 0.25rem;
-    cursor: pointer;
+  & a {
+    color: var(--blue-11);
+    text-decoration: underline;
   }
-  article {
-    border: 1px solid var(--gray-6);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    margin-block: 1rem;
+}
+
+/*
+ * 区画の背景の点線の格子。72px四方の右と下に点線を引いて並べる。
+ * 背景画像だけでは縦線と横線を別々の向きに途切れさせられないため、縦線と横線を疑似要素に分けてマスクで点線にする。
+ */
+@utility bg-dashed-grid {
+  isolation: isolate;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
   }
+  &::before {
+    background: linear-gradient(to right, transparent 71px, var(--grid-color) 71px) 0 0 / 72px 100%;
+    mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 8px);
+  }
+  &::after {
+    background: linear-gradient(to bottom, transparent 71px, var(--grid-color) 71px) 0 0 / 100% 72px;
+    mask-image: repeating-linear-gradient(to right, #000 0 4px, transparent 4px 8px);
+  }
+}
+
+/* 区画の背景のドット。36px四方の中央に点を置いて並べる。 */
+@utility bg-dots {
+  background-image: radial-gradient(circle, var(--grid-color) 1.5px, transparent 2px);
+  background-size: 36px 36px;
 }

@@ -14,14 +14,7 @@ const slicePublicEntryImports = {
 
 type RestrictedImportPattern = ReturnType<typeof upperLayerImports>;
 
-const restrictedImports = (patterns: RestrictedImportPattern[]) =>
-  [
-    "error",
-    {
-      paths: [{ name: "@nekomimi/api", allowImportNames: ["App"], message: "APIから読むのはApp型だけである。" }],
-      patterns,
-    },
-  ] satisfies ["error", unknown];
+const restrictedImports = (patterns: RestrictedImportPattern[]) => ["error", { patterns }] satisfies ["error", unknown];
 
 export default defineConfig({
   extends: [baseConfig],

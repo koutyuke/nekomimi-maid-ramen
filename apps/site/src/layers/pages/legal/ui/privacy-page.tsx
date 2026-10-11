@@ -1,5 +1,5 @@
 export const PrivacyPage = () => (
-  <>
+  <div className="legal-content bg-slate-1 px-5 pt-24 pb-16">
     <h1>プライバシーポリシー</h1>
     <p>猫耳メイドラーメン運営チーム（以下「運営」）は、公開サイトとスタッフ機能で扱う情報を次のとおり取り扱う。</p>
 
@@ -90,5 +90,5 @@ export const PrivacyPage = () => (
         ac25302@gm.ibaraki-ct.ac.jp
       </a>
     </section>
-  </>
+  </div>
 );

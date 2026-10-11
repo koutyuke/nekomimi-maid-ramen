@@ -23,7 +23,7 @@ evidence: []
 
 公開側の部品は、副作用を持たない表示部品を基本とする。テーマ選択のように利用者の操作と副作用を伴う部品だけを`features`へ置く。PresenterとContainerの分割は、独立した表示検証に価値がある場合に限る。
 
-公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Radix Colorsの暗い配色とTailwind CSSの`dark:`は、この属性に合わせて切り替える。Radix Colorsは使う色のスケールだけを読み込む。
+公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
 
 公開側のStorybookは`@storybook/react-vite`で部品を描画し、アプリと同じCSSを読み込む。共通デコレーターでメモリー履歴のRouterを用意する。ストーリーは部品の隣に`{部品}.stories.tsx`として置く。
 

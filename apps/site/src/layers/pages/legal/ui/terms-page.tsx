@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 export const TermsPage = () => (
-  <>
+  <div className="legal-content bg-slate-1 px-5 pt-24 pb-16">
     <h1>利用規約</h1>
     <p>猫耳メイドラーメン運営チーム（以下「運営」）が提供する公開サイトとスタッフ機能の利用条件を定める。</p>
 
@@ -62,5 +62,5 @@ export const TermsPage = () => (
         ac25302@gm.ibaraki-ct.ac.jp
       </a>
     </section>
-  </>
+  </div>
 );
