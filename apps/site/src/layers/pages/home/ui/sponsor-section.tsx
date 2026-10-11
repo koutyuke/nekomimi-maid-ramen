@@ -10,5 +10,9 @@ export const SponsorSection = () => (
   >
     <Wave className="absolute bottom-full left-0 h-18 w-full text-orange-3" />
     <SectionTitle>ご協賛</SectionTitle>
+    {/* 掲載を承認されたスポンサー情報がそろうまでは、カードの位置に予告だけを出す。 */}
+    <div className="mt-6 flex aspect-[4/3] w-80 items-center justify-center rounded-3xl border-4 border-orange-6 bg-orange-1 shadow-lg">
+      <p className="font-caveat text-5xl font-bold text-orange-11">Coming soon</p>
+    </div>
   </section>
 );
