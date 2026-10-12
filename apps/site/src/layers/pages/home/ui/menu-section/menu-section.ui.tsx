@@ -12,14 +12,14 @@ import type { MenuItem } from "../../../../entities/menu";
 // 区画と、上端の波で同じ背景を使う。
 const BACKGROUND = "bg-tomato-3 bg-dashed-grid [--grid-color:var(--tomato-4)]";
 
-const FOOD_ROTATIONS = [2, -2];
+const FOOD_ROTATIONS = ["rotate-2", "-rotate-2"];
 
 // 飲み物は2列で互い違いに並べる。行は90pxごとに区切り、各カードは2行分を占める。
 const DRINK_LAYOUTS = [
-  { rotate: 2, className: "col-start-1 row-span-2 row-start-1" },
-  { rotate: -2, className: "col-start-2 row-span-2 row-start-2" },
-  { rotate: -4, className: "col-start-1 row-span-2 row-start-3" },
-  { rotate: 4, className: "col-start-2 row-span-2 row-start-4" },
+  { rotate: "rotate-2", className: "col-start-1 row-span-2 row-start-1" },
+  { rotate: "-rotate-2", className: "col-start-2 row-span-2 row-start-2" },
+  { rotate: "-rotate-4", className: "col-start-1 row-span-2 row-start-3" },
+  { rotate: "rotate-4", className: "col-start-2 row-span-2 row-start-4" },
 ];
 
 type MenuSectionUIProps = {
@@ -30,10 +30,13 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
   const foods = items.filter((item) => item.category !== "drink");
   const drinks = items.filter((item) => item.category === "drink");
   const [selected, setSelected] = useState<MenuItem | null>(null);
+  // 詳細から縮んで戻る間、選んだカードがほかのカードや見出しの下に隠れないよう手前に描く。
+  const [raisedId, setRaisedId] = useState<string | null>(null);
   const selectedCard = useRef<HTMLButtonElement | null>(null);
   const dialogActions = useRef<Dialog.Root.Actions>(null);
   const select = (item: MenuItem) => (card: HTMLButtonElement) => {
     selectedCard.current = card;
+    setRaisedId(item.id);
     setSelected(item);
   };
 
@@ -51,7 +54,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
             <FoodCard
               key={item.id}
               item={item}
-              rotate={FOOD_ROTATIONS[index % FOOD_ROTATIONS.length] ?? 0}
+              className={`${FOOD_ROTATIONS[index % FOOD_ROTATIONS.length] ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
               onSelect={select(item)}
             />
           ))}
@@ -63,8 +66,15 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
           {drinks.map((item, index) => {
             const layout = DRINK_LAYOUTS[index % DRINK_LAYOUTS.length];
             return (
-              <div key={item.id} className={`flex items-center ${layout?.className ?? ""}`}>
-                <DrinkCard item={item} rotate={layout?.rotate ?? 0} onSelect={select(item)} />
+              <div
+                key={item.id}
+                className={`flex items-center ${layout?.className ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
+              >
+                <DrinkCard
+                  item={item}
+                  className={`${layout?.rotate ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
+                  onSelect={select(item)}
+                />
               </div>
             );
           })}
@@ -94,11 +104,11 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                 <Dialog.Popup
                   aria-labelledby={PRODUCT_TITLE_ID}
                   finalFocus={selectedCard}
-                  className="fixed inset-0 m-auto h-[80svh] w-[min(calc(100vw-64px),476px)] overflow-hidden rounded-3xl border-4 border-tomato-6 bg-tomato-1 outline-none"
+                  className="fixed inset-0 m-auto h-[80svh] w-[min(calc(100vw-64px),476px)] overflow-hidden border-4 border-tomato-6 bg-tomato-1 outline-none"
                   render={
                     <motion.div
                       layoutId={`menu-card-${selected.id}`}
-                      style={{ rotate: 0 }}
+                      style={{ borderRadius: 24 }}
                       exit={{ opacity: 0, transition: { duration: 0.2 } }}
                     />
                   }
