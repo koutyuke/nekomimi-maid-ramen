@@ -17,11 +17,11 @@ evidence: []
 
 スタッフ画面の内部をFeature-Sliced Design(FSD)の層で分け、層の中を業務領域(スライス)で切る。独立した表示検証や変更に価値がある箇所でPresenterとContainerを分ける。通常のページは接続済み部品を直接組み合わせ、全階層での二分を要求しない。サーバーから取得する状態はTanStack Query(`@tanstack/react-query`、5系)、画面をまたいで保持するクライアント状態はJotai(`jotai`、2系)で扱う。
 
-公開側もFSDの依存方向を使うが、現在必要な`app`、`pages`、`features`、`shared`だけを置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、ページの`title`を指定するだけにする。`app` → `pages` → `features` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
+公開側もFSDの依存方向を使い、`app`、`pages`、`widgets`、`features`、`entities`、`shared`を置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、ページの`title`を指定するだけにする。`app` → `pages` → `widgets` → `features` → `entities` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`、試験とストーリーからは`testing/index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
 
 公開側はAPIへ接続しない。商品名、価格、説明、特定原材料、写真は公開側のソースに配列として持ち、ビルドに含めて配信する。商品は6品で営業中の変更もまれなため、取得中・失敗・再試行の扱いを画面に持たせる利点がない。来場者向けの販売可否は表示しない(`SPEC-VIS-002`)。商品データはスタッフ側のデータベースと別に持つため、商品名と価格の変更時は[メニュー](../../product/menu.md)の手順で両方を直す。
 
-公開側の部品も、後述の「PresenterとContainer」と「部品の置き方」に従う。保存領域を読み書きするテーマ選択と、商品データを渡すメニューの区画はContainerとPresenterに分け、Containerを含む部品へは親のContainerがslotとして渡す。表示だけで完結する部品は単一の部品とする。すべての部品にStorybookのストーリーを置き、分けた部品ではPresenterを描画する。試験とストーリーで使う商品データは`pages/home/testing`に置く。
+公開側の部品も、後述の「PresenterとContainer」と「部品の置き方」に従う。保存領域を読み書きするテーマ選択と、商品データを渡すメニューの区画はContainerとPresenterに分け、Containerを含む部品へは親のContainerがslotとして渡す。表示だけで完結する部品は単一の部品とする。すべての部品にStorybookのストーリーを置き、分けた部品ではPresenterを描画する。試験とストーリーで使う商品データは`entities/menu/testing`に置く。
 
 公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
 
@@ -31,7 +31,9 @@ evidence: []
 
 公開側とスタッフ側のUI・スタイル・Providerは共有しない。`packages/core`ではURLと、APIと公開側が使うメニューの分類値・分類型を共有する。
 
-`MenuItem`は各アプリの利用項目に合わせて定義する。スタッフ側は`entities/menu/model`で注文入力に使う項目と在庫残数を持ち、API取得関数の戻り値をこの型へ合わせ、応答との整合性を型検査で確認する。公開側は商品データとその型をトップページのスライスに持つ。特定原材料の型と分類の表示名も公開側が所有する。
+`MenuItem`は各アプリの利用項目に合わせて定義する。スタッフ側は`entities/menu/model`で注文入力に使う項目と在庫残数を持ち、API取得関数の戻り値をこの型へ合わせ、応答との整合性を型検査で確認する。公開側は商品と特定原材料の型・データ・写真と、商品のカード・写真・詳細の表示を`entities/menu`に持つ。商品は業務の概念であり、使う画面がトップページだけでも、区画の組み立てとは分けて置く。
+
+ヘッダー・ハンバーガーメニュー・フッターは、テーマの機能とナビゲーションを組み合わせた区画として`widgets/layout`に置き、`app/layout`が組み立てる。トップの区画のID(`HOME_SECTION_IDS`)は、トップページとヘッダー・フッターのナビゲーションの両方が参照するため`shared/config`に置く。
 
 特定の画面の内容を表す写真やイラストは、使う場所の近くに置く。アイコン、画像の読み込み表示、手書き風の矢印のように画面の内容に依存しない表示部品は、使う場所が1か所でも`shared/ui`へ置く。アイコンは`shared/ui/icons/`に1つずつのファイルとして置く。
 
@@ -44,16 +46,16 @@ apps/site/
 ├── src/
 │   ├── routes/         TanStack Routerのファイル経路。レイアウトと画面の結線だけを行う
 │   ├── layers/
-│   │   ├── app/        共通レイアウト、ヘッダー、スタイル
+│   │   ├── app/        共通レイアウト、スタイル
 │   │   ├── pages/      画面ごとのスライス
+│   │   ├── widgets/    ヘッダー・フッターなど機能を組み合わせた区画
 │   │   ├── features/   利用者の操作と副作用を伴う機能
-│   │   └── shared/     アイコン・画像の読み込み表示など領域に属さない基盤
+│   │   ├── entities/   商品など業務の概念と、その表示
+│   │   └── shared/     アイコン・画像の読み込み表示・区画のIDなど領域に属さない基盤
 │   ├── testing/        試験の初期化
 │   └── main.tsx        ブラウザの入口
 └── .storybook/
 ```
-
-空の層は作らない。複数画面で共有する業務概念が生じた場合に`entities`、複数の機能を組み合わせる独立した区画が生じた場合に`widgets`を追加する。
 
 ```
 apps/staff/
