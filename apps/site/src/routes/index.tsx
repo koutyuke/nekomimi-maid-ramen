@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { HomePage } from "../layers/pages/home";
+import { pageHead } from "./-page-heads";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "トップ | 猫耳メイドラーメン" }] }),
+  head: () => pageHead("/"),
   component: HomePage,
 });
