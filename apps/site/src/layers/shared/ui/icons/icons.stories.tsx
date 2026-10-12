@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ComponentType } from "react";
 
+import { AnimatedCheckIcon } from "./animated-check-icon";
 import { BuckwheatIcon } from "./buckwheat-icon";
 import { CashewIcon } from "./cashew-icon";
 import { CatMenuIcon } from "./cat-menu-icon";
@@ -60,4 +61,9 @@ export const Allergens: Story = {
       ]}
     />
   ),
+};
+
+// 表示されるたびに線が描かれる。もう一度見るときはストーリーを開き直す。
+export const AnimatedCheck: Story = {
+  render: () => <AnimatedCheckIcon className="size-6 text-slate-12" />,
 };
