@@ -1,5 +1,5 @@
 import { HOME_SECTION_IDS } from "../../../../shared/config";
-import { Wave } from "../../../../shared/ui";
+import { Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 
 // 区画と、上端の波で同じ背景を使う。
@@ -14,8 +14,8 @@ export const SponsorSection = () => (
     <Wave className={BACKGROUND} />
     <SectionTitle>ご協賛</SectionTitle>
     {/* 掲載を承認されたスポンサー情報がそろうまでは、カードの位置に予告だけを出す。 */}
-    <div className="@container mt-6 flex aspect-4/3 w-full max-w-content items-center justify-center squircle-4xl border-4 border-orange-6 bg-orange-1 shadow-lg">
+    <Reveal className="@container mt-6 flex aspect-4/3 w-full max-w-content items-center justify-center squircle-4xl border-4 border-orange-6 bg-orange-1 shadow-lg">
       <p className="font-caveat text-[15cqw] leading-none font-bold text-orange-11">Coming soon</p>
-    </div>
+    </Reveal>
   </section>
 );

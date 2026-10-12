@@ -1,5 +1,5 @@
 import { HOME_SECTION_IDS } from "../../../../shared/config";
-import { Wave } from "../../../../shared/ui";
+import { Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 import { VenueMap } from "./venue-map/venue-map";
 
@@ -20,20 +20,24 @@ export const AccessSection = () => (
   >
     <Wave className={BACKGROUND} variant="inverted" />
     <SectionTitle>アクセス</SectionTitle>
-    <dl className="mt-6 grid w-full max-w-content grid-cols-[72px_1fr] gap-1 squircle-4xl border-4 border-dashed border-teal-6 bg-teal-2 p-8">
-      {ACCESS_ROWS.map(({ label, value, note }) => (
-        <div key={label} className="col-span-2 grid grid-cols-subgrid">
-          <dt className="font-caveat text-2xl leading-8 font-bold text-teal-9">{label}</dt>
-          <dd className="text-xl leading-8 font-bold whitespace-pre-line text-teal-12">
-            {value}
-            {note !== null && <span className="block text-xs leading-6 font-normal text-pink">{note}</span>}
-          </dd>
-        </div>
-      ))}
-    </dl>
-    <div className="mt-8 w-full max-w-content">
+    <Reveal className="mt-6 w-full max-w-content">
+      <dl className="grid grid-cols-[72px_1fr] gap-1 squircle-4xl border-4 border-dashed border-teal-6 bg-teal-2 p-8">
+        {ACCESS_ROWS.map(({ label, value, note }) => (
+          <div key={label} className="col-span-2 grid grid-cols-subgrid">
+            <dt className="font-caveat text-2xl leading-8 font-bold text-teal-9">{label}</dt>
+            <dd className="text-xl leading-8 font-bold whitespace-pre-line text-teal-12">
+              {value}
+              {note !== null && <span className="block text-xs leading-6 font-normal text-pink">{note}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Reveal>
+    <Reveal className="mt-8 w-full max-w-content">
       <VenueMap />
-    </div>
-    <p className="mt-6 text-sm text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
+    </Reveal>
+    <Reveal className="mt-6">
+      <p className="text-sm text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
+    </Reveal>
   </section>
 );
