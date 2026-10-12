@@ -13,5 +13,6 @@ export { PeanutIcon } from "./icons/peanut-icon";
 export { ShrimpIcon } from "./icons/shrimp-icon";
 export { WalnutIcon } from "./icons/walnut-icon";
 export { WheatIcon } from "./icons/wheat-icon";
+export { Reveal } from "./reveal/reveal";
 export { ScribbleArrow } from "./scribble-arrow/scribble-arrow";
 export { Wave } from "./wave";

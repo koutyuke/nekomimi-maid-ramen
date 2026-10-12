@@ -9,8 +9,8 @@ const linkClassName =
   "rounded text-base leading-6 text-slate-11 outline-none hover:text-slate-12 focus-visible:ring-2 focus-visible:ring-blue-8";
 
 export const SiteFooter = () => (
-  <footer className="relative flex flex-col items-center bg-tomato-1 px-4 pt-2 pb-18">
-    <Wave className="bg-tomato-1" variant="inverted" />
+  <footer className="relative flex flex-col items-center bg-slate-1 px-4 pt-6 pb-18">
+    <Wave className="bg-slate-1" variant="inverted" />
     <p className="text-center font-black text-slate-12">
       <span className="text-lg leading-7">
         \ <span className="text-pink">萌え♥</span>・<span className="text-tomato-9">燃え🔥</span>/
@@ -25,7 +25,7 @@ export const SiteFooter = () => (
     <div className="mt-6 flex w-full max-w-86 gap-6 p-2.5">
       <div className="flex w-30 shrink-0 flex-col items-center">
         <img src={brandIcon} alt="" className="-mb-3 size-25" />
-        <img src={brandLogo} alt="猫耳メイドラーメン" className="h-[51px] w-25" />
+        <img src={brandLogo} alt="猫耳メイドラーメン" className="h-12.75 w-25" />
       </div>
       <nav aria-label="フッター" className="flex flex-1 flex-col items-start gap-1 pt-2.5">
         <p className="text-sm leading-5 font-black text-slate-10">猫耳メイドラーメン</p>

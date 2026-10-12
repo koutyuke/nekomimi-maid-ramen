@@ -6,15 +6,15 @@ export const HeroSection = () => (
   <section
     id={HOME_SECTION_IDS.top}
     aria-labelledby="hero-title"
-    className="flex min-h-[calc(100svh+72px)] scroll-mt-24 flex-col items-center justify-center bg-slate-1 bg-dots px-5 pt-24 pb-34 text-center [--grid-color:var(--slate-4)]"
+    className="flex scroll-mt-24 flex-col items-center justify-center bg-slate-1 bg-dots px-5 pt-32 pb-34 text-center [--grid-color:var(--slate-4)]"
   >
-    <p className="font-caveat text-xl font-[400] text-pink">welcome home, master!</p>
+    <p className="font-caveat text-2xl font-[400] text-pink">welcome home, master!</p>
     <h1 id="hero-title" className="text-3xl leading-10 font-black text-slate-12">
       猫耳メイドの
       <br />
       <span className="text-tomato-9">ラーメン</span>屋さん！？
     </h1>
-    <p className="mt-2 w-54 text-xs leading-4 text-slate-11">
+    <p className="text-md mt-6 text-slate-11">
       猫耳をつけたメイドさんが給仕する
       <br />
       超本格ラーメン屋さんです！
@@ -26,9 +26,9 @@ export const HeroSection = () => (
     <div className="mt-8">
       <InstaxCard />
     </div>
-    <p className="mt-4 flex -rotate-4 flex-col items-center font-caveat text-lg font-[400] text-slate-11">
+    <p className="mt-4 flex -rotate-4 flex-col items-center font-caveat text-2xl font-[400] text-slate-11">
       <ScribbleArrow className="h-6 w-2.5" />
-      Tap to flip!
+      <span className="px-1">Tap to flip!</span>
     </p>
   </section>
 );

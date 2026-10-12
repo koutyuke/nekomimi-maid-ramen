@@ -73,7 +73,7 @@ const AllergenTable = ({ allergens }: { allergens: NonNullable<MenuItem["allerge
 
 export const ProductDetail = ({ item }: { item: MenuItem }) => (
   <div className="flex flex-col items-center p-6 text-tomato-12">
-    <ProductImage item={item} className={item.image.kind === "photo" ? "w-50" : "h-50"} />
+    <ProductImage item={item} className={item.image.kind === "photo" ? "max-h-60 w-3/4" : "h-50"} fit="contain" />
     {/* 拡大の途中で文字が詰まって見えないよう、写真が移動し終わる頃にぼかしを解きながら表示する。 */}
     <motion.div
       className="flex w-full flex-col items-center"
@@ -82,14 +82,14 @@ export const ProductDetail = ({ item }: { item: MenuItem }) => (
       exit={{ opacity: 0, transition: { duration: 0.1 } }}
       transition={{ delay: 0.15, duration: 0.25 }}
     >
-      <h2 id={PRODUCT_TITLE_ID} className="mt-4 text-2xl leading-9 font-bold">
+      <h2 id={PRODUCT_TITLE_ID} className="mt-4 text-3xl leading-9 font-bold">
         {item.name}
       </h2>
-      <p className="font-caveat text-xs leading-4 text-tomato-11">{item.subtitle}</p>
-      <p className="mt-4 text-2xl leading-9 font-bold text-tomato-10">¥{item.price}</p>
+      <p className="text-md mt-2 font-caveat leading-4 text-tomato-11">{item.subtitle}</p>
+      <p className="mt-2 text-3xl leading-9 font-bold text-tomato-10">¥{item.price}</p>
       {item.description !== null && <p className="mt-4 text-center leading-6">{item.description}</p>}
       <hr className="my-6 w-55 border-t-2 border-dashed border-tomato-6" />
-      <h3 className="text-center text-sm leading-5">
+      <h3 className="text-md text-center leading-5">
         製品に含まれるアレルギー物質
         <br />
         <span className="text-xs leading-4">(特定原材料{ALLERGENS.length}品目中)</span>

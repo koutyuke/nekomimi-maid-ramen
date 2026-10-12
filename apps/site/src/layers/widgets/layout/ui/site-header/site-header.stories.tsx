@@ -2,12 +2,16 @@ import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ThemeMenuUI } from "../../../../features/theme";
+import { HamburgerMenu } from "../hamburger-menu/hamburger-menu";
 import { SiteHeaderUI } from "./site-header.ui";
 
 const meta = {
   title: "Widgets/Layout/SiteHeader",
   component: SiteHeaderUI,
-  args: { themeMenu: <ThemeMenuUI theme="system" onThemeChange={fn()} /> },
+  args: {
+    hamburgerMenu: <HamburgerMenu />,
+    themeMenu: <ThemeMenuUI theme="system" onThemeChange={fn()} />,
+  },
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof SiteHeaderUI>;
 export default meta;
