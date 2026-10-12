@@ -1,9 +1,11 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
 
-// ビルド時に変換した写真。本画像のURL、代替画像のData URL、原本の大きさ(表示領域の縦横比に使う)を持つ。
+// ビルド時に変換した写真。本画像のURLと表示幅に応じた候補、代替画像のData URL、原本の大きさ(表示領域の縦横比に使う)を持つ。
 export type OptimizedImage = {
   src: string;
+  srcSet: string;
+  sizes: string;
   placeholder: string;
   width: number;
   height: number;
@@ -11,6 +13,8 @@ export type OptimizedImage = {
 
 type BlurImageProps = {
   src: string;
+  srcSet?: string;
+  sizes?: string;
   // 幅32px程度に縮めた代替画像のData URL。本画像の読み込み中にぼかして見せる。
   placeholder: string;
   alt: string;
@@ -26,6 +30,8 @@ const loadedSources = new Set<string>();
 // 親が決めた大きさいっぱいに、代替画像の上へ本画像を重ね、読み込みが終わったらフェードインさせる。
 export const BlurImage = ({
   src,
+  srcSet,
+  sizes,
   placeholder,
   alt,
   className = "",
@@ -44,6 +50,8 @@ export const BlurImage = ({
       />
       <img
         src={src}
+        srcSet={srcSet}
+        sizes={sizes}
         alt={alt}
         loading={loading}
         decoding="async"
