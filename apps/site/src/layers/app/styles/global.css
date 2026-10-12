@@ -1,10 +1,11 @@
 @import "tailwindcss";
 @import "./colors.css";
+@import "./fonts.css";
 
 /* テーマの選択は`html`要素の`data-theme`属性で表す。端末設定への追従も同じ属性へ反映する。 */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* 読み込んでいない太さを指定すると合成された字形になるため、`index.html`で読み込む太さだけを名前に割り当てる。 */
+/* 読み込んでいない太さを指定すると合成された字形になるため、`@font-face`で読み込む太さだけを名前に割り当てる。 */
 @theme {
   --font-sans: "Zen Maru Gothic", system-ui, sans-serif;
   --font-caveat: "Caveat", cursive;
