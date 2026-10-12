@@ -10,9 +10,6 @@ const MAX_TILT_DEG = 12;
 // これ以上指が動いたら「なぞった」とみなし、離したときに裏返さない。
 const DRAG_THRESHOLD_PX = 8;
 
-// 写真の紙の質感。細かいノイズを乗算で重ねる。
-const PAPER_TEXTURE = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
-
 const faceClassName = "absolute inset-0 overflow-hidden rounded-lg shadow-xl backface-hidden";
 
 // 触れている位置に光が当たっているように見せる反射。傾けている間だけ現れる。
@@ -38,8 +35,7 @@ const Front = () => (
     />
     <span
       aria-hidden
-      className="pointer-events-none absolute top-6 left-4 h-62 w-46 opacity-30 mix-blend-multiply"
-      style={{ backgroundImage: PAPER_TEXTURE }}
+      className="pointer-events-none absolute top-6 left-4 h-62 w-46 bg-paper-texture opacity-30 mix-blend-multiply"
     />
     <img src={instaxDoodle} alt="" className="pointer-events-none absolute inset-0 size-full" />
     <Glare />
