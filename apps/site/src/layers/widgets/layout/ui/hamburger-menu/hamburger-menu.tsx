@@ -26,7 +26,7 @@ const MenuGroup = ({ title, children }: { title: string; children: ReactNode }) 
 );
 
 const itemClassName =
-  "flex min-h-9 items-center gap-2 rounded-md px-2 text-lg leading-7 text-slate-12 outline-none focus-visible:ring-2 focus-visible:ring-blue-8 bg-none hover:bg-slate-3 transition-[background-color]";
+  "flex min-h-11 items-center gap-2 rounded-md px-2 text-lg leading-7 text-slate-12 outline-none focus-visible:ring-2 focus-visible:ring-blue-8 bg-none hover:bg-slate-3 transition-[background-color]";
 
 export const HamburgerMenu = () => {
   const [open, setOpen] = useState(false);
@@ -36,9 +36,9 @@ export const HamburgerMenu = () => {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         aria-label="メニューを開く"
-        className="flex size-9 items-center justify-center rounded-lg bg-none text-slate-12 transition-[background-color] outline-none hover:bg-slate-3 focus-visible:ring-2 focus-visible:ring-blue-8"
+        className="flex size-11 items-center justify-center rounded-lg bg-none text-slate-12 transition-[background-color] outline-none hover:bg-slate-3 focus-visible:ring-2 focus-visible:ring-blue-8"
       >
-        <CatMenuIcon className="size-6" />
+        <CatMenuIcon className="size-7 text-slate-11" />
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 bg-black/40 transition-opacity duration-300 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
@@ -47,14 +47,14 @@ export const HamburgerMenu = () => {
           <div className="-mx-4 -mt-4 flex-1 overflow-y-auto px-4">
             <div className="sticky top-0 z-10 -mx-4 flex items-center justify-between bg-slate-1/70 px-4 pt-4 pb-4 backdrop-blur-lg">
               <span className="flex items-center gap-1">
-                <img src={brandIcon} alt="" className="size-11" />
-                <img src={brandLogo} alt="猫耳メイドラーメン" className="h-9 w-17.75" />
+                <img src={brandIcon} alt="" className="size-12" />
+                <img src={brandLogo} alt="猫耳メイドラーメン" className="h-10" />
               </span>
               <Dialog.Close
                 aria-label="メニューを閉じる"
-                className="flex size-9 items-center justify-center rounded-lg bg-slate-3 text-slate-12 transition-[background-color] outline-none hover:bg-slate-4 focus-visible:ring-2 focus-visible:ring-blue-8"
+                className="flex size-11 items-center justify-center rounded-xl bg-slate-3 text-slate-12 transition-[background-color] outline-none hover:bg-slate-4 focus-visible:ring-2 focus-visible:ring-blue-8"
               >
-                <X className="size-6" aria-hidden />
+                <X className="size-8" aria-hidden />
               </Dialog.Close>
             </div>
             <nav aria-label="サイト内" className="flex flex-col gap-4 px-2">
@@ -86,10 +86,12 @@ export const HamburgerMenu = () => {
             href="https://www.instagram.com/nekomimi_maid_ramen"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2.5 rounded-2xl bg-instagram p-2 text-white shadow-xl transition-[scale] duration-300 outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-blue-8"
+            className="relative flex h-12 items-center gap-2.5 rounded-2xl bg-instagram p-2 text-white shadow-xl transition-[scale] duration-300 outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-blue-8"
           >
             <InstagramIcon className="size-8" />
-            <span className="flex-1 text-center text-2xl font-black">Instagram</span>
+            <span className="absolute top-[45%] left-1/2 flex flex-1 -translate-1/2 text-center text-2xl font-black">
+              Instagram
+            </span>
           </a>
         </Dialog.Popup>
       </Dialog.Portal>
