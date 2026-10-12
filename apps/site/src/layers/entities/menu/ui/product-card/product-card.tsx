@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 
+import { squircleRadius } from "../../../../shared/config";
 import { ProductImage } from "../product-image/product-image";
 import type { MenuItem } from "../../model/menu";
 
@@ -18,10 +19,10 @@ type ProductCardProps = {
  * - 文字のまとまりにも`layout`を付け、カードと一緒に引き伸ばされないようにする。
  * カードは置き場所の幅いっぱいに広がり、比率を保って拡大・縮小する。中身もカード自身の幅に対する割合(`cqw`)で大きさを決める。
  */
-const CARD_STYLE = { borderRadius: 24 };
+const CARD_STYLE = { borderRadius: squircleRadius(64) };
 
 const cardClassName =
-  "relative overflow-hidden border-4 border-tomato-7 bg-tomato-1 text-tomato-12 outline-none focus-visible:ring-4 focus-visible:ring-blue-8";
+  "relative overflow-hidden border-4 border-tomato-7 [corner-shape:squircle] bg-tomato-1 text-tomato-12 outline-none focus-visible:ring-4 focus-visible:ring-blue-8";
 
 // 料理のカード。320×180の比率で、写真をカードの左端からはみ出させて置く。大きさは幅320pxのデザインに対する割合(1px = 0.3125cqw)で決める。
 export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) => (

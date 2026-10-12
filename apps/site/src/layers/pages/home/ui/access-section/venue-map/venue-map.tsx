@@ -12,7 +12,7 @@ export const VenueMap = () => {
         会場の地図。サッカーグラウンドの右上、テニスコートの近くに弧を描いて並ぶ4つのブースのうち、左から2番目の赤いブースが猫耳メイドラーメンのブースです。下側には工場、体育館、プールがあります。
       </figcaption>
       {/* 枠の太さを地図の大きさに関わらず一定にするため、枠とはみ出した部分の切り取りは地図の外側で行う。 */}
-      <div className="overflow-hidden rounded-3xl border-4 border-slate-6">
+      <div className="overflow-hidden squircle-4xl border-4 border-slate-6">
         <VenueMapIllustration className="block w-full" />
       </div>
       {/* 自分たちのブースを指す手書きの注記。地図の枠の上にはみ出して置く。 */}

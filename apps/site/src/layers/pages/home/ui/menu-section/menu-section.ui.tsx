@@ -4,7 +4,7 @@ import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRef, useState } from "react";
 
 import { DrinkCard, FoodCard, PRODUCT_TITLE_ID, ProductDetail } from "../../../../entities/menu";
-import { HOME_SECTION_IDS } from "../../../../shared/config";
+import { HOME_SECTION_IDS, squircleRadius } from "../../../../shared/config";
 import { Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 import type { MenuItem } from "../../../../entities/menu";
@@ -114,7 +114,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                   render={
                     <motion.div
                       layoutId={`menu-card-${selected.id}`}
-                      style={{ borderRadius: 24 }}
+                      style={{ borderRadius: squircleRadius(32) }}
                       exit={{ opacity: 0, transition: { duration: 0.2 } }}
                     />
                   }
