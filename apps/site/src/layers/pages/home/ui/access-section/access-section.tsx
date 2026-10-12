@@ -16,7 +16,7 @@ export const AccessSection = () => (
   <section
     id={HOME_SECTION_IDS.access}
     aria-label="アクセス"
-    className={`relative flex scroll-mt-24 flex-col items-center px-4 pt-2 pb-24 ${BACKGROUND}`}
+    className={`relative flex scroll-mt-24 flex-col items-center px-6 pt-2 pb-24 ${BACKGROUND}`}
   >
     <Wave className={BACKGROUND} variant="inverted" />
     <SectionTitle>アクセス</SectionTitle>

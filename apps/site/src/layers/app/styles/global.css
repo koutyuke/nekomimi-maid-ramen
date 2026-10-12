@@ -12,7 +12,7 @@
   --font-weight-bold: 700;
   --font-weight-black: 900;
   /* 背景は画面の幅いっぱいに広げ、文字やカードを載せる領域だけをこの幅までにする。 */
-  --container-content: 33.75rem;
+  --container-content: 25rem;
 }
 
 @layer base {

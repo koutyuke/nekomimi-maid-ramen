@@ -49,11 +49,11 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
       <section
         id={HOME_SECTION_IDS.menu}
         aria-label="メニュー"
-        className={`relative flex scroll-mt-24 flex-col items-center px-4 pt-2 pb-24 ${BACKGROUND}`}
+        className={`relative flex scroll-mt-24 flex-col items-center px-6 pt-2 pb-24 ${BACKGROUND}`}
       >
         <Wave className={BACKGROUND} />
         <SectionTitle>お料理</SectionTitle>
-        <div className="mt-6 flex w-full max-w-content flex-col gap-4">
+        <div className="mt-6 flex w-full max-w-content flex-col gap-6">
           {foods.map((item, index) => (
             <FoodCard
               key={item.id}
