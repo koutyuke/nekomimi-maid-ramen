@@ -44,7 +44,8 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
   };
 
   return (
-    <MotionConfig reducedMotion="user">
+    // カードと詳細の間の拡大・縮小の速さ。イージングはMotionの既定のまま、時間だけを短くする。
+    <MotionConfig reducedMotion="user" transition={{ layout: { duration: 0.3, ease: [0.4, 0, 0.1, 1] } }}>
       <section
         id={HOME_SECTION_IDS.menu}
         aria-label="メニュー"
