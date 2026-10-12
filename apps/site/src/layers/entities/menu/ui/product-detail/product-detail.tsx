@@ -85,7 +85,7 @@ export const ProductDetail = ({ item }: { item: MenuItem }) => (
       <h2 id={PRODUCT_TITLE_ID} className="mt-4 text-3xl leading-9 font-bold">
         {item.name}
       </h2>
-      <p className="text-md mt-2 font-caveat leading-4 text-tomato-11">{item.subtitle}</p>
+      <p className="text-md mt-2 font-caveat leading-4 font-normal text-tomato-11">{item.subtitle}</p>
       <p className="mt-2 text-3xl leading-9 font-bold text-tomato-10">¥{item.price}</p>
       {item.description !== null && <p className="mt-4 text-center leading-6">{item.description}</p>}
       <hr className="my-6 w-55 border-t-2 border-dashed border-tomato-6" />

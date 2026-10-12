@@ -48,7 +48,7 @@ const Back = () => (
     <div className="relative h-62 bg-black">
       <div className="absolute inset-y-0 left-4 w-46 bg-[#1c2024]" />
     </div>
-    <p className="flex h-18 items-center justify-center bg-[#3e63dd] font-caveat text-xl font-bold text-white">
+    <p className="flex h-18 items-center justify-center bg-[#3e63dd] font-caveat text-xl font-normal text-white">
       Nekomimi Maid Ramen
     </p>
     <Glare />

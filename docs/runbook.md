@@ -58,6 +58,16 @@ pnpm test
 
 コミット時は整形、プッシュ時はリンター、型検査、試験をLefthookが実行する。
 
+### 公開サイトのフォント
+
+公開サイトはフォントを自前で配信する。Caveatは500、Zen Maru Gothicは本文500・太字700を使う。`styles/fonts.css`の`font-display: swap`で取得中も本文を表示する。初回用フォントを低い優先度で先読みし、LCP対象のチェキ装飾画像を優先する。
+
+`apps/site/src/layers/shared/assets/fonts/`には、配布元のフォントから収録文字を絞った元フォントのWOFF2を置く。CaveatはASCIIの英数字・基本記号95文字、Zen Maru GothicはJIS第1水準・常用漢字・かな・記号・サイト固有文字のうち配布元のフォントが対応する3,534文字を収録する。`rollup-plugin-font-subsetter`がビルド出力のHTML・CSS・JavaScriptから使われている文字を抽出し、元フォントから配信用のWOFF2を生成する。CSSに`unicode-range`は指定しない。
+
+ビルド出力にない文字と元フォントにない文字は、OS標準フォントで表示される。配布元のフォントが対応しない常用漢字の「剝・塡・頰・𠮟」、絵文字、記号は、別字形へ置換しない。
+
+フォントのOFLと文字選定に使ったUnicodeデータのライセンスは`apps/site/public/fonts/`に同梱し、配備後も`/fonts/`から取得できる。
+
 ## 配備
 
 `main`へ統合すると、GitHub Actionsが変更されたアプリケーションだけを配備する。`packages/core/**`の変更では3つすべてを配備する。
