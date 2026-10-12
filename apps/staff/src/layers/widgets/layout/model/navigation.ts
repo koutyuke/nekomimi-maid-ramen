@@ -59,7 +59,7 @@ const publicNavigations: readonly Navigation[] = [
     description: "猫耳メイドラーメンのトップページ",
   },
   {
-    href: new URL("/menu", getSiteBaseURL(import.meta.env.PROD)).href,
+    href: new URL("/#menu", getSiteBaseURL(import.meta.env.PROD)).href,
     label: "メニュー",
     description: "来場者に見えているメニュー",
   },

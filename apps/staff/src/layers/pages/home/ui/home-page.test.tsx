@@ -101,6 +101,8 @@ describe("SPEC-SYS-008 管理ページへの導線", () => {
     expect(screen.getByRole("heading", { name: "スタッフページ" })).toBeDefined();
     expect(screen.getByRole("heading", { name: "管理者ページ" })).toBeDefined();
     expect(screen.getByRole("heading", { name: "一般公開ページ" })).toBeDefined();
+    // 公開サイトのメニューはトップの区画にあるため、区画のIDへ移動する。
+    expect(new URL(screen.getByRole("link", { name: "メニュー" }).getAttribute("href") ?? "").hash).toBe("#menu");
   });
   it("Staffには管理者向けのリンクを表示しない", async () => {
     currentRole = "Staff";

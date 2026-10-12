@@ -17,21 +17,27 @@ evidence: []
 
 スタッフ画面の内部をFeature-Sliced Design(FSD)の層で分け、層の中を業務領域(スライス)で切る。独立した表示検証や変更に価値がある箇所でPresenterとContainerを分ける。通常のページは接続済み部品を直接組み合わせ、全階層での二分を要求しない。サーバーから取得する状態はTanStack Query(`@tanstack/react-query`、5系)、画面をまたいで保持するクライアント状態はJotai(`jotai`、2系)で扱う。
 
-公開側もFSDの依存方向を使うが、現在必要な`app`、`pages`、`features`、`shared`だけを置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、ページの`title`を指定するだけにする。`app` → `pages` → `features` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
+公開側もFSDの依存方向を使い、`app`、`pages`、`widgets`、`features`、`entities`、`shared`を置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、ページの`title`を指定するだけにする。`app` → `pages` → `widgets` → `features` → `entities` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`、試験とストーリーからは`testing/index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
 
-公開側の部品もスタッフ側と同じく、表示だけを担う`{部品}.ui.tsx`をPresenter、API取得と再試行を制御する`{部品}.tsx`をContainerとする。メニュー画面は取得中・失敗・成功を一つの状態で表し、Presenterへ渡す。副作用のない画面と、`useTheme`を呼ぶだけのテーマ選択にはContainerを作らない。
+公開側はAPIへ接続しない。商品名、価格、説明、特定原材料、写真は公開側のソースに配列として持ち、ビルドに含めて配信する。商品は6品で営業中の変更もまれなため、取得中・失敗・再試行の扱いを画面に持たせる利点がない。来場者向けの販売可否は表示しない(`SPEC-VIS-002`)。商品データはスタッフ側のデータベースと別に持つため、商品名と価格の変更時は[メニュー](../../product/menu.md)の手順で両方を直す。
 
-公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。現在の販売可否はブラウザーから公開APIへ問い合わせる。取得中・失敗・商品なしを区別し、失敗時は商品一覧を表示しない。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。暗い配色は`html`要素の`dark`クラスで表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこのクラスへ反映する。Radix Colorsの暗い配色とTailwind CSSの`dark:`は、このクラスで切り替わる。
+公開側の部品も、後述の「PresenterとContainer」と「部品の置き方」に従う。保存領域を読み書きするテーマ選択と、商品データを渡すメニューの区画はContainerとPresenterに分け、Containerを含む部品へは親のContainerがslotとして渡す。表示だけで完結する部品は単一の部品とする。すべての部品にStorybookのストーリーを置き、分けた部品ではPresenterを描画する。試験とストーリーで使う商品データは`entities/menu/testing`に置く。
+
+公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
 
 公開側のStorybookは`@storybook/react-vite`で部品を描画し、アプリと同じCSSを読み込む。共通デコレーターでメモリー履歴のRouterを用意する。ストーリーは部品の隣に`{部品}.stories.tsx`として置く。
 
-公開側の基盤をスタッフ側と同じVite、React、TanStack Routerにそろえるのは、ビルド、経路、試験、Storybookの扱いを一つの方法で済ませるためである。独自デザインは、スタッフ側のMantineと分けて、Tailwind CSS、Radix Colors、Base UIで組み立てる。Base UIは様式を持たないため、見た目はTailwind CSSだけで決まる。APIクライアントは既存のEden Treatyを利用する。
+公開側の基盤をスタッフ側と同じVite、React、TanStack Routerにそろえるのは、ビルド、経路、試験、Storybookの扱いを一つの方法で済ませるためである。独自デザインは、スタッフ側のMantineと分けて、Tailwind CSS、Radix Colors、Base UIで組み立てる。Base UIは様式を持たないため、見た目はTailwind CSSだけで決まる。アニメーションはMotion、アイコンはLucide(`lucide-react`)を使い、Lucideにない図柄はSVGをReactの部品として持つ。写真は原本をリポジトリに置き、`vite-imagetools`でビルド時に圧縮と小さな代替画像の生成を行う。
 
 公開側とスタッフ側のUI・スタイル・Providerは共有しない。`packages/core`ではURLと、APIと公開側が使うメニューの分類値・分類型を共有する。
 
-`MenuItem`は各アプリの利用項目に合わせて定義する。スタッフ側は`entities/menu/model`で注文入力に使う項目と在庫残数を持ち、公開側は`pages/menu/model`で商品説明・分類・特定原材料を含む表示用の型を持つ。特定原材料の型と分類の表示名も公開側が所有する。API取得関数の戻り値を各アプリの型へ合わせ、応答との整合性を型検査で確認する。
+`MenuItem`は各アプリの利用項目に合わせて定義する。スタッフ側は`entities/menu/model`で注文入力に使う項目と在庫残数を持ち、API取得関数の戻り値をこの型へ合わせ、応答との整合性を型検査で確認する。公開側は商品と特定原材料の型・データ・写真と、商品のカード・写真・詳細の表示を`entities/menu`に持つ。商品は業務の概念であり、使う画面がトップページだけでも、区画の組み立てとは分けて置く。
 
-`@nekomimi/api`が画面へ公開するのは`App`型だけとする。画面からの参照は各アプリの`no-restricted-imports`で検査する。HTTP応答はEden Treatyを通じて参照し、スタッフ側のキャッシュ形式`Snapshot`と通知の対象範囲`ResourceScope`は`shared/api`が所有する。
+ヘッダー・ハンバーガーメニュー・フッターは、テーマの機能とナビゲーションを組み合わせた区画として`widgets/layout`に置き、`app/layout`が組み立てる。トップの区画のID(`HOME_SECTION_IDS`)は、トップページとヘッダー・フッターのナビゲーションの両方が参照するため`shared/config`に置く。
+
+特定の画面の内容を表す写真やイラストは、使う場所の近くに置く。アイコン、画像の読み込み表示、手書き風の矢印のように画面の内容に依存しない表示部品は、使う場所が1か所でも`shared/ui`へ置く。アイコンは`shared/ui/icons/`に1つずつのファイルとして置く。
+
+`@nekomimi/api`がスタッフ画面へ公開するのは`App`型だけとする。画面からの参照は各アプリの`no-restricted-imports`で検査する。HTTP応答はEden Treatyを通じて参照し、スタッフ側のキャッシュ形式`Snapshot`と通知の対象範囲`ResourceScope`は`shared/api`が所有する。
 
 参考: [Base UIの導入](https://base-ui.com/react/overview/quick-start)、[Radix Colors](https://www.radix-ui.com/colors)、[TanStack Routerの文書ヘッド管理](https://tanstack.com/router/latest/docs/framework/react/guide/document-head-management)。
 
@@ -40,16 +46,16 @@ apps/site/
 ├── src/
 │   ├── routes/         TanStack Routerのファイル経路。レイアウトと画面の結線だけを行う
 │   ├── layers/
-│   │   ├── app/        共通レイアウト、ヘッダー、スタイル
+│   │   ├── app/        共通レイアウト、スタイル
 │   │   ├── pages/      画面ごとのスライス
+│   │   ├── widgets/    ヘッダー・フッターなど機能を組み合わせた区画
 │   │   ├── features/   利用者の操作と副作用を伴う機能
-│   │   └── shared/     APIクライアントなど領域に属さない基盤
+│   │   ├── entities/   商品など業務の概念と、その表示
+│   │   └── shared/     アイコン・画像の読み込み表示・区画のIDなど領域に属さない基盤
 │   ├── testing/        試験の初期化
 │   └── main.tsx        ブラウザの入口
 └── .storybook/
 ```
-
-空の層は作らない。複数画面で共有する業務概念が生じた場合に`entities`、複数の機能を組み合わせる独立した区画が生じた場合に`widgets`を追加する。
 
 ```
 apps/staff/
@@ -194,7 +200,7 @@ Storybookのファイル名は`{部品}.stories.tsx`、Presenterのテストの�
 
 層とスライスの二段で切るのは、画面の追加で読む範囲を一箇所へ収めるためである。層だけで切ると、メニュー表示の型、取得、表示部品が別々のディレクトリへ散る。スライスだけで切ると、複数画面が使う部品の置き場が決まらない。APIも業務領域で縦割りにしているため([`DEC-SYS-005`](DEC-SYS-005-api-internal-structure.md))、共通の業務モデルを同じ領域名で切ると仕様と実装を対応させて読める。
 
-PresenterとContainerを分けるのは、表示の分岐を実際の通信なしで確認できるようにするためである。売り切れ、特定原材料の未確認、取得失敗のように、業務上重要な分岐は表示側にある。Presenterがデータ取得を持つと、これらを確認するたびにAPIの応答か通信の失敗を用意することになる。通信から切り離せば、fixtureと表示内の操作で確認できる。
+PresenterとContainerを分けるのは、表示の分岐を実際の通信なしで確認できるようにするためである。売り切れや取得失敗のように、業務上重要な分岐は表示側にある。Presenterがデータ取得を持つと、これらを確認するたびにAPIの応答か通信の失敗を用意することになる。通信から切り離せば、fixtureと表示内の操作で確認できる。
 
 Presenterへ上位の層を読ませないのは、部品の再利用先を型で保つためである。Presenterが上位の部品を直接読むと、その部品が使う場所ごとに読み込み先が増え、下位の部品が上位の構成へ依存する。要素を`slots`で受け取れば、差し込む側だけが構成を知る。
 

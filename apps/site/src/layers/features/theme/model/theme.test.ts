@@ -29,9 +29,17 @@ afterEach(() => {
   deviceScheme.dark = false;
   deviceScheme.listeners.clear();
   document.documentElement.classList.remove("dark");
+  delete document.documentElement.dataset["theme"];
 });
 
-const isDark = () => document.documentElement.classList.contains("dark");
+// Radix Colorsの暗い配色は`dark`クラス、それ以外の配色の判定は`data-theme`属性を見るため、両方がそろうことを確かめる。
+const isDark = () => {
+  const root = document.documentElement;
+  const dark = root.dataset["theme"] === "dark";
+  expect(root.classList.contains("dark")).toBe(dark);
+  expect(root.dataset["theme"]).toBe(dark ? "dark" : "light");
+  return dark;
+};
 
 describe("SPEC-VIS-005 公開ページのテーマ", () => {
   it("選択を保存して再表示後に適用し、不正な保存値は端末設定へ戻す", () => {

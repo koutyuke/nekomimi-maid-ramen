@@ -1,12 +1,13 @@
-import { Link } from "@tanstack/react-router";
+import { AccessSection } from "./access-section/access-section";
+import { HeroSection } from "./hero-section/hero-section";
+import { MenuSection } from "./menu-section/menu-section";
+import { SponsorSection } from "./sponsor-section/sponsor-section";
 
 export const HomePage = () => (
   <>
-    <h1>猫耳メイドラーメン</h1>
-    <p>文化祭のクラス出店です。公開サイトでは、来場者向けにメニューと販売状況をご案内します。</p>
-    <p>スタッフ機能では、学校のGoogleアカウントでログインし、注文・会計・調理・受け渡しを管理します。</p>
-    <Link className="inline-flex min-h-11 items-center" to="/menu">
-      メニューを見る
-    </Link>
+    <HeroSection />
+    <MenuSection />
+    <AccessSection />
+    <SponsorSection />
   </>
 );

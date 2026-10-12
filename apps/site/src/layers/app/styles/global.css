@@ -1,20 +1,18 @@
 @import "tailwindcss";
 @import "./colors.css";
 
-/* テーマの選択は`html.dark`で表す。端末設定への追従も同じクラスへ反映する。 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* テーマの選択は`html`要素の`data-theme`属性で表す。端末設定への追従も同じ属性へ反映する。 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Zen Maru Gothicは通常を500、太字を700だけ読み込む。他の太さを指定すると合成された字形になる。 */
+/* 読み込んでいない太さを指定すると合成された字形になるため、`index.html`で読み込む太さだけを名前に割り当てる。 */
 @theme {
   --font-sans: "Zen Maru Gothic", system-ui, sans-serif;
+  --font-caveat: "Caveat", cursive;
   --font-weight-normal: 500;
   --font-weight-bold: 700;
-}
-
-/* Caveatは500だけを読み込むため、太さも同時に指定する。 */
-@utility font-caveat {
-  font-family: "Caveat", cursive;
-  font-weight: 500;
+  --font-weight-black: 900;
+  /* 背景は画面の幅いっぱいに広げ、文字やカードを載せる領域だけをこの幅までにする。 */
+  --container-content: 25rem;
 }
 
 @layer base {
@@ -22,50 +20,88 @@
     color-scheme: light;
     font-weight: var(--font-weight-normal);
     line-height: 1.6;
+    scroll-behavior: smooth;
   }
-  :root.dark {
+  :root[data-theme="dark"] {
     color-scheme: dark;
   }
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      scroll-behavior: auto;
+    }
+  }
   body {
-    background: var(--gray-1);
-    color: var(--gray-12);
+    background: var(--slate-2);
+    color: var(--slate-12);
   }
   /* Base UIのポップアップを、ページ内のz-indexに影響されず最前面へ出す。 */
   #root {
     isolation: isolate;
   }
-  a {
-    color: var(--blue-11);
-    text-decoration: underline;
-  }
-  h1 {
+}
+
+/* 規約・ポリシーのような長文のページだけに、見出しと段落の既定の体裁を付ける。 */
+@utility legal-content {
+  & h1 {
     font-size: 2rem;
     font-weight: var(--font-weight-bold);
     margin-block: 1rem;
   }
-  h2 {
+  & h2 {
     font-size: 1.5rem;
     font-weight: var(--font-weight-bold);
     margin-block: 1rem;
   }
-  h3 {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-  }
-  p {
+  & p {
     margin-block: 1rem;
   }
-  button {
-    font: inherit;
-    padding: 0.5rem;
-    border: 1px solid var(--gray-7);
-    border-radius: 0.25rem;
-    cursor: pointer;
+  & a {
+    color: var(--blue-11);
+    text-decoration: underline;
   }
-  article {
-    border: 1px solid var(--gray-6);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    margin-block: 1rem;
+}
+
+/*
+ * 区画の背景の点線の格子。72px四方の右と下に点線を引いて並べる。
+ * 背景画像だけでは縦線と横線を別々の向きに途切れさせられないため、縦線と横線を疑似要素に分けてマスクで点線にする。
+ */
+@utility bg-dashed-grid {
+  isolation: isolate;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
   }
+  &::before {
+    background: linear-gradient(to right, transparent 71px, var(--grid-color) 71px) 0 0 / 72px 100%;
+    mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 8px);
+  }
+  &::after {
+    background: linear-gradient(to bottom, transparent 71px, var(--grid-color) 71px) 0 0 / 100% 72px;
+    mask-image: repeating-linear-gradient(to right, #000 0 4px, transparent 4px 8px);
+  }
+}
+
+/* 区画の背景のドット。36px四方の中央に点を置いて並べる。 */
+@utility bg-dots {
+  background-image: radial-gradient(circle, var(--grid-color) 1.5px, transparent 2px);
+  background-size: 36px 36px;
+}
+
+/*
+ * Instagramのボタンの背景。黄色から橙、桃色から紫の2つの放射グラデーションを重ねる。値はデザインのまま。
+ * デザインの楕円は斜めに歪んでいて`radial-gradient()`では描けないため、SVGのグラデーションを背景画像にする。
+ */
+@utility bg-instagram {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg viewBox='0 0 280 48' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%' height='100%' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(8.904 -2.3904 14.504 1.5877 101.5 46.344)'><stop stop-color='rgba(255,214,0,1)' offset='0'/><stop stop-color='rgba(255,187,12,1)' offset='0.076247'/><stop stop-color='rgba(255,160,24,1)' offset='0.15249'/><stop stop-color='rgba(255,105,48,1)' offset='0.30499'/><stop stop-color='rgba(254,59,54,1)' offset='0.42086'/><stop stop-color='rgba(254,59,54,0)' offset='1'/></radialGradient></defs></svg>"),
+    url("data:image/svg+xml;utf8,<svg viewBox='0 0 280 48' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%' height='100%' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-16.604 -5.8944 51.142 -4.2337 236.6 54.48)'><stop stop-color='rgba(255,27,144,1)' offset='0.24392'/><stop stop-color='rgba(251,15,120,1)' offset='0.3403'/><stop stop-color='rgba(248,2,97,1)' offset='0.43667'/><stop stop-color='rgba(242,1,144,1)' offset='0.56257'/><stop stop-color='rgba(237,0,192,1)' offset='0.68848'/><stop stop-color='rgba(197,0,233,1)' offset='0.77679'/><stop stop-color='rgba(155,12,244,1)' offset='0.83497'/><stop stop-color='rgba(112,23,255,1)' offset='0.89316'/></radialGradient></defs></svg>");
+}
+
+/* 写真の紙の質感。細かいノイズを敷き詰める。ノイズはCSSのグラデーションでは作れないため、SVGのフィルターで描いた画像を使う。 */
+@utility bg-paper-texture {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }

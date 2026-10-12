@@ -7,21 +7,22 @@ const upperLayerImports = (layers: readonly string[]) => ({
   message: "層は下位の層だけを読む。上位の層へ渡す値は引数かpropsで受け取る。",
 });
 
+const sliceLayers = "**/{entities,features,widgets,pages}";
+
 const slicePublicEntryImports = {
-  group: ["**/{features,pages}/*/**", "!**/{features,pages}/*/index", "!**/{features,pages}/*/index.ts"],
-  message: "他のスライスは公開入口(`{層}/{スライス}`)から読む。",
+  group: [
+    `${sliceLayers}/*/**`,
+    `!${sliceLayers}/*/index`,
+    `!${sliceLayers}/*/index.ts`,
+    `!${sliceLayers}/*/testing`,
+    `!${sliceLayers}/*/testing/index`,
+  ],
+  message: "他のスライスは公開入口(`{層}/{スライス}`)またはテスト用入口(`{層}/{スライス}/testing`)から読む。",
 };
 
 type RestrictedImportPattern = ReturnType<typeof upperLayerImports>;
 
-const restrictedImports = (patterns: RestrictedImportPattern[]) =>
-  [
-    "error",
-    {
-      paths: [{ name: "@nekomimi/api", allowImportNames: ["App"], message: "APIから読むのはApp型だけである。" }],
-      patterns,
-    },
-  ] satisfies ["error", unknown];
+const restrictedImports = (patterns: RestrictedImportPattern[]) => ["error", { patterns }] satisfies ["error", unknown];
 
 export default defineConfig({
   extends: [baseConfig],
@@ -38,11 +39,31 @@ export default defineConfig({
     {
       files: ["src/layers/shared/**"],
       rules: {
-        "no-restricted-imports": restrictedImports([upperLayerImports(["app", "pages", "features"])]),
+        "no-restricted-imports": restrictedImports([
+          upperLayerImports(["app", "pages", "widgets", "features", "entities"]),
+        ]),
+      },
+    },
+    {
+      files: ["src/layers/entities/**"],
+      rules: {
+        "no-restricted-imports": restrictedImports([
+          upperLayerImports(["app", "pages", "widgets", "features"]),
+          slicePublicEntryImports,
+        ]),
       },
     },
     {
       files: ["src/layers/features/**"],
+      rules: {
+        "no-restricted-imports": restrictedImports([
+          upperLayerImports(["app", "pages", "widgets"]),
+          slicePublicEntryImports,
+        ]),
+      },
+    },
+    {
+      files: ["src/layers/widgets/**"],
       rules: {
         "no-restricted-imports": restrictedImports([upperLayerImports(["app", "pages"]), slicePublicEntryImports]),
       },
@@ -54,9 +75,15 @@ export default defineConfig({
       },
     },
     {
+      files: ["src/layers/app/**"],
+      rules: {
+        "no-restricted-imports": restrictedImports([slicePublicEntryImports]),
+      },
+    },
+    {
       files: ["src/routes/**"],
       rules: {
-        "no-restricted-imports": restrictedImports([upperLayerImports(["shared", "features"])]),
+        "no-restricted-imports": restrictedImports([upperLayerImports(["shared", "entities", "features", "widgets"])]),
       },
     },
   ],
