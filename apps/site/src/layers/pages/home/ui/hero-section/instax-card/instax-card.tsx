@@ -28,6 +28,8 @@ const Front = () => (
   <div className={`${faceClassName} border border-[#d9d9d9] bg-[#f0f0f0]`}>
     <BlurImage
       src={MAID_ILLUSTRATION.src}
+      srcSet={MAID_ILLUSTRATION.srcSet}
+      sizes={MAID_ILLUSTRATION.sizes}
       placeholder={MAID_ILLUSTRATION.placeholder}
       alt="ラーメンの丼を持つ猫耳メイドのイラスト"
       loading="eager"

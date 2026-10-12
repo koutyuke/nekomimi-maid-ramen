@@ -31,6 +31,8 @@ export const ProductImage = ({ item, className = "", fit }: ProductImageProps) =
     {item.image.kind === "photo" ? (
       <BlurImage
         src={item.image.photo.src}
+        srcSet={item.image.photo.srcSet}
+        sizes={item.image.photo.sizes}
         placeholder={item.image.photo.placeholder}
         alt=""
         className="size-full"
