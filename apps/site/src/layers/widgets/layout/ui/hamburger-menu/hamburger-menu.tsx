@@ -89,7 +89,7 @@ export const HamburgerMenu = () => {
             className="relative flex h-12 items-center gap-2.5 rounded-2xl bg-instagram p-2 text-white shadow-xl transition-[scale] duration-300 outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-blue-8"
           >
             <InstagramIcon className="size-8" />
-            <span className="absolute top-[45%] left-1/2 flex flex-1 -translate-1/2 text-center text-2xl font-black">
+            <span className="absolute top-[45%] left-1/2 flex flex-1 -translate-1/2 text-center text-2xl font-bold">
               Instagram
             </span>
           </a>

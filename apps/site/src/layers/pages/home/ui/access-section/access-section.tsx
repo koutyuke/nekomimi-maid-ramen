@@ -21,7 +21,7 @@ export const AccessSection = () => (
       <dl className="grid grid-cols-[72px_1fr] gap-1 squircle-4xl border-4 border-dashed border-teal-6 bg-teal-2 p-8">
         {ACCESS_ROWS.map(({ label, value, note }) => (
           <div key={label} className="col-span-2 grid grid-cols-subgrid">
-            <dt className="font-caveat text-2xl leading-8 font-bold text-teal-9">{label}</dt>
+            <dt className="font-caveat text-2xl leading-8 font-normal text-teal-9">{label}</dt>
             <dd className="text-xl leading-8 font-bold whitespace-pre-line text-teal-12">
               {value}
               {note !== null && <span className="block text-xs leading-6 font-normal text-pink">{note}</span>}

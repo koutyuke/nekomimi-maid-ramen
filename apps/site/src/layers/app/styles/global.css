@@ -10,7 +10,6 @@
   --font-caveat: "Caveat", cursive;
   --font-weight-normal: 500;
   --font-weight-bold: 700;
-  --font-weight-black: 900;
   /* 背景は画面の幅いっぱいに広げ、文字やカードを載せる領域だけをこの幅までにする。 */
   --container-content: 25rem;
 }

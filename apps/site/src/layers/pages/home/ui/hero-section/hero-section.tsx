@@ -8,8 +8,8 @@ export const HeroSection = () => (
     aria-labelledby="hero-title"
     className="flex scroll-mt-24 flex-col items-center justify-center bg-slate-1 bg-dots px-5 pt-32 pb-34 text-center [--grid-color:var(--slate-4)]"
   >
-    <p className="font-caveat text-2xl font-[400] text-pink">welcome home, master!</p>
-    <h1 id="hero-title" className="text-3xl leading-10 font-black text-slate-12">
+    <p className="font-caveat text-2xl font-normal text-pink">welcome home, master!</p>
+    <h1 id="hero-title" className="text-3xl leading-10 font-bold text-slate-12">
       猫耳メイドの
       <br />
       <span className="text-tomato-9">ラーメン</span>屋さん！？
@@ -26,7 +26,7 @@ export const HeroSection = () => (
     <div className="mt-8">
       <InstaxCard />
     </div>
-    <p className="mt-4 flex -rotate-4 flex-col items-center font-caveat text-2xl font-[400] text-slate-11">
+    <p className="mt-4 flex -rotate-4 flex-col items-center font-caveat text-2xl font-normal text-slate-11">
       <ScribbleArrow className="h-6 w-2.5" />
       <span className="px-1">Tap to flip!</span>
     </p>

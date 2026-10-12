@@ -11,7 +11,7 @@ const linkClassName =
 export const SiteFooter = () => (
   <footer className="relative flex flex-col items-center bg-slate-1 px-4 pt-6 pb-18">
     <Wave className="bg-slate-1" variant="inverted" />
-    <p className="text-center font-black text-slate-12">
+    <p className="text-center font-bold text-slate-12">
       <span className="text-lg leading-7">
         \ <span className="text-pink">萌え♥</span>・<span className="text-tomato-9">燃え🔥</span>/
       </span>
@@ -28,7 +28,7 @@ export const SiteFooter = () => (
         <img src={brandLogo} alt="猫耳メイドラーメン" className="h-12.75 w-25" />
       </div>
       <nav aria-label="フッター" className="flex flex-1 flex-col items-start gap-1 pt-2.5">
-        <p className="text-sm leading-5 font-black text-slate-10">猫耳メイドラーメン</p>
+        <p className="text-sm leading-5 font-bold text-slate-10">猫耳メイドラーメン</p>
         <Link to="/" hash={HOME_SECTION_IDS.top} className={linkClassName}>
           Top
         </Link>
