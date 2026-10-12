@@ -18,6 +18,7 @@ direnvを使わない場合は、各コマンドを`nix develop --command`の後
 ```sh
 pnpm dev                          # 公開サイト・スタッフ画面・API
 pnpm --filter @nekomimi/site dev  # 公開サイト
+pnpm site start                   # 公開サイトをビルドして、ビルド結果で起動（localhost:4173）
 pnpm --filter @nekomimi/staff dev # スタッフ画面
 pnpm --filter @nekomimi/api dev   # API
 pnpm site sb                      # 公開サイトのStorybook（localhost:6007）
