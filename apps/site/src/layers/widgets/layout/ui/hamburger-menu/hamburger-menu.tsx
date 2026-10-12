@@ -36,7 +36,7 @@ export const HamburgerMenu = () => {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         aria-label="メニューを開く"
-        className="flex size-11 items-center justify-center rounded-lg bg-none text-slate-12 transition-[background-color] outline-none hover:bg-slate-3 focus-visible:ring-2 focus-visible:ring-blue-8"
+        className="flex size-11 items-center justify-center rounded-xl bg-none text-slate-12 transition-[background-color] outline-none hover:bg-slate-3 focus-visible:ring-2 focus-visible:ring-blue-8"
       >
         <CatMenuIcon className="size-7 text-slate-11" />
       </Dialog.Trigger>

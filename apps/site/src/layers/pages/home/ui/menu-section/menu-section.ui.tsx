@@ -88,7 +88,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
           </div>
         </div>
         <Reveal className="mt-6">
-          <p className="text-sm text-tomato-12">ご注文は店頭でメイドにお伝えください</p>
+          <p className="text-md text-tomato-12">ご注文は店頭でメイドにお伝えください</p>
         </Reveal>
 
         <Dialog.Root
@@ -128,9 +128,9 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                   </div>
                   <Dialog.Close
                     aria-label="閉じる"
-                    className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-lg bg-slate-3 text-slate-12 transition-colors outline-none hover:bg-slate-4 focus-visible:ring-2 focus-visible:ring-blue-8"
+                    className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-xl bg-slate-3 text-slate-12 transition-colors outline-none hover:bg-slate-4 focus-visible:ring-2 focus-visible:ring-blue-8"
                   >
-                    <X className="size-6" aria-hidden />
+                    <X className="size-8" aria-hidden />
                   </Dialog.Close>
                 </Dialog.Popup>
               </Dialog.Portal>

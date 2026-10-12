@@ -14,7 +14,7 @@ export const HeroSection = () => (
       <br />
       <span className="text-tomato-9">ラーメン</span>屋さん！？
     </h1>
-    <p className="text-md mt-6 leading-4 text-slate-11">
+    <p className="text-md mt-6 text-slate-11">
       猫耳をつけたメイドさんが給仕する
       <br />
       超本格ラーメン屋さんです！

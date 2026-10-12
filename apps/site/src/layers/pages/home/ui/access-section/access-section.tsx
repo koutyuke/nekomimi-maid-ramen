@@ -37,7 +37,7 @@ export const AccessSection = () => (
       <VenueMap />
     </Reveal>
     <Reveal className="mt-6">
-      <p className="text-sm text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
+      <p className="text-md text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
     </Reveal>
   </section>
 );

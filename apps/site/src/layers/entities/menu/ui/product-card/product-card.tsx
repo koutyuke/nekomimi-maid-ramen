@@ -41,7 +41,7 @@ export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) =
       className="absolute inset-y-0 right-[5.6%] left-[59.4%] flex flex-col items-center justify-center"
     >
       <span className="text-[7.5cqw] leading-[11.25cqw] font-bold">{item.name}</span>
-      <span className="font-caveat text-[3.75cqw] leading-[5cqw] text-tomato-11">{item.subtitle}</span>
+      <span className="font-caveat text-[4.5cqw] leading-[6cqw] text-tomato-11">{item.subtitle}</span>
       <span className="mt-[5cqw] text-[7.5cqw] leading-[11.25cqw] font-bold text-tomato-10">¥{item.price}</span>
     </motion.span>
   </motion.button>
@@ -59,13 +59,13 @@ export const DrinkCard = ({ item, className = "", onSelect }: ProductCardProps) 
   >
     <ProductImage item={item} className="my-auto w-[calc(100cqw*36/152)]" />
     <motion.span layout className="flex flex-col items-center">
-      <span className="text-[calc(100cqw*16/152)] leading-[calc(100cqw*24/152)] font-bold whitespace-nowrap">
+      <span className="text-[calc(100cqw*18/152)] leading-[calc(100cqw*24/152)] font-bold whitespace-nowrap">
         {item.name}
       </span>
-      <span className="font-caveat text-[calc(100cqw*12/152)] leading-[calc(100cqw*16/152)] text-tomato-11">
+      <span className="font-caveat text-[calc(100cqw*16/152)] leading-[calc(100cqw*20/152)] text-tomato-11">
         {item.subtitle}
       </span>
-      <span className="text-[calc(100cqw*16/152)] leading-[calc(100cqw*24/152)] font-bold text-tomato-9">
+      <span className="text-[calc(100cqw*18/152)] leading-[calc(100cqw*24/152)] font-bold text-tomato-9">
         ¥{item.price}
       </span>
     </motion.span>
