@@ -1,2 +1,15 @@
-export { CatMenuIcon, GitHubIcon, InstagramIcon } from "./icons";
+export { BlurImage } from "./blur-image/blur-image";
+export { BuckwheatIcon } from "./icons/buckwheat-icon";
+export { CashewIcon } from "./icons/cashew-icon";
+export { CatMenuIcon } from "./icons/cat-menu-icon";
+export { CrabIcon } from "./icons/crab-icon";
+export { EggIcon } from "./icons/egg-icon";
+export { GitHubIcon } from "./icons/github-icon";
+export { InstagramIcon } from "./icons/instagram-icon";
+export { MilkIcon } from "./icons/milk-icon";
+export { PeanutIcon } from "./icons/peanut-icon";
+export { ShrimpIcon } from "./icons/shrimp-icon";
+export { WalnutIcon } from "./icons/walnut-icon";
+export { WheatIcon } from "./icons/wheat-icon";
+export { ScribbleArrow } from "./scribble-arrow/scribble-arrow";
 export { Wave } from "./wave";

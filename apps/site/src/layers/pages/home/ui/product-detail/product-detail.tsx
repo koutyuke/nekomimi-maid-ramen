@@ -3,7 +3,6 @@ import { motion } from "motion/react";
 import type { LucideIcon } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 
-import { ALLERGENS } from "../../model/menu";
 import {
   BuckwheatIcon,
   CashewIcon,
@@ -14,7 +13,8 @@ import {
   ShrimpIcon,
   WalnutIcon,
   WheatIcon,
-} from "../allergen-icons/allergen-icons";
+} from "../../../../shared/ui";
+import { ALLERGENS } from "../../model/menu";
 import { ProductImage } from "../product-image/product-image";
 import type { AllergenId, AllergenStatus, MenuItem } from "../../model/menu";
 

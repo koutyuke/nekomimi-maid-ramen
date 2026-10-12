@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 
-import { BlurImage } from "../blur-image/blur-image";
+import { BlurImage } from "../../../../shared/ui";
 import type { MenuItem } from "../../model/menu";
 
 type ProductImageProps = {

@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-import { ScribbleArrow } from "../scribble-arrow/scribble-arrow";
+import { ScribbleArrow } from "../../../../shared/ui";
 
 // 角を丸めた長方形を斜めに置いたブース。座標はデザインの地図(320×240)のまま使う。
 const BOOTHS: readonly { d: string; ours?: boolean }[] = [
