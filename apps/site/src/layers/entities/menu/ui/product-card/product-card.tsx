@@ -10,6 +10,8 @@ type ProductCardProps = {
   className?: string;
   // 詳細を閉じたときにフォーカスを戻すため、選ばれたカードの要素を渡す。
   onSelect: (card: HTMLButtonElement) => void;
+  // 選ばれそうなとき(ポインターが乗った、フォーカスを得た)に呼ぶ。詳細の表示を先に読み込むために使う。
+  onIntent?: () => void;
 };
 
 /*
@@ -25,12 +27,14 @@ const cardClassName =
   "relative overflow-hidden border-4 border-tomato-7 [corner-shape:squircle] bg-tomato-1 text-tomato-12 outline-none focus-visible:ring-4 focus-visible:ring-blue-8";
 
 // 料理のカード。320×180の比率で、写真をカードの左端からはみ出させて置く。大きさは幅320pxのデザインに対する割合(1px = 0.3125cqw)で決める。
-export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) => (
+export const FoodCard = ({ item, className = "", onSelect, onIntent }: ProductCardProps) => (
   <motion.button
     type="button"
     layoutId={`menu-card-${item.id}`}
     style={CARD_STYLE}
     onClick={(event) => onSelect(event.currentTarget)}
+    onPointerEnter={onIntent}
+    onFocus={onIntent}
     className={`${cardClassName} @container block aspect-video w-full shadow-lg ${className}`}
   >
     <span className="absolute top-1/2 left-[-16.25%] w-[68.75%] -translate-y-1/2">
@@ -49,12 +53,14 @@ export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) =
 
 // 飲み物のカード。中央に瓶のイラスト、下に名称と価格を置く。大きさは幅152pxのデザインに対する割合で決める。
 // 余白はカード自身の`cqw`では測れないため、親の幅に対する割合(`%`)で指定する。
-export const DrinkCard = ({ item, className = "", onSelect }: ProductCardProps) => (
+export const DrinkCard = ({ item, className = "", onSelect, onIntent }: ProductCardProps) => (
   <motion.button
     type="button"
     layoutId={`menu-card-${item.id}`}
     style={CARD_STYLE}
     onClick={(event) => onSelect(event.currentTarget)}
+    onPointerEnter={onIntent}
+    onFocus={onIntent}
     className={`${cardClassName} @container flex aspect-152/180 w-full flex-col items-center p-[calc(100%*10/152)] shadow-md ${className}`}
   >
     <ProductImage item={item} className="my-auto w-[calc(100cqw*36/152)]" />

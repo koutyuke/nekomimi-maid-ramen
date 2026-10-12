@@ -1,13 +1,16 @@
-import { Dialog } from "@base-ui/react/dialog";
-import { X } from "lucide-react";
-import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { useRef, useState } from "react";
+import { MotionConfig } from "motion/react";
+import { lazy, Suspense, useRef, useState } from "react";
 
-import { DrinkCard, FoodCard, PRODUCT_TITLE_ID, ProductDetail } from "../../../../entities/menu";
-import { HOME_SECTION_IDS, squircleRadius } from "../../../../shared/config";
+import { DrinkCard, FoodCard } from "../../../../entities/menu";
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 import type { MenuItem } from "../../../../entities/menu";
+
+// 詳細の表示(Base UIのDialogと商品詳細)は初期表示に不要なため、カードに触れたときに読み込む。
+const loadProductDialog = () => import("./product-dialog");
+const ProductDialog = lazy(() => loadProductDialog().then((module) => ({ default: module.ProductDialog })));
+const preloadProductDialog = () => void loadProductDialog();
 
 const FOOD_ROTATIONS = ["rotate-2", "-rotate-2"];
 
@@ -32,7 +35,6 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
   const [raisedId, setRaisedId] = useState<string | null>(null);
 
   const selectedCard = useRef<HTMLButtonElement | null>(null);
-  const dialogActions = useRef<Dialog.Root.Actions>(null);
 
   const select = (item: MenuItem) => (card: HTMLButtonElement) => {
     selectedCard.current = card;
@@ -58,6 +60,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                 item={item}
                 className={FOOD_ROTATIONS[index % FOOD_ROTATIONS.length] ?? ""}
                 onSelect={select(item)}
+                onIntent={preloadProductDialog}
               />
             </Reveal>
           ))}
@@ -78,6 +81,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                     item={item}
                     className={`${layout?.rotate ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
                     onSelect={select(item)}
+                    onIntent={preloadProductDialog}
                   />
                 </Reveal>
               );
@@ -88,52 +92,12 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
           <p className="text-md text-tomato-12">ご注文は店頭でメイドにお伝えください</p>
         </Reveal>
 
-        <Dialog.Root
-          open={selected !== null}
-          actionsRef={dialogActions}
-          onOpenChange={(open, eventDetails) => {
-            if (!open) {
-              // 元のカードへ縮むアニメーションの間も詳細を残すため、外す時期はAnimatePresenceの完了に合わせる。
-              eventDetails.preventUnmountOnClose();
-              setSelected(null);
-            }
-          }}
-        >
-          <AnimatePresence onExitComplete={() => dialogActions.current?.unmount()}>
-            {selected && (
-              <Dialog.Portal keepMounted>
-                <Dialog.Backdrop
-                  className="fixed inset-0 bg-black/20 backdrop-blur-lg"
-                  render={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />}
-                />
-                {/* カードと同じ`layoutId`で、選んだカードの位置と大きさから詳細の枠へ拡大する。 */}
-                {/* タップでボタンにフォーカスが移らないブラウザもあるため、閉じた後の戻り先は選んだカードを指定する。 */}
-                <Dialog.Popup
-                  aria-labelledby={PRODUCT_TITLE_ID}
-                  finalFocus={selectedCard}
-                  className="fixed inset-0 m-auto h-[80svh] w-[min(calc(100vw-64px),476px)] overflow-hidden border-4 border-tomato-6 bg-tomato-1 outline-none"
-                  render={
-                    <motion.div
-                      layoutId={`menu-card-${selected.id}`}
-                      style={{ borderRadius: squircleRadius(32) }}
-                      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                    />
-                  }
-                >
-                  <div className="h-full overflow-y-auto">
-                    <ProductDetail item={selected} />
-                  </div>
-                  <Dialog.Close
-                    aria-label="閉じる"
-                    className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-xl bg-slate-3 text-slate-12 transition-colors outline-none hover:bg-slate-4 focus-visible:ring-2 focus-visible:ring-blue-8"
-                  >
-                    <X className="size-8" aria-hidden />
-                  </Dialog.Close>
-                </Dialog.Popup>
-              </Dialog.Portal>
-            )}
-          </AnimatePresence>
-        </Dialog.Root>
+        {/* カードを選ぶと`raisedId`が入り、以後は外れない。詳細を一度開いた後は、閉じるアニメーションのため描画し続ける。 */}
+        {raisedId !== null && (
+          <Suspense fallback={null}>
+            <ProductDialog selected={selected} onClose={() => setSelected(null)} selectedCard={selectedCard} />
+          </Suspense>
+        )}
       </section>
     </MotionConfig>
   );
