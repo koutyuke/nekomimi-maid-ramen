@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PrivacyPage } from "../layers/pages/legal";
+import { pageHead } from "./-page-heads";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({ meta: [{ title: "プライバシーポリシー | 猫耳メイドラーメン" }] }),
+  head: () => pageHead("/privacy"),
   component: PrivacyPage,
 });
