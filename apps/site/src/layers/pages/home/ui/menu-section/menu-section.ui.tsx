@@ -14,7 +14,8 @@ const BACKGROUND = "bg-tomato-3 bg-dashed-grid [--grid-color:var(--tomato-4)]";
 
 const FOOD_ROTATIONS = ["rotate-2", "-rotate-2"];
 
-// 飲み物は2列で互い違いに並べる。行は90pxごとに区切り、各カードは2行分を占める。
+// 飲み物は2列で互い違いに並べる。各カードは2行分を占める。
+// 行と隙間は幅320pxのデザインに対する割合(1px = 0.3125cqw)で決め、カードと一緒に拡大・縮小する。
 const DRINK_LAYOUTS = [
   { rotate: "rotate-2", className: "col-start-1 row-span-2 row-start-1" },
   { rotate: "-rotate-2", className: "col-start-2 row-span-2 row-start-2" },
@@ -51,7 +52,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
       >
         <Wave className={BACKGROUND} />
         <SectionTitle>お料理</SectionTitle>
-        <div className="mt-6 flex flex-col gap-4">
+        <div className="mt-6 flex w-full max-w-content flex-col gap-4">
           {foods.map((item, index) => (
             <FoodCard
               key={item.id}
@@ -64,22 +65,24 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
         <div className="mt-8">
           <SectionTitle id={HOME_SECTION_IDS.drinks}>飲み物</SectionTitle>
         </div>
-        <div className="mt-4 grid w-80 grid-cols-2 grid-rows-[repeat(5,90px)] gap-x-4 gap-y-3">
-          {drinks.map((item, index) => {
-            const layout = DRINK_LAYOUTS[index % DRINK_LAYOUTS.length];
-            return (
-              <div
-                key={item.id}
-                className={`flex items-center ${layout?.className ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
-              >
-                <DrinkCard
-                  item={item}
-                  className={`${layout?.rotate ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
-                  onSelect={select(item)}
-                />
-              </div>
-            );
-          })}
+        <div className="@container mt-4 w-full max-w-content">
+          <div className="grid grid-cols-2 grid-rows-[repeat(5,28.125cqw)] gap-x-[5cqw] gap-y-[3.75cqw]">
+            {drinks.map((item, index) => {
+              const layout = DRINK_LAYOUTS[index % DRINK_LAYOUTS.length];
+              return (
+                <div
+                  key={item.id}
+                  className={`flex items-center ${layout?.className ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
+                >
+                  <DrinkCard
+                    item={item}
+                    className={`${layout?.rotate ?? ""} ${item.id === raisedId ? "z-10" : ""}`}
+                    onSelect={select(item)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
         <p className="mt-6 text-sm text-tomato-12">ご注文は店頭でメイドにお伝えください</p>
 

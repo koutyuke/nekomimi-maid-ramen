@@ -6,7 +6,7 @@ export const SiteLayout = () => (
   <>
     <HeadContent />
     <SiteHeader />
-    <div className="mx-auto flex min-h-svh max-w-135 flex-col bg-slate-1">
+    <div className="flex min-h-svh flex-col bg-slate-1">
       <main className="flex-1">
         <Outlet />
       </main>

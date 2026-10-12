@@ -39,7 +39,7 @@ const FACILITY_CLASS = "fill-slate-4 stroke-slate-7";
 export const VenueMap = () => {
   const captionId = useId();
   return (
-    <figure aria-labelledby={captionId} className="relative w-80">
+    <figure aria-labelledby={captionId} className="@container relative">
       {/* 地図は見た目で示し、出店位置は同じ内容を文章で伝える。 */}
       <figcaption id={captionId} className="sr-only">
         会場の地図。サッカーグラウンドの右上、テニスコートの近くに弧を描いて並ぶ4つのブースのうち、左から2番目の赤いブースが猫耳メイドラーメンのブースです。下側には工場、体育館、プールがあります。
@@ -92,9 +92,10 @@ export const VenueMap = () => {
         <rect x="2" y="2" width="316" height="236" rx="22" fill="none" strokeWidth="4" className="stroke-slate-6" />
       </svg>
       {/* 自分たちのブースを指す手書きの注記。地図の枠の上にはみ出して置く。 */}
-      <div aria-hidden className="absolute -top-8 left-61.25 flex rotate-5 flex-col items-start">
-        <span className="-mb-0.5 font-caveat text-2xl font-[400] text-pink">Here</span>
-        <ScribbleArrow className="ml-2 h-8 w-3.5 -rotate-139 text-pink" />
+      {/* 地図と一緒に拡大・縮小するよう、幅320pxのデザインに対する割合(1px = 0.3125cqw)で置く。 */}
+      <div aria-hidden className="absolute -top-[10cqw] left-[76.5625cqw] flex rotate-5 flex-col items-start">
+        <span className="-mb-[0.625cqw] font-caveat text-[7.5cqw] leading-[10cqw] font-[400] text-pink">Here</span>
+        <ScribbleArrow className="ml-[2.5cqw] h-[10cqw] w-[4.375cqw] -rotate-139 text-pink" />
       </div>
     </figure>
   );

@@ -20,7 +20,7 @@ export const AccessSection = () => (
   >
     <Wave className={BACKGROUND} variant="inverted" />
     <SectionTitle>アクセス</SectionTitle>
-    <dl className="mt-6 grid w-80 grid-cols-[72px_1fr] gap-1 rounded-3xl border-4 border-dashed border-teal-6 bg-teal-2 p-8">
+    <dl className="mt-6 grid w-full max-w-content grid-cols-[72px_1fr] gap-1 rounded-3xl border-4 border-dashed border-teal-6 bg-teal-2 p-8">
       {ACCESS_ROWS.map(({ label, value, note }) => (
         <div key={label} className="col-span-2 grid grid-cols-subgrid">
           <dt className="font-caveat text-2xl leading-8 font-bold text-teal-9">{label}</dt>
@@ -31,7 +31,7 @@ export const AccessSection = () => (
         </div>
       ))}
     </dl>
-    <div className="mt-8">
+    <div className="mt-8 w-full max-w-content">
       <VenueMap />
     </div>
     <p className="mt-6 text-sm text-tomato-12">雨天時は体育館の中で開催します</p>
