@@ -34,6 +34,6 @@ export const AccessSection = () => (
     <div className="mt-8 w-full max-w-content">
       <VenueMap />
     </div>
-    <p className="mt-6 text-sm text-tomato-12">雨天時は体育館の中で開催します</p>
+    <p className="mt-6 text-sm text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
   </section>
 );
