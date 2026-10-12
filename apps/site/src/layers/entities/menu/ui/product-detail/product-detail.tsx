@@ -73,7 +73,7 @@ const AllergenTable = ({ allergens }: { allergens: NonNullable<MenuItem["allerge
 
 export const ProductDetail = ({ item }: { item: MenuItem }) => (
   <div className="flex flex-col items-center p-6 text-tomato-12">
-    <ProductImage item={item} className={item.image.kind === "photo" ? "w-50" : "h-50"} />
+    <ProductImage item={item} className={item.image.kind === "photo" ? "max-h-60 w-3/4" : "h-50"} fit="contain" />
     {/* 拡大の途中で文字が詰まって見えないよう、写真が移動し終わる頃にぼかしを解きながら表示する。 */}
     <motion.div
       className="flex w-full flex-col items-center"

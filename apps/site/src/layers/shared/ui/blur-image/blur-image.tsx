@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 
 // ビルド時に変換した写真。本画像のURL、代替画像のData URL、原本の大きさ(表示領域の縦横比に使う)を持つ。
 export type OptimizedImage = {
@@ -15,6 +16,7 @@ type BlurImageProps = {
   alt: string;
   className?: string;
   loading?: "eager" | "lazy";
+  fit?: CSSProperties["objectFit"];
 };
 
 // 読み込みが終わった本画像のURL。同じ画像を別の要素で表示し直すとき(カードから詳細への拡大など)は、
@@ -22,7 +24,14 @@ type BlurImageProps = {
 const loadedSources = new Set<string>();
 
 // 親が決めた大きさいっぱいに、代替画像の上へ本画像を重ね、読み込みが終わったらフェードインさせる。
-export const BlurImage = ({ src, placeholder, alt, className = "", loading = "lazy" }: BlurImageProps) => {
+export const BlurImage = ({
+  src,
+  placeholder,
+  alt,
+  className = "",
+  loading = "lazy",
+  fit = "cover",
+}: BlurImageProps) => {
   const [loaded, setLoaded] = useState(() => loadedSources.has(src));
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -30,7 +39,8 @@ export const BlurImage = ({ src, placeholder, alt, className = "", loading = "la
         src={placeholder}
         alt=""
         aria-hidden
-        className={`absolute inset-0 size-full scale-110 object-cover blur-md transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-0" : "opacity-100"}`}
+        style={{ objectFit: fit }}
+        className={`absolute inset-0 size-full scale-110 blur-md transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-0" : "opacity-100"}`}
       />
       <img
         src={src}
@@ -41,7 +51,8 @@ export const BlurImage = ({ src, placeholder, alt, className = "", loading = "la
           loadedSources.add(src);
           setLoaded(true);
         }}
-        className={`absolute inset-0 size-full object-cover transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-100" : "opacity-0"}`}
+        style={{ objectFit: fit }}
+        className={`absolute inset-0 size-full transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>
   );

@@ -18,6 +18,15 @@ describe("BlurImage", () => {
     expect(placeholder?.className).toContain("opacity-0");
   });
 
+  it("指定した収め方を、代替画像と本画像の両方に使う", () => {
+    const { container } = render(
+      <BlurImage src="/fit.webp" placeholder="data:image/webp;base64,AA" alt="ラーメン" fit="contain" />,
+    );
+
+    expect(screen.getByRole("img", { name: "ラーメン" }).style.objectFit).toBe("contain");
+    expect(container.querySelector<HTMLImageElement>('img[src^="data:"]')?.style.objectFit).toBe("contain");
+  });
+
   it("一度読み込んだ画像は、同じ画像を新しく表示するときに代替画像を見せない", () => {
     const first = render(<BlurImage src="/loaded.webp" placeholder="data:image/webp;base64,AA" alt="餃子" />);
     fireEvent.load(screen.getByRole("img", { name: "餃子" }));
