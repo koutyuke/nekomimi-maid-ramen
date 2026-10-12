@@ -29,11 +29,13 @@ type MenuSectionUIProps = {
 export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
   const foods = items.filter((item) => item.category !== "drink");
   const drinks = items.filter((item) => item.category === "drink");
+
   const [selected, setSelected] = useState<MenuItem | null>(null);
-  // 詳細から縮んで戻る間、選んだカードがほかのカードや見出しの下に隠れないよう手前に描く。
   const [raisedId, setRaisedId] = useState<string | null>(null);
+
   const selectedCard = useRef<HTMLButtonElement | null>(null);
   const dialogActions = useRef<Dialog.Root.Actions>(null);
+
   const select = (item: MenuItem) => (card: HTMLButtonElement) => {
     selectedCard.current = card;
     setRaisedId(item.id);
@@ -118,7 +120,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                   </div>
                   <Dialog.Close
                     aria-label="閉じる"
-                    className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-lg bg-slate-3 text-slate-12 outline-none focus-visible:ring-2 focus-visible:ring-blue-8"
+                    className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-lg bg-slate-3 text-slate-12 transition-colors outline-none hover:bg-slate-4 focus-visible:ring-2 focus-visible:ring-blue-8"
                   >
                     <X className="size-6" aria-hidden />
                   </Dialog.Close>
