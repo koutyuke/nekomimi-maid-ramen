@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { checkedRamenFixture, ramenFixture } from "../../testing/menu-fixtures";
+import { checkedRamenFixture, ramenFixture } from "../../testing";
 import { ProductDetail } from "./product-detail";
 
 describe("SPEC-VIS-004 商品に含まれる特定原材料を表示する", () => {

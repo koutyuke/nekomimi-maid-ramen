@@ -1,9 +1,9 @@
-import cola from "../assets/menu/cola.svg";
-import gingerAle from "../assets/menu/ginger-ale.svg";
-import oolongTea from "../assets/menu/oolong-tea.svg";
-import orange from "../assets/menu/orange.svg";
-import { IMAGES } from "./images";
-import type { OptimizedImage } from "./images";
+import cola from "../assets/cola.svg";
+import gingerAle from "../assets/ginger-ale.svg";
+import oolongTea from "../assets/oolong-tea.svg";
+import orange from "../assets/orange.svg";
+import { MENU_PHOTOS } from "./images";
+import type { OptimizedImage } from "../../../shared/ui";
 import type { MenuCategory } from "@nekomimi/core/models";
 
 // 特定原材料の一覧。IDはスタッフ側のデータベース(`apps/api/seed.sql`)と同じ値にそろえる。
@@ -48,7 +48,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
     price: 500,
     category: "main",
     description: null,
-    image: { kind: "photo", photo: IMAGES.ramen },
+    image: { kind: "photo", photo: MENU_PHOTOS.ramen },
     allergens: null,
   },
   {
@@ -58,7 +58,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
     price: 400,
     category: "side",
     description: null,
-    image: { kind: "photo", photo: IMAGES.gyoza },
+    image: { kind: "photo", photo: MENU_PHOTOS.gyoza },
     allergens: null,
   },
   {

@@ -4,7 +4,7 @@ import type { PointerEvent } from "react";
 
 import { BlurImage } from "../../../../shared/ui";
 import instaxDoodle from "../../assets/instax-doodle.svg";
-import { IMAGES } from "../../model/images";
+import { MAID_ILLUSTRATION } from "../../model/images";
 
 const MAX_TILT_DEG = 12;
 // これ以上指が動いたら「なぞった」とみなし、離したときに裏返さない。
@@ -30,8 +30,8 @@ const Glare = () => (
 const Front = () => (
   <div className={`${faceClassName} border border-[#d9d9d9] bg-[#f0f0f0]`}>
     <BlurImage
-      src={IMAGES.maidIllustration.src}
-      placeholder={IMAGES.maidIllustration.placeholder}
+      src={MAID_ILLUSTRATION.src}
+      placeholder={MAID_ILLUSTRATION.placeholder}
       alt="ラーメンの丼を持つ猫耳メイドのイラスト"
       loading="eager"
       className="absolute top-6 left-4 h-62 w-46 bg-[#f7cbe5]"

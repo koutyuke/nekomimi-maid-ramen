@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { MENU_ITEMS } from "../../model/menu";
+import { MENU_ITEMS } from "../../../../entities/menu";
 import { MenuSection } from "./menu-section";
 
 describe("SPEC-VIS-002 メニューを表示する", () => {

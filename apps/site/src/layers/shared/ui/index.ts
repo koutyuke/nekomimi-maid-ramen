@@ -1,5 +1,6 @@
 export { AnimatedCheckIcon } from "./icons/animated-check-icon";
 export { BlurImage } from "./blur-image/blur-image";
+export type { OptimizedImage } from "./blur-image/blur-image";
 export { BuckwheatIcon } from "./icons/buckwheat-icon";
 export { CashewIcon } from "./icons/cashew-icon";
 export { CatMenuIcon } from "./icons/cat-menu-icon";

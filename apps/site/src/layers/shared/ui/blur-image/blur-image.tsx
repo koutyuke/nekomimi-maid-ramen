@@ -1,5 +1,13 @@
 import { useState } from "react";
 
+// ビルド時に変換した写真。本画像のURL、代替画像のData URL、原本の大きさ(表示領域の縦横比に使う)を持つ。
+export type OptimizedImage = {
+  src: string;
+  placeholder: string;
+  width: number;
+  height: number;
+};
+
 type BlurImageProps = {
   src: string;
   // 幅32px程度に縮めた代替画像のData URL。本画像の読み込み中にぼかして見せる。

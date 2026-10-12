@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { menuItemsFixture } from "../../testing/menu-fixtures";
+import { menuItemsFixture } from "../../../../entities/menu/testing";
 import { MenuSectionUI } from "./menu-section.ui";
 
 describe("SPEC-VIS-002 メニューを表示する", () => {

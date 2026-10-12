@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { menuItemsFixture } from "../../testing/menu-fixtures";
+import { menuItemsFixture } from "../../../../entities/menu/testing";
 import { MenuSectionUI } from "./menu-section.ui";
 
 const meta = {

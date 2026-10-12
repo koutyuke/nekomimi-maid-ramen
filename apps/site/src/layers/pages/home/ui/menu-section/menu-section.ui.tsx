@@ -3,12 +3,11 @@ import { X } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRef, useState } from "react";
 
+import { DrinkCard, FoodCard, PRODUCT_TITLE_ID, ProductDetail } from "../../../../entities/menu";
 import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Wave } from "../../../../shared/ui";
-import { DrinkCard, FoodCard } from "../product-card/product-card";
-import { PRODUCT_TITLE_ID, ProductDetail } from "../product-detail/product-detail";
 import { SectionTitle } from "../section-title/section-title";
-import type { MenuItem } from "../../model/menu";
+import type { MenuItem } from "../../../../entities/menu";
 
 // 区画と、上端の波で同じ背景を使う。
 const BACKGROUND = "bg-tomato-3 bg-dashed-grid [--grid-color:var(--tomato-4)]";

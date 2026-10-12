@@ -1,11 +1,11 @@
 import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { colaFixture, gyozaFixture, ramenFixture } from "../../testing/menu-fixtures";
+import { colaFixture, gyozaFixture, ramenFixture } from "../../testing";
 import { DrinkCard, FoodCard } from "./product-card";
 
 const meta = {
-  title: "Pages/Home/ProductCard",
+  title: "Entities/Menu/ProductCard",
   component: FoodCard,
   args: { item: ramenFixture, rotate: 2, onSelect: fn() },
   decorators: [

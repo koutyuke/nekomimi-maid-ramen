@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { colaFixture, gyozaFixture, ramenFixture } from "../../testing/menu-fixtures";
+import { colaFixture, gyozaFixture, ramenFixture } from "../../testing";
 import { ProductImage } from "./product-image";
 
 const meta = {
-  title: "Pages/Home/ProductImage",
+  title: "Entities/Menu/ProductImage",
   component: ProductImage,
   args: { item: ramenFixture, className: "w-50" },
 } satisfies Meta<typeof ProductImage>;

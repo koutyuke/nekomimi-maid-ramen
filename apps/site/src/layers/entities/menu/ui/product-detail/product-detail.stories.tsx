@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { checkedRamenFixture, ramenFixture } from "../../testing/menu-fixtures";
+import { checkedRamenFixture, ramenFixture } from "../../testing";
 import { ProductDetail } from "./product-detail";
 
 const meta = {
-  title: "Pages/Home/ProductDetail",
+  title: "Entities/Menu/ProductDetail",
   component: ProductDetail,
   args: { item: checkedRamenFixture },
   decorators: [
