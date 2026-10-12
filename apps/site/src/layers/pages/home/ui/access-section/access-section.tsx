@@ -3,9 +3,6 @@ import { Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 import { VenueMap } from "./venue-map/venue-map";
 
-// 区画と、上端の波で同じ背景を使う。
-const BACKGROUND = "bg-tomato-1 bg-dots [--grid-color:var(--slate-4)]";
-
 const ACCESS_ROWS = [
   { label: "Date", value: "10/24(土)・25(日)", note: "一般公開は10/24(土)のみ" },
   { label: "Open", value: "10:00〜16:00", note: "ご注文は15:30まで" },
@@ -16,9 +13,9 @@ export const AccessSection = () => (
   <section
     id={HOME_SECTION_IDS.access}
     aria-label="アクセス"
-    className={`relative flex scroll-mt-24 flex-col items-center px-6 pt-2 pb-24 ${BACKGROUND}`}
+    className="relative flex scroll-mt-24 flex-col items-center bg-slate-1 bg-dots px-6 pt-6 pb-32 [--grid-color:var(--slate-4)]"
   >
-    <Wave className={BACKGROUND} variant="inverted" />
+    <Wave className="bg-slate-1 bg-dots [--grid-color:var(--slate-4)]" variant="inverted" />
     <SectionTitle>アクセス</SectionTitle>
     <Reveal className="mt-6 w-full max-w-content">
       <dl className="grid grid-cols-[72px_1fr] gap-1 squircle-4xl border-4 border-dashed border-teal-6 bg-teal-2 p-8">

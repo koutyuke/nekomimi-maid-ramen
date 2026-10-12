@@ -9,9 +9,6 @@ import { Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 import type { MenuItem } from "../../../../entities/menu";
 
-// 区画と、上端の波で同じ背景を使う。
-const BACKGROUND = "bg-tomato-3 bg-dashed-grid [--grid-color:var(--tomato-4)]";
-
 const FOOD_ROTATIONS = ["rotate-2", "-rotate-2"];
 
 // 飲み物は2列で互い違いに並べる。各カードは2行分を占める。
@@ -49,9 +46,9 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
       <section
         id={HOME_SECTION_IDS.menu}
         aria-label="メニュー"
-        className={`relative flex scroll-mt-24 flex-col items-center px-6 pt-2 pb-24 ${BACKGROUND}`}
+        className={`bg-dashed-grid relative flex scroll-mt-24 flex-col items-center bg-tomato-3 px-6 pt-2 pb-32 [--grid-color:var(--tomato-4)]`}
       >
-        <Wave className={BACKGROUND} />
+        <Wave className="bg-dashed-grid bg-tomato-3 [--grid-color:var(--tomato-4)]" />
         <SectionTitle>お料理</SectionTitle>
         <div className="mt-6 flex w-full max-w-content flex-col gap-6">
           {/* 浮かび上がりの`transform`で重なりの文脈が区切られるため、前面に出す`z-10`は外側に付ける。 */}
@@ -65,7 +62,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
             </Reveal>
           ))}
         </div>
-        <div className="mt-8">
+        <div className="mt-12">
           <SectionTitle id={HOME_SECTION_IDS.drinks}>飲み物</SectionTitle>
         </div>
         <div className="@container mt-4 w-full max-w-content">
