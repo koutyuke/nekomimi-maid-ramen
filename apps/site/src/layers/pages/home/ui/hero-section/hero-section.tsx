@@ -1,12 +1,12 @@
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { ScribbleArrow } from "../../../../shared/ui";
-import { HOME_SECTION_IDS } from "../../model/sections";
 import { InstaxCard } from "../instax-card/instax-card";
 
 export const HeroSection = () => (
   <section
     id={HOME_SECTION_IDS.top}
     aria-labelledby="hero-title"
-    className="flex min-h-[calc(100svh+72px)] scroll-mt-24 flex-col items-center justify-center bg-slate-1 bg-dots px-5 pt-24 pb-34 text-center [--grid-color:var(--slate-8)]"
+    className="flex min-h-[calc(100svh+72px)] scroll-mt-24 flex-col items-center justify-center bg-slate-1 bg-dots px-5 pt-24 pb-34 text-center [--grid-color:var(--slate-4)]"
   >
     <p className="font-caveat text-xl font-[400] text-pink">welcome home, master!</p>
     <h1 id="hero-title" className="text-3xl leading-10 font-black text-slate-12">

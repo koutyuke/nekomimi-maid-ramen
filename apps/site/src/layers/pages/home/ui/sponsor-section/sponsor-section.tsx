@@ -1,5 +1,5 @@
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Wave } from "../../../../shared/ui";
-import { HOME_SECTION_IDS } from "../../model/sections";
 import { SectionTitle } from "../section-title/section-title";
 
 // 区画と、上端の波で同じ背景を使う。

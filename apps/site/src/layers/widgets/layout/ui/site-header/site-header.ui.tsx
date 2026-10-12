@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { HOME_SECTION_IDS } from "../../../pages/home";
-import brandIcon from "../../../shared/assets/brand-icon.svg";
-import brandLogo from "../../../shared/assets/brand-logo-start.svg";
+import brandIcon from "../../../../shared/assets/brand-icon.svg";
+import brandLogo from "../../../../shared/assets/brand-logo-start.svg";
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { HamburgerMenu } from "../hamburger-menu/hamburger-menu";
 
 type SiteHeaderUIProps = {
@@ -19,7 +19,7 @@ export const SiteHeaderUI = ({ themeMenu }: SiteHeaderUIProps) => (
       className="absolute top-0.5 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-8"
     >
       <img src={brandIcon} alt="" className="size-11" />
-      <img src={brandLogo} alt="猫耳メイドラーメン" className="h-9 w-[71px]" />
+      <img src={brandLogo} alt="猫耳メイドラーメン" className="h-9 w-17.75" />
     </Link>
     {themeMenu}
   </header>

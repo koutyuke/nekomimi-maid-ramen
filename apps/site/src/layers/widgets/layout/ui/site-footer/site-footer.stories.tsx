@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SiteFooter } from "./site-footer";
 
 const meta = {
-  title: "App/SiteFooter",
+  title: "Widgets/Layout/SiteFooter",
   component: SiteFooter,
   // 上端の波を見せるため、上に余白を取る。
   decorators: [

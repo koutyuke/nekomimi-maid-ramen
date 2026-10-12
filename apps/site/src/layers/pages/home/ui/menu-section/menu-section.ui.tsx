@@ -3,8 +3,8 @@ import { X } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRef, useState } from "react";
 
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Wave } from "../../../../shared/ui";
-import { HOME_SECTION_IDS } from "../../model/sections";
 import { DrinkCard, FoodCard } from "../product-card/product-card";
 import { PRODUCT_TITLE_ID, ProductDetail } from "../product-detail/product-detail";
 import { SectionTitle } from "../section-title/section-title";

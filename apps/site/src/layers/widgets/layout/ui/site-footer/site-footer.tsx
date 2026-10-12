@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
-import { HOME_SECTION_IDS } from "../../../pages/home";
-import brandIcon from "../../../shared/assets/brand-icon.svg";
-import brandLogo from "../../../shared/assets/brand-logo-center.svg";
-import { Wave } from "../../../shared/ui";
+import brandIcon from "../../../../shared/assets/brand-icon.svg";
+import brandLogo from "../../../../shared/assets/brand-logo-center.svg";
+import { HOME_SECTION_IDS } from "../../../../shared/config";
+import { Wave } from "../../../../shared/ui";
 
 const linkClassName =
   "rounded text-base leading-6 text-slate-11 outline-none hover:text-slate-12 focus-visible:ring-2 focus-visible:ring-blue-8";

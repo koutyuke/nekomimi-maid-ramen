@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HamburgerMenu } from "./hamburger-menu";
 
 const meta = {
-  title: "App/HamburgerMenu",
+  title: "Widgets/Layout/HamburgerMenu",
   component: HamburgerMenu,
 } satisfies Meta<typeof HamburgerMenu>;
 export default meta;

@@ -1,10 +1,10 @@
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Wave } from "../../../../shared/ui";
-import { HOME_SECTION_IDS } from "../../model/sections";
 import { SectionTitle } from "../section-title/section-title";
 import { VenueMap } from "../venue-map/venue-map";
 
 // 区画と、上端の波で同じ背景を使う。
-const BACKGROUND = "bg-tomato-1 bg-dots [--grid-color:var(--slate-8)]";
+const BACKGROUND = "bg-tomato-1 bg-dots [--grid-color:var(--slate-4)]";
 
 const ACCESS_ROWS = [
   { label: "Date", value: "10/24(土)・25(日)", note: "一般公開は10/24(土)のみ" },
