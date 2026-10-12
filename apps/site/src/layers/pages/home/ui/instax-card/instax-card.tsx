@@ -102,7 +102,7 @@ export const InstaxCard = () => {
           type="button"
           aria-label="チェキを裏返す"
           aria-pressed={flipped}
-          className={`relative block h-86 w-54 cursor-pointer touch-none rounded-lg transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform-3d outline-none focus-visible:ring-4 focus-visible:ring-blue-8 motion-reduce:transition-none ${flipped ? "rotate-y-180" : ""}`}
+          className={`relative block h-86 w-54 cursor-pointer touch-none rounded-lg transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] outline-none transform-3d focus-visible:ring-4 focus-visible:ring-blue-8 motion-reduce:transition-none ${flipped ? "rotate-y-180" : ""}`}
           onPointerDown={(event) => {
             pointerStart.current = { x: event.clientX, y: event.clientY };
             dragged.current = false;

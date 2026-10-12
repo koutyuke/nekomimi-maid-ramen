@@ -18,6 +18,15 @@
       "unknown",
     ],
   },
+  "overrides": [
+    {
+      // Tailwind CSSを使うのは公開サイトだけである。独自の色やユーティリティも並び順を判定できるよう、サイトのスタイルシートを読む。
+      "files": ["apps/site/**"],
+      "options": {
+        "sortTailwindcss": { "stylesheet": "./apps/site/src/layers/app/styles/global.css" },
+      },
+    },
+  ],
   "ignorePatterns": [
     "apps/api/worker-configuration.d.ts",
     "apps/api/drizzle/**",

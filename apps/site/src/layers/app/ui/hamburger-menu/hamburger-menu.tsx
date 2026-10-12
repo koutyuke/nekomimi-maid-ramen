@@ -48,7 +48,7 @@ export const HamburgerMenu = () => {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 bg-black/40 transition-opacity duration-300 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
-        <Dialog.Popup className="fixed top-4 bottom-4 left-4 flex w-[min(320px,calc(100vw-32px))] flex-col gap-4 overflow-hidden rounded-3xl border-4 border-slate-6 bg-slate-1 p-4 shadow-lg outline-none transition-transform duration-300 ease-out data-ending-style:-translate-x-[calc(100%+16px)] data-starting-style:-translate-x-[calc(100%+16px)] motion-reduce:transition-none">
+        <Dialog.Popup className="fixed top-4 bottom-4 left-4 flex w-[min(320px,calc(100vw-32px))] flex-col gap-4 overflow-hidden rounded-3xl border-4 border-slate-6 bg-slate-1 p-4 shadow-lg transition-transform duration-300 ease-out outline-none data-ending-style:-translate-x-[calc(100%+16px)] data-starting-style:-translate-x-[calc(100%+16px)] motion-reduce:transition-none">
           <Dialog.Title className="sr-only">サイトメニュー</Dialog.Title>
           <div className="-mx-4 -mt-4 flex-1 overflow-y-auto px-4">
             <div className="sticky top-0 z-10 -mx-4 flex items-center justify-between bg-slate-1/70 px-4 pt-4 pb-4 backdrop-blur-lg">

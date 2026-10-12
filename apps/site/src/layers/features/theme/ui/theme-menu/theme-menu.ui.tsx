@@ -56,7 +56,7 @@ export const ThemeMenuUI = ({ theme, onThemeChange }: ThemeMenuUIProps) => {
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="bottom" align="end" sideOffset={12}>
-          <Menu.Popup className="flex flex-col gap-2 rounded-xl border-2 border-slate-6 bg-slate-1 p-2 shadow-lg outline-none transition-[opacity,scale] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
+          <Menu.Popup className="flex flex-col gap-2 rounded-xl border-2 border-slate-6 bg-slate-1 p-2 shadow-lg transition-[opacity,scale] duration-150 outline-none data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
             <Menu.RadioGroup
               value={theme}
               onValueChange={(value: unknown) => {
