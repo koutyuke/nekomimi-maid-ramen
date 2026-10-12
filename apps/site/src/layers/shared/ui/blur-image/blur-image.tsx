@@ -17,9 +17,13 @@ type BlurImageProps = {
   loading?: "eager" | "lazy";
 };
 
+// 読み込みが終わった本画像のURL。同じ画像を別の要素で表示し直すとき(カードから詳細への拡大など)は、
+// ブラウザーのキャッシュから即座に出せるため、ぼかした代替画像を挟まない。
+const loadedSources = new Set<string>();
+
 // 親が決めた大きさいっぱいに、代替画像の上へ本画像を重ね、読み込みが終わったらフェードインさせる。
 export const BlurImage = ({ src, placeholder, alt, className = "", loading = "lazy" }: BlurImageProps) => {
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(() => loadedSources.has(src));
   return (
     <div className={`relative overflow-hidden ${className}`}>
       <img
@@ -33,7 +37,10 @@ export const BlurImage = ({ src, placeholder, alt, className = "", loading = "la
         alt={alt}
         loading={loading}
         decoding="async"
-        onLoad={() => setLoaded(true)}
+        onLoad={() => {
+          loadedSources.add(src);
+          setLoaded(true);
+        }}
         className={`absolute inset-0 size-full object-cover transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>

@@ -56,7 +56,7 @@ export const DrinkCard = ({ item, className = "", onSelect }: ProductCardProps) 
     onClick={(event) => onSelect(event.currentTarget)}
     className={`${cardClassName} @container flex aspect-[152/180] w-full flex-col items-center p-[calc(100%*10/152)] shadow-md ${className}`}
   >
-    <ProductImage item={item} className="min-h-0 w-[calc(100cqw*36/152)] flex-1" />
+    <ProductImage item={item} className="my-auto w-[calc(100cqw*36/152)]" />
     <motion.span layout className="flex flex-col items-center">
       <span className="text-[calc(100cqw*16/152)] leading-[calc(100cqw*24/152)] font-bold whitespace-nowrap">
         {item.name}
