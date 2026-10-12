@@ -2,9 +2,9 @@ import { useReducedMotion } from "motion/react";
 import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
-import { BlurImage } from "../../../../shared/ui";
+import { BlurImage } from "../../../../../shared/ui";
+import { MAID_ILLUSTRATION } from "../../../model/images";
 import instaxDoodle from "../../assets/instax-doodle.svg";
-import { MAID_ILLUSTRATION } from "../../model/images";
 
 const MAX_TILT_DEG = 12;
 // これ以上指が動いたら「なぞった」とみなし、離したときに裏返さない。
