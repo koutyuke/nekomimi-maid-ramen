@@ -20,9 +20,10 @@ const pageHTML = (): Plugin => ({
   generateBundle: {
     order: "post",
     handler(_, bundle) {
+      // Storybookもこの設定でビルドするが、出力に`index.html`を含まないため対象外にする。
       const index = bundle["index.html"];
       if (index?.type !== "asset") {
-        throw new Error("index.html が出力に含まれていない");
+        return;
       }
       const template = String(index.source);
 
