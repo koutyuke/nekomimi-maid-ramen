@@ -30,7 +30,7 @@ export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) =
     layoutId={`menu-card-${item.id}`}
     style={CARD_STYLE}
     onClick={(event) => onSelect(event.currentTarget)}
-    className={`${cardClassName} @container block aspect-[16/9] w-full shadow-lg ${className}`}
+    className={`${cardClassName} @container block aspect-video w-full shadow-lg ${className}`}
   >
     <span className="absolute top-1/2 left-[-16.25%] w-[68.75%] -translate-y-1/2">
       <ProductImage item={item} className="w-full" />
@@ -54,7 +54,7 @@ export const DrinkCard = ({ item, className = "", onSelect }: ProductCardProps) 
     layoutId={`menu-card-${item.id}`}
     style={CARD_STYLE}
     onClick={(event) => onSelect(event.currentTarget)}
-    className={`${cardClassName} @container flex aspect-[152/180] w-full flex-col items-center p-[calc(100%*10/152)] shadow-md ${className}`}
+    className={`${cardClassName} @container flex aspect-152/180 w-full flex-col items-center p-[calc(100%*10/152)] shadow-md ${className}`}
   >
     <ProductImage item={item} className="my-auto w-[calc(100cqw*36/152)]" />
     <motion.span layout className="flex flex-col items-center">

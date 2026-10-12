@@ -17,8 +17,8 @@ export const VenueMap = () => {
       </div>
       {/* 自分たちのブースを指す手書きの注記。地図の枠の上にはみ出して置く。 */}
       {/* 地図と一緒に拡大・縮小するよう、幅320pxのデザインに対する割合(1px = 0.3125cqw)で置く。 */}
-      <div aria-hidden className="absolute -top-[10cqw] left-[76.5625cqw] flex rotate-5 flex-col items-start">
-        <span className="-mb-[0.625cqw] font-caveat text-[7.5cqw] leading-[10cqw] font-[400] text-pink">Here</span>
+      <div aria-hidden className="absolute top-[-10cqw] left-[76.5625cqw] flex rotate-5 flex-col items-start">
+        <span className="mb-[-0.625cqw] font-caveat text-[7.5cqw] leading-[10cqw] font-[400] text-pink">Here</span>
         <ScribbleArrow className="ml-[2.5cqw] h-[10cqw] w-[4.375cqw] -rotate-139 text-pink" />
       </div>
     </figure>
