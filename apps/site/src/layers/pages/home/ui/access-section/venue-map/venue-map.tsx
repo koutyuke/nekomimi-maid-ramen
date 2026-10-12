@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-import { ScribbleArrow } from "../../../../shared/ui";
+import { ScribbleArrow } from "../../../../../shared/ui";
 
 // 角を丸めた長方形を斜めに置いたブース。座標はデザインの地図(320×240)のまま使う。
 const BOOTHS: readonly { d: string; ours?: boolean }[] = [
@@ -92,7 +92,7 @@ export const VenueMap = () => {
         <rect x="2" y="2" width="316" height="236" rx="22" fill="none" strokeWidth="4" className="stroke-slate-6" />
       </svg>
       {/* 自分たちのブースを指す手書きの注記。地図の枠の上にはみ出して置く。 */}
-      <div aria-hidden className="absolute -top-8 left-[245px] flex rotate-5 flex-col items-start">
+      <div aria-hidden className="absolute -top-8 left-61.25 flex rotate-5 flex-col items-start">
         <span className="-mb-0.5 font-caveat text-2xl font-[400] text-pink">Here</span>
         <ScribbleArrow className="ml-2 h-8 w-3.5 -rotate-139 text-pink" />
       </div>

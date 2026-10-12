@@ -1,7 +1,7 @@
 import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
-import { VenueMap } from "../venue-map/venue-map";
+import { VenueMap } from "./venue-map/venue-map";
 
 // 区画と、上端の波で同じ背景を使う。
 const BACKGROUND = "bg-tomato-1 bg-dots [--grid-color:var(--slate-4)]";

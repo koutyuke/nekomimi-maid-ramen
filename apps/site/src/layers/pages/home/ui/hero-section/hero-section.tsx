@@ -1,6 +1,6 @@
 import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { ScribbleArrow } from "../../../../shared/ui";
-import { InstaxCard } from "../instax-card/instax-card";
+import { InstaxCard } from "./instax-card/instax-card";
 
 export const HeroSection = () => (
   <section
