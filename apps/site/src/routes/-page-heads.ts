@@ -19,13 +19,15 @@ export const PAGE_HEADS = {
 
 export const canonicalURL = (path: string): string => new URL(path, SITE_ORIGIN).href;
 
-export const pageHead = (path: keyof typeof PAGE_HEADS) => ({
+export const buildPageHead = (path: string, { title, description }: { title: string; description: string }) => ({
   meta: [
-    { title: PAGE_HEADS[path].title },
-    { name: "description", content: PAGE_HEADS[path].description },
-    { property: "og:title", content: PAGE_HEADS[path].title },
-    { property: "og:description", content: PAGE_HEADS[path].description },
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
     { property: "og:url", content: canonicalURL(path) },
   ],
   links: [{ rel: "canonical", href: canonicalURL(path) }],
 });
+
+export const pageHead = (path: keyof typeof PAGE_HEADS) => buildPageHead(path, PAGE_HEADS[path]);

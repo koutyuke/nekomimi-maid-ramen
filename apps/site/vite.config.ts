@@ -7,10 +7,25 @@ import { imagetools } from "vite-imagetools";
 import svgr from "vite-plugin-svgr";
 import type { Plugin } from "vite";
 
-import { canonicalURL, PAGE_HEADS } from "./src/routes/-page-heads";
+import { buildPageHead, PAGE_HEADS } from "./src/routes/-page-heads";
 
 const escapeHTML = (value: string) =>
   value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+const attributes = (values: object) =>
+  Object.entries(values)
+    .map(([key, value]) => ` ${key}="${escapeHTML(String(value))}"`)
+    .join("");
+
+// `data-page-head`を付けたタグは、起動時に取り除かれて経路の`head`が描画する同じタグに置き換わる。
+const pageHeadTags = ({ meta, links }: ReturnType<typeof buildPageHead>) => [
+  ...meta.map(({ title, ...rest }) =>
+    title === undefined
+      ? `<meta data-page-head${attributes(rest)} />`
+      : `<title data-page-head>${escapeHTML(title)}</title>`,
+  ),
+  ...links.map((link) => `<link data-page-head${attributes(link)} />`),
+];
 
 // JavaScriptを実行しないクローラー向けに、経路ごとのHTML(`/terms`なら`terms.html`)を書き出す。
 const pageHTML = (): Plugin => ({
@@ -24,29 +39,11 @@ const pageHTML = (): Plugin => ({
       if (index?.type !== "asset") {
         return;
       }
-      // 共有用の画像は全ページで共通のため、経路の`head`では描画せず初期HTMLにだけ置く。
-      const sharedTags = [
-        `<meta property="og:type" content="website" />`,
-        `<meta property="og:image" content="${canonicalURL("/ogp.jpg")}" />`,
-        `<meta property="og:image:width" content="1200" />`,
-        `<meta property="og:image:height" content="630" />`,
-        `<meta property="og:image:alt" content="猫耳メイドラーメンのロゴと、ラーメンを持つ猫耳メイドのイラスト" />`,
-        `<meta name="twitter:card" content="summary_large_image" />`,
-      ];
       const template = String(index.source);
 
-      for (const [path, { title, description }] of Object.entries(PAGE_HEADS)) {
-        const url = escapeHTML(canonicalURL(path));
-        const tags = [
-          `<title data-page-head>${escapeHTML(title)}</title>`,
-          `<meta data-page-head name="description" content="${escapeHTML(description)}" />`,
-          `<link data-page-head rel="canonical" href="${url}" />`,
-          `<meta data-page-head property="og:title" content="${escapeHTML(title)}" />`,
-          `<meta data-page-head property="og:description" content="${escapeHTML(description)}" />`,
-          `<meta data-page-head property="og:url" content="${url}" />`,
-          ...sharedTags,
-        ].join("\n    ");
-        const source = template.replace("</head>", `  ${tags}\n  </head>`);
+      for (const [path, head] of Object.entries(PAGE_HEADS)) {
+        const tags = pageHeadTags(buildPageHead(path, head));
+        const source = template.replace("</head>", `  ${tags.join("\n    ")}\n  </head>`);
 
         if (path === "/") {
           index.source = source;
