@@ -23,7 +23,7 @@ evidence: []
 
 公開側の部品も、後述の「PresenterとContainer」と「部品の置き方」に従う。保存領域を読み書きするテーマ選択と、商品データを渡すメニューの区画はContainerとPresenterに分け、Containerを含む部品へは親のContainerがslotとして渡す。表示だけで完結する部品は単一の部品とする。すべての部品にStorybookのストーリーを置き、分けた部品ではPresenterを描画する。試験とストーリーで使う商品データは`entities/menu/testing`に置く。
 
-公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとする。JavaScriptを実行しないクローラーにもページの内容を伝えるため、ビルド時に経路ごとのHTML(`index.html`、`terms.html`、`privacy.html`)を書き出し、初期HTMLにタイトル、説明、正式URLと、それらに合わせたOGPのタイトル、説明、URLを入れる。これらの値とタグの組み立ては`layers/app/head`に置き、経路の`head`と初期HTMLが共有する。`vite.config.ts`がビルド時に読み込むため、このスライスはReactの部品やCSSを読まないTypeScriptだけで書く。OGP画像(`public/ogp.jpg`)と画像寸法、代替説明、X向けカード指定は全ページ共通のため、`index.html`に直接書く。正式URLとOGP画像のURLは、プレビューでも本番の`https://nekomimi-ramen.com`を指す。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
+公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとし、経路ごとのHTMLは書き出さない。ページのタイトル、説明、正式URLは`layers/app/head`に置き、経路の`head`がJavaScriptの実行後に描画する。正式URLは、プレビューでも本番の`https://nekomimi-ramen.com`を指す。JavaScriptを実行しない共有プレビュー向けには、店名、紹介文、OGP画像(`public/ogp.jpg`)と画像寸法、代替説明、X向けカード指定を、全ページ共通の値として`index.html`に直接書く。そのため、どのページを共有してもトップページと同じ内容が表示される。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
 
 公開側のStorybookは`@storybook/react-vite`で部品を描画し、アプリと同じCSSを読み込む。共通デコレーターでメモリー履歴のRouterを用意する。ストーリーは部品の隣に`{部品}.stories.tsx`として置く。
 

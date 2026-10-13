@@ -14,11 +14,6 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// 経路の`head`が同じタグを描画するため、初期HTMLのメタ情報を取り除く。
-for (const element of document.head.querySelectorAll("[data-page-head]")) {
-  element.remove();
-}
-
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {

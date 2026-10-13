@@ -1,1 +1,1 @@
-export { buildPageHead, PAGE_HEADS, pageHead } from "./page-heads";
+export { pageHead } from "./page-heads";

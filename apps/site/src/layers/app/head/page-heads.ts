@@ -1,5 +1,4 @@
-// `vite.config.ts`からはTypeScriptのままの`@nekomimi/core`を読めないため、本番のURLをここに持つ。
-const SITE_ORIGIN = "https://nekomimi-ramen.com";
+import { getSiteBaseURL } from "@nekomimi/core/http";
 
 export const PAGE_HEADS = {
   "/": {
@@ -17,17 +16,10 @@ export const PAGE_HEADS = {
   },
 } as const;
 
-export const canonicalURL = (path: string): string => new URL(path, SITE_ORIGIN).href;
+// プレビュー環境でも、検索エンジンには本番のURLを正式なものとして伝える。
+const canonicalURL = (path: string): string => new URL(path, getSiteBaseURL(true)).href;
 
-export const buildPageHead = (path: string, { title, description }: { title: string; description: string }) => ({
-  meta: [
-    { title },
-    { name: "description", content: description },
-    { property: "og:title", content: title },
-    { property: "og:description", content: description },
-    { property: "og:url", content: canonicalURL(path) },
-  ],
+export const pageHead = (path: keyof typeof PAGE_HEADS) => ({
+  meta: [{ title: PAGE_HEADS[path].title }, { name: "description", content: PAGE_HEADS[path].description }],
   links: [{ rel: "canonical", href: canonicalURL(path) }],
 });
-
-export const pageHead = (path: keyof typeof PAGE_HEADS) => buildPageHead(path, PAGE_HEADS[path]);
