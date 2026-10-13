@@ -24,7 +24,7 @@ export const AccessSection = () => (
             <dt className="font-caveat text-2xl leading-8 font-normal text-teal-9">{label}</dt>
             <dd className="text-xl leading-8 font-bold whitespace-pre-line text-teal-12">
               {value}
-              {note !== null && <span className="block text-xs leading-6 font-normal text-pink">{note}</span>}
+              {note !== null && <span className="block text-base leading-6 font-normal text-pink">{note}</span>}
             </dd>
           </div>
         ))}
@@ -34,7 +34,7 @@ export const AccessSection = () => (
       <VenueMap />
     </Reveal>
     <Reveal className="mt-6">
-      <p className="text-md text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
+      <p className="text-md px-2 text-center text-tomato-12">雨天時は時計台周りのロータリーで開催します</p>
     </Reveal>
   </section>
 );
