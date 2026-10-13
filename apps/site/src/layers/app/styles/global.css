@@ -68,39 +68,17 @@
     pointer-events: none;
   }
   &::before {
-    background: linear-gradient(
-        to right,
-        transparent 71px,
-        var(--grid-color) 71px
-      )
-      0 0 / 72px 100%;
-    mask-image: repeating-linear-gradient(
-      to bottom,
-      #000 0 4px,
-      transparent 4px 8px
-    );
+    background: linear-gradient(to right, transparent 71px, var(--grid-color) 71px) 0 0 / 72px 100%;
+    mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 8px);
   }
   &::after {
-    background: linear-gradient(
-        to bottom,
-        transparent 71px,
-        var(--grid-color) 71px
-      )
-      0 0 / 100% 72px;
-    mask-image: repeating-linear-gradient(
-      to right,
-      #000 0 4px,
-      transparent 4px 8px
-    );
+    background: linear-gradient(to bottom, transparent 71px, var(--grid-color) 71px) 0 0 / 100% 72px;
+    mask-image: repeating-linear-gradient(to right, #000 0 4px, transparent 4px 8px);
   }
 }
 
 @utility bg-dots {
-  background-image: radial-gradient(
-    circle,
-    var(--grid-color) 1.5px,
-    transparent 2px
-  );
+  background-image: radial-gradient(circle, var(--grid-color) 1.5px, transparent 2px);
   background-size: 36px 36px;
 }
 
