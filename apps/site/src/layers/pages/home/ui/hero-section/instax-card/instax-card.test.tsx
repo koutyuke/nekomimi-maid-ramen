@@ -9,7 +9,7 @@ describe("Heroのチェキ", () => {
   it("タップやキーボードの決定で裏返り、もう一度で表に戻る", () => {
     render(<InstaxCard />);
     expect(card().getAttribute("aria-pressed")).toBe("false");
-    // キーボードの`Enter`・`Space`は、ボタンのclickとして届く。
+    // キーボードの`Enter`・`Space`もclickとして届く。
     fireEvent.click(card());
     expect(card().getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(card());
@@ -24,7 +24,6 @@ describe("Heroのチェキ", () => {
     fireEvent.click(card());
     expect(card().getAttribute("aria-pressed")).toBe("false");
 
-    // 次の、動かさないタップは裏返す。
     fireEvent.pointerDown(card(), { clientX: 10, clientY: 10 });
     fireEvent.pointerUp(card(), { clientX: 10, clientY: 10 });
     fireEvent.click(card());

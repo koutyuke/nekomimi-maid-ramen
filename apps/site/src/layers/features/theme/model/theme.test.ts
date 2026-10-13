@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useTheme } from "./theme";
 
-// 端末の配色設定を試験から切り替えるための`matchMedia`。
 const deviceScheme = { dark: false, listeners: new Set<() => void>() };
 const changeDeviceScheme = (dark: boolean) => {
   deviceScheme.dark = dark;
@@ -32,7 +31,7 @@ afterEach(() => {
   delete document.documentElement.dataset["theme"];
 });
 
-// Radix Colorsの暗い配色は`dark`クラス、それ以外の配色の判定は`data-theme`属性を見るため、両方がそろうことを確かめる。
+// `dark`クラスと`data-theme`属性が両方そろうことを確かめる。
 const isDark = () => {
   const root = document.documentElement;
   const dark = root.dataset["theme"] === "dark";

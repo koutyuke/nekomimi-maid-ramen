@@ -14,8 +14,7 @@ describe("SPEC-VIS-002 メニューを表示する", () => {
     expect(document.body.textContent).not.toMatch(/売り切れ|販売中/);
   });
 
-  // 閉じた後に選んだカードへフォーカスが戻ることは、ブラウザで確かめる。
-  // 試験環境では要素の大きさを測れず、カードへ縮むアニメーションが終わらないため、詳細が外れる時点まで進まない。
+  // 閉じた後のフォーカスの戻り先はブラウザで確かめる。試験環境では縮むアニメーションが終わらない。
   it("カードを選ぶと詳細を開き、閉じるボタンで閉じる", async () => {
     render(<MenuSectionUI items={menuItemsFixture} />);
     fireEvent.click(screen.getByRole("button", { name: /ラーメン/ }));

@@ -11,16 +11,14 @@ import { canonicalURL, PAGE_HEADS } from "./src/routes/-page-heads";
 const escapeHTML = (value: string) =>
   value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
-// JavaScriptを実行しないクローラーにもページごとのメタ情報を渡すため、経路ごとのHTMLを書き出す。
-// Cloudflareの静的アセットは`/terms`へ`terms.html`を返す。`data-page-head`の付いたタグは、
-// 描画後に経路の`head`が管理するタグと重複しないよう`main.tsx`で取り除く。
+// JavaScriptを実行しないクローラー向けに、経路ごとのHTML(`/terms`なら`terms.html`)を書き出す。
 const pageHTML = (): Plugin => ({
   name: "page-html",
   apply: "build",
   generateBundle: {
     order: "post",
     handler(_, bundle) {
-      // Storybookもこの設定でビルドするが、出力に`index.html`を含まないため対象外にする。
+      // Storybookのビルドは`index.html`を出力しない。
       const index = bundle["index.html"];
       if (index?.type !== "asset") {
         return;

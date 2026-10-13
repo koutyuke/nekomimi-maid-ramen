@@ -14,7 +14,7 @@ describe("BlurImage", () => {
 
     fireEvent.load(image);
     expect(image.className).toContain("opacity-100");
-    // 透過のある写真では、残った代替画像が縁から透けて見えるため消す。
+    // 透過のある写真で、代替画像が縁から透けないようにする。
     expect(placeholder?.className).toContain("opacity-0");
   });
 
@@ -32,7 +32,6 @@ describe("BlurImage", () => {
     fireEvent.load(screen.getByRole("img", { name: "餃子" }));
     first.unmount();
 
-    // カードから詳細へ移るときのように、同じ画像を別の要素として表示し直す。
     const { container } = render(<BlurImage src="/loaded.webp" placeholder="data:image/webp;base64,AA" alt="餃子" />);
     expect(screen.getByRole("img", { name: "餃子" }).className).toContain("opacity-100");
     expect(container.querySelector('img[src^="data:"]')?.className).toContain("opacity-0");

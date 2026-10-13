@@ -15,7 +15,6 @@ const meta = {
       </div>
     ),
   ],
-  // カードは置き場所の幅に合わせて広がるため、デザインの幅に揃えて表示する。
   render: (args) => (
     <div className="w-80">
       <FoodCard {...args} />

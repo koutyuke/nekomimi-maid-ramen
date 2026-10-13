@@ -2,7 +2,6 @@ type ScribbleArrowProps = {
   className?: string;
 };
 
-// 手書き風の上向きの矢印。色は文字色に合わせる。
 export const ScribbleArrow = ({ className }: ScribbleArrowProps) => (
   <svg
     className={className}

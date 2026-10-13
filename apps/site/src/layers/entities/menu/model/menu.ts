@@ -6,7 +6,6 @@ import { MENU_PHOTOS } from "./images";
 import type { OptimizedImage } from "../../../shared/ui";
 import type { MenuCategory } from "@nekomimi/core/models";
 
-// 特定原材料の一覧。IDはスタッフ側のデータベース(`apps/api/seed.sql`)と同じ値にそろえる。
 export const ALLERGENS = [
   { id: "allergen-shrimp", name: "えび" },
   { id: "allergen-crab", name: "かに" },
@@ -21,13 +20,11 @@ export const ALLERGENS = [
 
 export type AllergenId = (typeof ALLERGENS)[number]["id"];
 
-// 使用している、調理過程での接触や使用製品での含有の可能性がある、使用していない。
 export type AllergenStatus = "contains" | "may-contain" | "absent";
 
 export type MenuItemImage = { kind: "photo"; photo: OptimizedImage } | { kind: "illustration"; src: string };
 
 export type MenuItem = {
-  // スタッフ側のデータベース(`apps/api/seed.sql`)の商品IDと同じ値にそろえる。
   id: string;
   name: string;
   subtitle: string;
@@ -35,11 +32,9 @@ export type MenuItem = {
   category: MenuCategory;
   description: string | null;
   image: MenuItemImage;
-  // 原材料を確認していない商品は`null`にする。確認した商品は、全品目の使用状況を持つ。
   allergens: Readonly<Record<AllergenId, AllergenStatus>> | null;
 };
 
-// 会計はスタッフ側のデータベースの価格で行うため、商品名・価格を変えるときは`apps/api/seed.sql`も同時に直す。
 export const MENU_ITEMS: readonly MenuItem[] = [
   {
     id: "item-ramen",
