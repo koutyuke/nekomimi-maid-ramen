@@ -34,7 +34,7 @@ export const ProductImage = ({ item, className = "", fit }: ProductImageProps) =
         fit={fit}
       />
     ) : (
-      <img src={item.image.src} alt="" className="size-full" style={{ objectFit: fit ?? "contain" }} />
+      <img src={item.image.src} alt="" loading="lazy" className="size-full" style={{ objectFit: fit ?? "contain" }} />
     )}
   </motion.div>
 );

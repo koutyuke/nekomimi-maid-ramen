@@ -24,8 +24,8 @@ export const SiteFooter = () => (
     </p>
     <div className="mt-6 flex w-full max-w-86 gap-6 p-2.5">
       <div className="flex w-30 shrink-0 flex-col items-center">
-        <img src={brandIcon} alt="" className="-mb-3 size-25" />
-        <img src={brandLogo} alt="猫耳メイドラーメン" className="h-12.75 w-25" />
+        <img src={brandIcon} alt="" loading="lazy" className="-mb-3 size-25" />
+        <img src={brandLogo} alt="猫耳メイドラーメン" loading="lazy" className="h-12.75 w-25" />
       </div>
       <nav aria-label="フッター" className="flex flex-1 flex-col items-start gap-1 pt-2.5">
         <p className="text-sm leading-5 font-bold text-slate-10">猫耳メイドラーメン</p>
