@@ -2,18 +2,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ComponentType } from "react";
 
 import { AnimatedCheckIcon } from "./animated-check-icon";
-import { BuckwheatIcon } from "./buckwheat-icon";
-import { CashewIcon } from "./cashew-icon";
-import { CatMenuIcon } from "./cat-menu-icon";
-import { CrabIcon } from "./crab-icon";
-import { EggIcon } from "./egg-icon";
-import { GitHubIcon } from "./github-icon";
-import { InstagramIcon } from "./instagram-icon";
-import { MilkIcon } from "./milk-icon";
-import { PeanutIcon } from "./peanut-icon";
-import { ShrimpIcon } from "./shrimp-icon";
-import { WalnutIcon } from "./walnut-icon";
-import { WheatIcon } from "./wheat-icon";
+import BuckwheatIcon from "./buckwheat-icon.svg?react";
+import CashewIcon from "./cashew-icon.svg?react";
+import CatMenuIcon from "./cat-menu-icon.svg?react";
+import CrabIcon from "./crab-icon.svg?react";
+import EggIcon from "./egg-icon.svg?react";
+import GitHubIcon from "./github-icon.svg?react";
+import InstagramIcon from "./instagram-icon.svg?react";
+import MilkIcon from "./milk-icon.svg?react";
+import PeanutIcon from "./peanut-icon.svg?react";
+import ShrimpIcon from "./shrimp-icon.svg?react";
+import WalnutIcon from "./walnut-icon.svg?react";
+import WheatIcon from "./wheat-icon.svg?react";
 import type { IconProps } from "./icon-props";
 
 const IconGrid = ({ icons }: { icons: readonly (readonly [string, ComponentType<IconProps>])[] }) => (

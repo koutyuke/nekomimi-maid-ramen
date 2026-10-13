@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { ScribbleArrow } from "./scribble-arrow";
+import ScribbleArrow from "./scribble-arrow.svg?react";
 
 const meta = {
   title: "Shared/ScribbleArrow",

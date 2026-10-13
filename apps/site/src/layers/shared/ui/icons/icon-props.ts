@@ -11,5 +11,3 @@ export const lineIconProps = {
   strokeLinejoin: "round",
   "aria-hidden": true,
 } as const;
-
-export const allergenIconProps = { ...lineIconProps, strokeWidth: 1.5 } as const;
