@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import { fontSubsetter } from "rollup-plugin-font-subsetter";
 import { defineConfig } from "vite";
 import { imagetools } from "vite-imagetools";
+import svgr from "vite-plugin-svgr";
 import type { Plugin } from "vite";
 
 import { canonicalURL, PAGE_HEADS } from "./src/routes/-page-heads";
@@ -54,6 +55,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     imagetools(),
+    svgr(),
     fontSubsetter(),
     pageHTML(),
   ],
