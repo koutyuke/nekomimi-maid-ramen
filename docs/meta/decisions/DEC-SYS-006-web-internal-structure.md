@@ -17,13 +17,13 @@ evidence: []
 
 スタッフ画面の内部をFeature-Sliced Design(FSD)の層で分け、層の中を業務領域(スライス)で切る。独立した表示検証や変更に価値がある箇所でPresenterとContainerを分ける。通常のページは接続済み部品を直接組み合わせ、全階層での二分を要求しない。サーバーから取得する状態はTanStack Query(`@tanstack/react-query`、5系)、画面をまたいで保持するクライアント状態はJotai(`jotai`、2系)で扱う。
 
-公開側もFSDの依存方向を使い、`app`、`pages`、`widgets`、`features`、`entities`、`shared`を置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、`layers/app/head`のメタ情報を経路ごとに指定するだけにする。`app` → `pages` → `widgets` → `features` → `entities` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`、試験とストーリーからは`testing/index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
+公開側もFSDの依存方向を使い、`app`、`pages`、`widgets`、`features`、`entities`、`shared`を置く。TanStack Routerのファイル経路`src/routes`は、`layers/app`のレイアウトと`layers/pages`の画面を結線し、ページのタイトル、説明、正式URLを指定するだけにする。`app` → `pages` → `widgets` → `features` → `entities` → `shared`の順で下位の層だけを読み、スライスの外からは`index.ts`、試験とストーリーからは`testing/index.ts`を経由する。この境界は`apps/site/oxlint.config.ts`で検査する。
 
 公開側はAPIへ接続しない。商品名、価格、説明、特定原材料、写真は公開側のソースに配列として持ち、ビルドに含めて配信する。商品は6品で営業中の変更もまれなため、取得中・失敗・再試行の扱いを画面に持たせる利点がない。来場者向けの販売可否は表示しない(`SPEC-VIS-002`)。商品データはスタッフ側のデータベースと別に持つため、商品名と価格の変更時は[メニュー](../../product/menu.md)の手順で両方を直す。
 
 公開側の部品も、後述の「PresenterとContainer」と「部品の置き方」に従う。保存領域を読み書きするテーマ選択と、商品データを渡すメニューの区画はContainerとPresenterに分け、Containerを含む部品へは親のContainerがslotとして渡す。表示だけで完結する部品は単一の部品とする。すべての部品にStorybookのストーリーを置き、分けた部品ではPresenterを描画する。試験とストーリーで使う商品データは`entities/menu/testing`に置く。
 
-公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとし、経路ごとのHTMLは書き出さない。ページのタイトル、説明、正式URLは`layers/app/head`に置き、経路の`head`がJavaScriptの実行後に描画する。正式URLは、プレビューでも本番の`https://nekomimi-ramen.com`を指す。JavaScriptを実行しない共有プレビュー向けには、店名、紹介文、OGP画像(`public/ogp.jpg`)と画像寸法、代替説明、X向けカード指定を、全ページ共通の値として`index.html`に直接書く。そのため、どのページを共有してもトップページと同じ内容が表示される。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
+公開側はスタッフ側と同じく、ブラウザーで描画する単一ページアプリケーションとし、経路ごとのHTMLは書き出さない。ページのタイトル、説明、正式URLは`src/routes/-page-heads.ts`に置き、経路の`head`がJavaScriptの実行後に描画する。正式URLは、プレビューでも本番の`https://nekomimi-ramen.com`を指す。JavaScriptを実行しない共有プレビュー向けには、店名、紹介文、OGP画像(`public/ogp.jpg`)と画像寸法、代替説明、X向けカード指定を、全ページ共通の値として`index.html`に直接書く。そのため、どのページを共有してもトップページと同じ内容が表示される。テーマは`SPEC-VIS-005`に従い、`site-theme`キーで保存する。現在の配色は`html`要素の`data-theme`属性(`light`または`dark`)で表し、端末設定に合わせる場合は`prefers-color-scheme`の変化をこの属性へ反映する。Tailwind CSSの`dark:`はこの属性で切り替える。Radix Colorsの暗い配色は`dark`クラスだけを見るため、同じ要素の`dark`クラスも属性と同時に付け替える。Radix Colorsは使う色のスケールだけを読み込む。
 
 公開側のStorybookは`@storybook/react-vite`で部品を描画し、アプリと同じCSSを読み込む。共通デコレーターでメモリー履歴のRouterを用意する。ストーリーは部品の隣に`{部品}.stories.tsx`として置く。
 
@@ -46,7 +46,7 @@ apps/site/
 ├── src/
 │   ├── routes/         TanStack Routerのファイル経路。レイアウトと画面の結線だけを行う
 │   ├── layers/
-│   │   ├── app/        共通レイアウト、スタイル、ページのメタ情報
+│   │   ├── app/        共通レイアウト、スタイル
 │   │   ├── pages/      画面ごとのスライス
 │   │   ├── widgets/    ヘッダー・フッターなど機能を組み合わせた区画
 │   │   ├── features/   利用者の操作と副作用を伴う機能

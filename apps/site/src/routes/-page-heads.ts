@@ -1,6 +1,6 @@
 import { getSiteBaseURL } from "@nekomimi/core/http";
 
-export const PAGE_HEADS = {
+const PAGE_HEADS = {
   "/": {
     title: "猫耳メイドラーメン",
     description: "茨城高専の文化祭に出店する猫耳メイドラーメンのメニュー、営業時間、出店場所をご案内します。",
