@@ -1,4 +1,3 @@
-/* Radix Colorsのうち、デザインで使うスケールだけを読み込む。暗い配色は`html.dark`で切り替わる。 */
 @import "@radix-ui/colors/slate.css";
 @import "@radix-ui/colors/slate-dark.css";
 @import "@radix-ui/colors/tomato.css";
@@ -12,12 +11,10 @@
 @import "@radix-ui/colors/blue.css";
 @import "@radix-ui/colors/blue-dark.css";
 
-/* Tailwind CSSの既定の色を外し、Radix Colorsの変数を参照する色だけを使う。 */
 @theme {
   --color-*: initial;
   --color-white: #fff;
   --color-black: #000;
-  /* 手書き風の見出しと注記の桃色。Radix Colorsに同じ色がないため、デザインの値をそのまま使う。 */
   --color-pink: #ee7b9c;
 }
 

@@ -10,7 +10,6 @@ import {
 import { createElement, useState } from "react";
 import type { Decorator, Preview } from "@storybook/react-vite";
 
-// 部品内の`Link`を描画するためのRouterであり、本番の経路へ接続しない。
 const withRouter: Decorator = (Story) => {
   const [router] = useState(() => {
     const root = createRootRoute();

@@ -3,7 +3,6 @@ import maidIllustration from "../assets/maid-illustration.png?w=552&format=avif&
 import maidIllustrationSrcSet from "../assets/maid-illustration.png?w=184;368;552&format=avif&as=srcset&imagetools";
 import type { OptimizedImage } from "../../../shared/ui";
 
-// チェキの中では、どの画面幅でも幅184pxで表示する。1〜3倍密度の画面に合う大きさを用意する。
 export const MAID_ILLUSTRATION: OptimizedImage = {
   src: maidIllustration,
   srcSet: maidIllustrationSrcSet,

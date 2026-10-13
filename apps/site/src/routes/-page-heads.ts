@@ -1,6 +1,4 @@
-// 経路の`head`と、ビルド時に書き出す経路ごとの初期HTML(`vite.config.ts`)が共有する。
-// Viteは設定ファイルから読むパッケージをNodeへそのまま渡し、TypeScriptのままの`@nekomimi/core`を読めないため、
-// 本番のURLをここに持つ。
+// `vite.config.ts`からはTypeScriptのままの`@nekomimi/core`を読めないため、本番のURLをここに持つ。
 const SITE_ORIGIN = "https://nekomimi-ramen.com";
 
 export const PAGE_HEADS = {
@@ -19,7 +17,6 @@ export const PAGE_HEADS = {
   },
 } as const;
 
-// プレビューで開いても、検索エンジンには本番のURLを正式なURLとして伝える。
 export const canonicalURL = (path: string): string => new URL(path, SITE_ORIGIN).href;
 
 export const pageHead = (path: keyof typeof PAGE_HEADS) => ({

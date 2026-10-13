@@ -63,7 +63,6 @@ export const Allergens: Story = {
   ),
 };
 
-// 表示されるたびに線が描かれる。もう一度見るときはストーリーを開き直す。
 export const AnimatedCheck: Story = {
   render: () => <AnimatedCheckIcon className="size-6 text-slate-12" />,
 };

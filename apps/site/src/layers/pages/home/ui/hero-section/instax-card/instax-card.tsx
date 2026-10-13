@@ -7,12 +7,10 @@ import instaxDoodle from "../../../assets/instax-doodle.svg";
 import { MAID_ILLUSTRATION } from "../../../model/images";
 
 const MAX_TILT_DEG = 12;
-// これ以上指が動いたら「なぞった」とみなし、離したときに裏返さない。
 const DRAG_THRESHOLD_PX = 8;
 
 const faceClassName = "absolute inset-0 overflow-hidden rounded-lg shadow-xl backface-hidden";
 
-// 触れている位置に光が当たっているように見せる反射。傾けている間だけ現れる。
 const Glare = () => (
   <span
     aria-hidden
@@ -64,7 +62,7 @@ export const InstaxCard = () => {
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const dragged = useRef(false);
 
-  // 傾いた要素の矩形は回転で変わるため、回転しない外側の要素で位置を測る。毎回の描画を避けるため、CSS変数を直接書き換える。
+  // 回転で矩形が変わるため外側の要素で測り、再描画を避けるためCSS変数を直接書き換える。
   const tiltToward = (event: PointerEvent) => {
     const scene = sceneRef.current;
     if (!scene || reduceMotion) {
@@ -115,7 +113,7 @@ export const InstaxCard = () => {
           }}
           onPointerUp={(event) => {
             pointerStart.current = null;
-            // マウスは乗せている間だけ傾け、指は離したら元へ戻す。
+            // マウスは乗せている間、傾けたままにする。
             if (event.pointerType !== "mouse") {
               resetTilt();
             }

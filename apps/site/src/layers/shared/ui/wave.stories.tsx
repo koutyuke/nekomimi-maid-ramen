@@ -6,7 +6,6 @@ const meta = {
   title: "Shared/Wave",
   component: Wave,
   args: { className: "bg-tomato-3 bg-dashed-grid [--grid-color:var(--tomato-4)]" },
-  // 波は区画の上端から上へはみ出して置くため、区画に見立てた要素の中で表示する。
   decorators: [
     (Story, { args }) => (
       <div className="bg-slate-1 pt-18">

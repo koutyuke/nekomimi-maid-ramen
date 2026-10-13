@@ -19,7 +19,6 @@ describe("SPEC-VIS-001 出店情報を表示する", () => {
       expect(text).toContain(expected);
     }
 
-    // 地図の施設名は文字で書き、出店位置は地図を見なくても分かるよう文章でも伝える。
     const map = screen.getByRole("figure", { name: /猫耳メイドラーメンのブース/ });
     for (const facility of ["サッカー", "グラウンド", "テニスコート", "工場", "体育館", "プール"]) {
       expect(within(map).getByText(facility)).toBeDefined();

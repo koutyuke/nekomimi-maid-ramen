@@ -11,7 +11,7 @@ const readStoredTheme = (): Theme => {
       return stored;
     }
   } catch {
-    /* 保存が拒否された環境では、端末設定から始める。 */
+    /* 保存が拒否された環境では端末設定に従う。 */
   }
   return "system";
 };
@@ -20,17 +20,17 @@ const saveTheme = (theme: Theme): void => {
   try {
     localStorage.setItem(STORAGE_KEY, theme);
   } catch {
-    /* 保存できなくても配色の変更は維持する。 */
+    /* 保存できなくても配色は変える。 */
   }
 };
 
 export const useTheme = () => {
   const [theme, setTheme] = useState(readStoredTheme);
 
-  // 描画前に反映し、保存したテーマと異なる配色が一瞬表示されることを防ぐ。
+  // 描画前に反映し、保存と異なる配色が一瞬見えるのを防ぐ。
   useLayoutEffect(() => {
     const media = matchMedia("(prefers-color-scheme: dark)");
-    // Radix Colorsの暗い配色は`dark`クラスだけを見るため、`data-theme`属性と同時に付け替える。
+    // Radix Colorsの暗い配色は`dark`クラスを見るため、`data-theme`属性とそろえる。
     const apply = () => {
       const dark = theme === "dark" || (theme === "system" && media.matches);
       const root = document.documentElement;

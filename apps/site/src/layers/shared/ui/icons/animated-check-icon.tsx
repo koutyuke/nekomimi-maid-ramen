@@ -6,7 +6,6 @@ type AnimatedCheckIconProps = {
   className?: string;
 };
 
-// 表示されたときに線が描かれるチェックマーク。動きを減らす設定では最初から描き終えた状態で出す。
 export const AnimatedCheckIcon = ({ className }: AnimatedCheckIconProps) => {
   const reduceMotion = useReducedMotion();
   return (

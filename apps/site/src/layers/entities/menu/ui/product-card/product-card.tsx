@@ -6,25 +6,20 @@ import type { MenuItem } from "../../model/menu";
 
 type ProductCardProps = {
   item: MenuItem;
-  // 並べ方に応じた傾き(`rotate-2`など)と重なり順。
   className?: string;
-  // 詳細を閉じたときにフォーカスを戻すため、選ばれたカードの要素を渡す。
   onSelect: (card: HTMLButtonElement) => void;
 };
 
 /*
- * カードは詳細と同じ`layoutId`で拡大・縮小し、その間はMotionが`transform`で大きさを変える。
- * - 傾きはCSSの`rotate`で付ける。Motionの`rotate`で持つと、縮み終えて位置を測り直す1コマだけ傾きが外れて震えて見える。
- * - 角丸は`style`で渡し、Motionに伸び縮みの補正をさせる。
+ * - 傾きはCSSの`rotate`で付ける。Motionの`rotate`だと、縮み終えて測り直す1コマだけ傾きが外れて震える。
+ * - 角丸は`style`で渡し、Motionに伸び縮みを補正させる。
  * - 文字のまとまりにも`layout`を付け、カードと一緒に引き伸ばされないようにする。
- * カードは置き場所の幅いっぱいに広がり、比率を保って拡大・縮小する。中身もカード自身の幅に対する割合(`cqw`)で大きさを決める。
  */
 const CARD_STYLE = { borderRadius: squircleRadius(64) };
 
 const cardClassName =
   "relative overflow-hidden border-4 border-tomato-7 [corner-shape:squircle] bg-tomato-1 text-tomato-12 outline-none focus-visible:ring-4 focus-visible:ring-blue-8";
 
-// 料理のカード。320×180の比率で、写真をカードの左端からはみ出させて置く。大きさは幅320pxのデザインに対する割合(1px = 0.3125cqw)で決める。
 export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) => (
   <motion.button
     type="button"
@@ -47,8 +42,6 @@ export const FoodCard = ({ item, className = "", onSelect }: ProductCardProps) =
   </motion.button>
 );
 
-// 飲み物のカード。中央に瓶のイラスト、下に名称と価格を置く。大きさは幅152pxのデザインに対する割合で決める。
-// 余白はカード自身の`cqw`では測れないため、親の幅に対する割合(`%`)で指定する。
 export const DrinkCard = ({ item, className = "", onSelect }: ProductCardProps) => (
   <motion.button
     type="button"

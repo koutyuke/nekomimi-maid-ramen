@@ -11,8 +11,6 @@ import type { MenuItem } from "../../../../entities/menu";
 
 const FOOD_ROTATIONS = ["rotate-2", "-rotate-2"];
 
-// 飲み物は2列で互い違いに並べる。各カードは2行分を占める。
-// 行と隙間は幅320pxのデザインに対する割合(1px = 0.3125cqw)で決め、カードと一緒に拡大・縮小する。
 const DRINK_LAYOUTS = [
   { rotate: "rotate-2", className: "col-start-1 row-span-2 row-start-1" },
   { rotate: "-rotate-2", className: "col-start-2 row-span-2 row-start-2" },
@@ -41,7 +39,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
   };
 
   return (
-    // カードと詳細の間の拡大・縮小の速さ。イージングはMotionの既定のまま、時間だけを短くする。
+    // イージングはMotionの既定のまま、時間だけを短くする。
     <MotionConfig reducedMotion="user" transition={{ layout: { duration: 0.3, ease: [0.4, 0, 0.1, 1] } }}>
       <section
         id={HOME_SECTION_IDS.menu}
@@ -51,7 +49,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
         <Wave className="bg-dashed-grid bg-tomato-3 [--grid-color:var(--tomato-4)]" />
         <SectionTitle>お料理</SectionTitle>
         <div className="mt-6 flex w-full max-w-content flex-col gap-6">
-          {/* 浮かび上がりの`transform`で重なりの文脈が区切られるため、前面に出す`z-10`は外側に付ける。 */}
+          {/* `Reveal`の`transform`が重なりの文脈を作るため、`z-10`は外側に付ける。 */}
           {foods.map((item, index) => (
             <Reveal key={item.id} className={item.id === raisedId ? "z-10" : ""}>
               <FoodCard
@@ -93,7 +91,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
           actionsRef={dialogActions}
           onOpenChange={(open, eventDetails) => {
             if (!open) {
-              // 元のカードへ縮むアニメーションの間も詳細を残すため、外す時期はAnimatePresenceの完了に合わせる。
+              // 縮むアニメーションの間も詳細を残すため、AnimatePresenceの完了まで外さない。
               eventDetails.preventUnmountOnClose();
               setSelected(null);
             }
@@ -106,8 +104,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                   className="fixed inset-0 bg-black/20 backdrop-blur-lg"
                   render={<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />}
                 />
-                {/* カードと同じ`layoutId`で、選んだカードの位置と大きさから詳細の枠へ拡大する。 */}
-                {/* タップでボタンにフォーカスが移らないブラウザもあるため、閉じた後の戻り先は選んだカードを指定する。 */}
+                {/* タップでフォーカスが移らないブラウザがあるため、戻り先を明示する。 */}
                 <Dialog.Popup
                   aria-labelledby={PRODUCT_TITLE_ID}
                   finalFocus={selectedCard}

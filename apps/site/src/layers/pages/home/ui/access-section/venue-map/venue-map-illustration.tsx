@@ -1,10 +1,7 @@
 import { useId } from "react";
 import type { SVGProps } from "react";
 
-// 会場の地図の絵。図形はデザインから書き出したものをそのまま使い、施設名は文字で書く。
-// 外枠と、枠からはみ出す部分の切り取りは、地図を表示する側で行う。
 export const VenueMapIllustration = ({ className = "", ...props }: SVGProps<SVGSVGElement>) => {
-  // 施設の線を内側にだけ引くためのマスクのID。同じ絵を複数表示しても重ならないようにする。
   const id = useId();
   return (
     <svg
@@ -15,9 +12,7 @@ export const VenueMapIllustration = ({ className = "", ...props }: SVGProps<SVGS
       className={`text-base font-normal ${className}`}
       {...props}
     >
-      {/* 背景 */}
       <rect width="320" height="240" className="fill-slate-1" />
-      {/* サッカーグラウンドと、その名前 */}
       <rect x="21" y="32" width="238" height="158" rx="79" strokeWidth="2" className="fill-grass-3 stroke-grass-6" />
       <text x="140" y="111" textAnchor="middle" className="fill-slate-12">
         <tspan x="140" dy="-4">
@@ -27,7 +22,6 @@ export const VenueMapIllustration = ({ className = "", ...props }: SVGProps<SVGS
           グラウンド
         </tspan>
       </text>
-      {/* グラウンドの右上に並ぶブース。赤いのが自分たちのブースである。 */}
       <path
         d="M205.769 13.6009L221.224 17.742C222.825 18.1708 223.774 19.8158 223.346 21.4162L221.275 29.1436C220.846 30.744 219.201 31.6938 217.601 31.2649L202.146 27.1238C200.546 26.695 199.596 25.05 200.025 23.4496L202.095 15.7222C202.524 14.1218 204.169 13.172 205.769 13.6009Z"
         strokeWidth="2"
@@ -48,7 +42,6 @@ export const VenueMapIllustration = ({ className = "", ...props }: SVGProps<SVGS
         strokeWidth="2"
         className="fill-blue-4 stroke-blue-8"
       />
-      {/* 下端の建物(体育館・工場・プール)と、それぞれの名前。地図の端に接する辺には線を引かない。 */}
       <mask id={`${id}-gym`} fill="white">
         <path d="M140 212C140 209.791 141.791 208 144 208H207C209.209 208 211 209.791 211 212V240H140V212Z" />
       </mask>
@@ -91,7 +84,6 @@ export const VenueMapIllustration = ({ className = "", ...props }: SVGProps<SVGS
       <text x="277" y="230" textAnchor="middle" className="fill-slate-12">
         プール
       </text>
-      {/* 右端のテニスコートと、その名前。名前は下から上へ読む向きに置く。 */}
       <mask id={`${id}-tennis`} fill="white">
         <path d="M288 35C288 32.7909 289.791 31 292 31H320V191H292C289.791 191 288 189.209 288 187V35Z" />
       </mask>
