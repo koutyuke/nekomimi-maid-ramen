@@ -4,7 +4,7 @@ import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRef, useState } from "react";
 
 import { DrinkCard, FoodCard, PRODUCT_TITLE_ID, ProductDetail } from "../../../../entities/menu";
-import { HOME_SECTION_IDS, squircleRadius } from "../../../../shared/config";
+import { HOME_SECTION_IDS } from "../../../../shared/config";
 import { Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 import type { MenuItem } from "../../../../entities/menu";
@@ -83,7 +83,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
           </div>
         </div>
         <Reveal className="mt-6">
-          <p className="text-md text-tomato-12">ご注文は店頭でメイドにお伝えください</p>
+          <p className="text-md px-2 text-center text-tomato-12">ご注文は店頭でメイドにお伝えください</p>
         </Reveal>
 
         <Dialog.Root
@@ -112,7 +112,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
                   render={
                     <motion.div
                       layoutId={`menu-card-${selected.id}`}
-                      style={{ borderRadius: squircleRadius(32) }}
+                      style={{ borderRadius: 32 }}
                       exit={{ opacity: 0, transition: { duration: 0.2 } }}
                     />
                   }
