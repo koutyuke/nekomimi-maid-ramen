@@ -175,11 +175,11 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
       items: [
         { id: "item-ramen", name: "ラーメン", price: 500, category: "main" },
         { id: "item-gyoza", name: "餃子", price: 400, category: "side" },
+        { id: "item-soda", name: "ソーダ", price: 300, category: "drink" },
         { id: "item-cola", name: "コーラ", price: 300, category: "drink" },
         { id: "item-orange-juice", name: "オレンジジュース", price: 300, category: "drink" },
         { id: "item-ginger-ale", name: "ジンジャーエール", price: 300, category: "drink" },
         { id: "item-oolong-tea", name: "烏龍茶", price: 300, category: "drink" },
-        { id: "item-soda", name: "ソーダ", price: 300, category: "drink" },
       ].map((item) => ({
         ...item,
         description: null,
