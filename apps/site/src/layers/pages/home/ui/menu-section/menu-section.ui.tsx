@@ -16,6 +16,7 @@ const DRINK_LAYOUTS = [
   { rotate: "-rotate-2", className: "col-start-2 row-span-2 row-start-2" },
   { rotate: "-rotate-4", className: "col-start-1 row-span-2 row-start-3" },
   { rotate: "rotate-4", className: "col-start-2 row-span-2 row-start-4" },
+  { rotate: "rotate-2", className: "col-start-1 row-span-2 row-start-5" },
 ];
 
 type MenuSectionUIProps = {
@@ -64,7 +65,7 @@ export const MenuSectionUI = ({ items }: MenuSectionUIProps) => {
           <SectionTitle id={HOME_SECTION_IDS.drinks}>飲み物</SectionTitle>
         </div>
         <div className="@container mt-4 w-full max-w-content">
-          <div className="grid grid-cols-2 grid-rows-[repeat(5,28.125cqw)] gap-x-[5cqw] gap-y-[3.75cqw]">
+          <div className="grid grid-cols-2 grid-rows-[repeat(6,28.125cqw)] gap-x-[5cqw] gap-y-[3.75cqw]">
             {drinks.map((item, index) => {
               const layout = DRINK_LAYOUTS[index % DRINK_LAYOUTS.length];
               return (

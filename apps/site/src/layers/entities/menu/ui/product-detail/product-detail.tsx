@@ -14,9 +14,9 @@ import {
   WalnutIcon,
   WheatIcon,
 } from "../../../../shared/ui";
-import { ALLERGENS } from "../../model/menu";
+import { ALLERGENS, EQUIVALENT_ALLERGENS } from "../../model/menu";
 import { ProductImage } from "../product-image/product-image";
-import type { AllergenId, AllergenStatus, MenuItem } from "../../model/menu";
+import type { AllergenId, AllergenStatus, EquivalentAllergenId, MenuItem } from "../../model/menu";
 
 export const PRODUCT_TITLE_ID = "product-detail-title";
 
@@ -38,22 +38,38 @@ const STATUS_DISPLAY: Record<AllergenStatus, { label: string; Icon: LucideIcon; 
   absent: { label: "不使用", Icon: X, iconClassName: "size-5" },
 };
 
-const AllergenTable = ({ allergens }: { allergens: NonNullable<MenuItem["allergens"]> }) => (
-  <>
-    <ul className="flex w-60 flex-col rounded-lg border-2 border-tomato-6 bg-tomato-1 p-2">
-      {ALLERGENS.map(({ id, name }, index) => {
-        const AllergenIcon = ALLERGEN_ICONS[id];
-        const { label, Icon, iconClassName } = STATUS_DISPLAY[allergens[id]];
+const AllergenTable = ({
+  label,
+  items,
+  icons,
+  allergens,
+}: {
+  label: string;
+  items: readonly { id: AllergenId | EquivalentAllergenId; name: string }[];
+  icons?: Partial<Record<AllergenId | EquivalentAllergenId, ComponentType<SVGProps<SVGSVGElement>>>>;
+  allergens: NonNullable<MenuItem["allergens"]>;
+}) => (
+  <div className="flex flex-col items-center">
+    <h4 className="text-sm leading-5 font-bold">
+      {label}
+      {items.length}品目
+    </h4>
+    <ul aria-label={label} className="mt-2 flex w-60 flex-col rounded-lg border-2 border-tomato-6 bg-tomato-1 p-2">
+      {items.map(({ id, name }, index) => {
+        const AllergenIcon = icons?.[id];
+        const { label: statusLabel, Icon, iconClassName } = STATUS_DISPLAY[allergens[id]];
         return (
           <li
             key={id}
-            aria-label={`${name}: ${label}`}
+            aria-label={`${name}: ${statusLabel}`}
             className={`flex items-center gap-1 text-sm leading-5 ${index > 0 ? "mt-2 border-t border-slate-4 pt-2" : ""}`}
           >
-            <span className="flex size-6 items-center justify-center">
-              <AllergenIcon className="size-5" />
-            </span>
-            <span className="flex-1">{name}</span>
+            {AllergenIcon ? (
+              <span className="flex size-6 items-center justify-center">
+                <AllergenIcon className="size-5" />
+              </span>
+            ) : null}
+            <span className={`flex-1 ${AllergenIcon ? "" : "pl-1"}`}>{name}</span>
             <span className="flex size-6 items-center justify-center">
               <Icon className={iconClassName} aria-hidden />
             </span>
@@ -61,6 +77,15 @@ const AllergenTable = ({ allergens }: { allergens: NonNullable<MenuItem["allerge
         );
       })}
     </ul>
+  </div>
+);
+
+const AllergenTables = ({ allergens }: { allergens: NonNullable<MenuItem["allergens"]> }) => (
+  <>
+    <AllergenTable label="特定原材料" items={ALLERGENS} icons={ALLERGEN_ICONS} allergens={allergens} />
+    <div className="mt-6">
+      <AllergenTable label="特定原材料に準ずるもの" items={EQUIVALENT_ALLERGENS} allergens={allergens} />
+    </div>
     <p className="mt-2 w-55 text-[10px] text-tomato-12">
       ○：この原材料を使用しています
       <br />
@@ -86,18 +111,16 @@ export const ProductDetail = ({ item }: { item: MenuItem }) => (
       </h2>
       <p className="text-md mt-2 font-caveat leading-4 font-normal text-tomato-11">{item.subtitle}</p>
       <p className="mt-2 text-3xl leading-9 font-bold text-tomato-10">¥{item.price}</p>
-      {item.description !== null && <p className="mt-4 text-center leading-6">{item.description}</p>}
+      {item.description !== null && (
+        <p className="mx-4 mt-4 text-center text-sm leading-6 whitespace-pre-line">{item.description}</p>
+      )}
       <hr className="my-6 w-55 border-t-2 border-dashed border-tomato-6" />
-      <h3 className="text-md text-center leading-5">
-        製品に含まれるアレルギー物質
-        <br />
-        <span className="text-xs leading-4">(特定原材料{ALLERGENS.length}品目中)</span>
-      </h3>
+      <h3 className="text-md text-center leading-5">製品に含まれるアレルギー物質</h3>
       <div className="mt-4 flex flex-col items-center">
         {item.allergens === null ? (
-          <p className="rounded-lg border-2 border-tomato-6 px-4 py-3 text-sm">特定原材料は確認中です。</p>
+          <p className="rounded-lg border-2 border-tomato-6 px-4 py-3 text-sm">特定原材料等は確認中です。</p>
         ) : (
-          <AllergenTable allergens={item.allergens} />
+          <AllergenTables allergens={item.allergens} />
         )}
       </div>
     </motion.div>

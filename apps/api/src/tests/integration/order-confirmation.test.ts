@@ -167,7 +167,7 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
     await seed();
   });
 
-  it("6商品を表示順で返し、すべて販売可能かつ特定原材料は未確認である", async () => {
+  it("7商品を表示順で返し、すべて販売可能かつ特定原材料は未確認である", async () => {
     const response = await listMenu();
 
     expect(response.status).toBe(200);
@@ -175,6 +175,7 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
       items: [
         { id: "item-ramen", name: "ラーメン", price: 500, category: "main" },
         { id: "item-gyoza", name: "餃子", price: 400, category: "side" },
+        { id: "item-soda", name: "ソーダ", price: 300, category: "drink" },
         { id: "item-cola", name: "コーラ", price: 300, category: "drink" },
         { id: "item-orange-juice", name: "オレンジジュース", price: 300, category: "drink" },
         { id: "item-ginger-ale", name: "ジンジャーエール", price: 300, category: "drink" },
@@ -205,7 +206,7 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
 
     await seed();
 
-    expect(await db.select().from(Database.tables.menuItems).all()).toHaveLength(6);
+    expect(await db.select().from(Database.tables.menuItems).all()).toHaveLength(7);
     expect(await stockOf("item-ramen")).toBe(7);
   });
 });
