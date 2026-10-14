@@ -20,4 +20,4 @@ type Story = StoryObj<typeof meta>;
 
 export const AllergensChecked: Story = {};
 
-export const AllergensUnchecked: Story = { args: { item: ramenFixture } };
+export const AllergensUnchecked: Story = { args: { item: { ...ramenFixture, allergens: null } } };
