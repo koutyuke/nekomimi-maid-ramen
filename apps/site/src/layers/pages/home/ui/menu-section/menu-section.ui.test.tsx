@@ -19,7 +19,7 @@ describe("SPEC-VIS-002 メニューを表示する", () => {
     render(<MenuSectionUI items={menuItemsFixture} />);
     fireEvent.click(screen.getByRole("button", { name: /ラーメン/ }));
     const dialog = await screen.findByRole("dialog", { name: "ラーメン" });
-    expect(within(dialog).getByText("¥500")).toBeDefined();
+    expect(within(dialog).getByText("¥600")).toBeDefined();
 
     fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
     await waitFor(() => expect(dialog.hasAttribute("data-closed")).toBe(true));
