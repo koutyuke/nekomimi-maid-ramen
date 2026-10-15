@@ -14,9 +14,9 @@ INSERT INTO allergens (id, name) VALUES
 ON CONFLICT (id) DO UPDATE SET name = excluded.name;
 
 INSERT INTO menu_items (id, name, description, price, category, display_order, allergen_check_state, updated_at) VALUES
-  ('item-ramen', 'ラーメン', NULL, 500, 'main', 1, 'unchecked', unixepoch() * 1000),
-  ('item-gyoza', '餃子', NULL, 400, 'side', 2, 'unchecked', unixepoch() * 1000),
-  ('item-soda', 'ソーダ', NULL, 300, 'drink', 3, 'unchecked', unixepoch() * 1000),
+  ('item-ramen', 'ラーメン', NULL, 600, 'main', 1, 'unchecked', unixepoch() * 1000),
+  ('item-gyoza', '餃子', NULL, 300, 'side', 2, 'unchecked', unixepoch() * 1000),
+  ('item-soda', 'サイダー', NULL, 300, 'drink', 3, 'unchecked', unixepoch() * 1000),
   ('item-cola', 'コーラ', NULL, 300, 'drink', 4, 'unchecked', unixepoch() * 1000),
   ('item-orange-juice', 'オレンジジュース', NULL, 300, 'drink', 5, 'unchecked', unixepoch() * 1000),
   ('item-ginger-ale', 'ジンジャーエール', NULL, 300, 'drink', 6, 'unchecked', unixepoch() * 1000),

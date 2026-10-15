@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
+import cider from "../assets/cider.svg";
 import cola from "../assets/cola.svg";
 import gingerAle from "../assets/ginger-ale.svg";
 import oolongTea from "../assets/oolong-tea.svg";
 import orange from "../assets/orange.svg";
-import soda from "../assets/soda.svg";
 import { MENU_PHOTOS } from "./images";
 import type { OptimizedImage } from "../../../shared/ui";
 import type { MenuCategory } from "@nekomimi/core/models";
@@ -167,7 +167,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
     id: "item-ramen",
     name: "ラーメン",
     subtitle: "Nekomimi Ramen",
-    price: 500,
+    price: 600,
     category: "main",
     description:
       "あつあつスープに「おいしくな〜れ♡」の魔法をひとさじ。麺をすすれば、おなかもハートもぽかぽかに♪ ご主人さま、最後のひとくちまで楽しんでくださいねっ♡",
@@ -178,7 +178,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
     id: "item-gyoza",
     name: "餃子",
     subtitle: "Crispy Gyoza",
-    price: 400,
+    price: 300,
     category: "side",
     description:
       "ぱくっとひとくち、じゅわっとしあわせ♡ ちっちゃな餃子に、おいしさをぎゅぎゅっと包みました。ラーメンのおともに、わたしもまぜてっ♪",
@@ -187,12 +187,12 @@ export const MENU_ITEMS: readonly MenuItem[] = [
   },
   {
     id: "item-soda",
-    name: "ソーダ",
-    subtitle: "Soda",
+    name: "サイダー",
+    subtitle: "Cider",
     price: 300,
     category: "drink",
     description: DRINK_DESCRIPTION,
-    image: { kind: "illustration", src: soda },
+    image: { kind: "illustration", src: cider },
     allergens: DRINK_ALLERGENS,
   },
   {

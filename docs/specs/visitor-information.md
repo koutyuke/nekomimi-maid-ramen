@@ -20,7 +20,7 @@ domain: VIS
 | 商品           | 商品名、説明、価格、分類、表示順、写真、特定原材料等、原材料の確認状態 | トップの「お料理」「飲み物」 |
 | スポンサー情報 | 承認された名称、紹介文、画像、リンク                                   | トップの「ご協賛」           |
 
-商品、分類、価格、表示順は[メニュー](../product/menu.md)を正本とする。商品名と価格のうち未確定のものは[`Q-VIS-002`](../meta/questions/Q-VIS-002-menu-names-and-prices.md)で決定する。スポンサーの掲載項目は[`Q-VIS-001`](../meta/questions/Q-VIS-001-sponsor-content.md)で決定する。
+商品、分類、価格、表示順は[メニュー](../product/menu.md)を正本とする。商品名のうち未確定のものは[`Q-VIS-002`](../meta/questions/Q-VIS-002-menu-names-and-prices.md)で決定する。スポンサーの掲載項目は[`Q-VIS-001`](../meta/questions/Q-VIS-001-sponsor-content.md)で決定する。
 
 公開サイトはトップページ1枚に、メニュー、アクセス、ご協賛の区画を縦に並べる。ヘッダーのメニューボタンとフッターのナビゲーションから各区画へ移動できる。フッターのナビゲーションには、`/privacy`と`/terms`へのリンクも置く(`SPEC-SYS-010`)。
 
