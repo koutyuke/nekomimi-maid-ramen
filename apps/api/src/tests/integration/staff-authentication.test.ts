@@ -220,7 +220,6 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
       price: 500,
       category: "main",
       displayOrder: 1,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     });
     await db.insert(Database.tables.stocks).values({ menuItemId: "test-ramen", quantity: 2, updatedAt: new Date() });
@@ -453,7 +452,6 @@ describe("SPEC-INV-004 在庫の登録・修正", () => {
       price: 500,
       category: "main",
       displayOrder: 1,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     });
     const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });

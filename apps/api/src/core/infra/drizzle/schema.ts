@@ -18,39 +18,12 @@ export const menuItems = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    description: text("description"),
     price: integer("price").notNull(),
     category: text("category", { enum: ["main", "side", "drink"] }).notNull(),
     displayOrder: integer("display_order").notNull(),
-    allergenCheckState: text("allergen_check_state", { enum: ["unchecked", "checked"] }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
-  (table) => [
-    check("menu_items_category", sql`${table.category} in ('main', 'side', 'drink')`),
-    check("menu_items_allergen_check_state", sql`${table.allergenCheckState} in ('unchecked', 'checked')`),
-  ],
-);
-
-export const allergens = sqliteTable(
-  "allergens",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-  },
-  (table) => [uniqueIndex("allergens_name_unique").on(table.name)],
-);
-
-export const menuItemAllergens = sqliteTable(
-  "menu_item_allergens",
-  {
-    menuItemId: text("menu_item_id")
-      .notNull()
-      .references(() => menuItems.id, { onDelete: "cascade" }),
-    allergenId: text("allergen_id")
-      .notNull()
-      .references(() => allergens.id, { onDelete: "cascade" }),
-  },
-  (table) => [primaryKey({ columns: [table.menuItemId, table.allergenId] })],
+  (table) => [check("menu_items_category", sql`${table.category} in ('main', 'side', 'drink')`)],
 );
 
 export const stocks = sqliteTable(

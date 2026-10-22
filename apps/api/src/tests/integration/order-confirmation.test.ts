@@ -69,11 +69,9 @@ beforeEach(async () => {
   await db.insert(Database.tables.menuItems).values({
     id: "item-ramen",
     name: "ラーメン",
-    description: null,
     price: 500,
     category: "main",
     displayOrder: 1,
-    allergenCheckState: "unchecked",
     updatedAt: new Date(),
   });
   await db.insert(Database.tables.stocks).values({ menuItemId: "item-ramen", quantity: 3, updatedAt: new Date() });
@@ -130,21 +128,17 @@ describe("SPEC-INV-001 実際のD1を通したメニューの販売可否", () =
       {
         id: "item-zero-stock",
         name: "餃子",
-        description: null,
         price: 400,
         category: "side",
         displayOrder: 2,
-        allergenCheckState: "unchecked",
         updatedAt: new Date(),
       },
       {
         id: "item-missing-stock",
         name: "お茶",
-        description: null,
         price: 200,
         category: "drink",
         displayOrder: 3,
-        allergenCheckState: "unchecked",
         updatedAt: new Date(),
       },
     ]);
@@ -172,7 +166,7 @@ describe("SPEC-INV-001 投入したメニューの取得", () => {
     await seed();
   });
 
-  it("7商品を表示順で返し、すべて販売可能かつ特定原材料は未確認である", async () => {
+  it("7商品を表示順で返し、すべて販売可能である", async () => {
     const response = await listMenu();
 
     expect(response.status).toBe(200);
@@ -186,23 +180,8 @@ describe("SPEC-INV-001 投入したメニューの取得", () => {
         { id: "item-orange-juice", name: "オレンジジュース", price: 300, category: "drink" },
         { id: "item-ginger-ale", name: "ジンジャーエール", price: 300, category: "drink" },
         { id: "item-oolong-tea", name: "烏龍茶", price: 300, category: "drink" },
-      ].map((item) => ({
-        ...item,
-        description: null,
-        sellable: true,
-        allergenCheckState: "unchecked",
-        containedAllergens: [],
-        quantity: 100,
-      })),
+      ].map((item) => ({ ...item, sellable: true, quantity: 100 })),
     });
-  });
-
-  it("特定原材料の9品目を登録する", async () => {
-    const allergens = await db.select().from(Database.tables.allergens).all();
-
-    expect(allergens.map((allergen) => allergen.name).toSorted()).toEqual(
-      ["えび", "かに", "カシューナッツ", "くるみ", "小麦", "そば", "卵", "乳", "落花生"].toSorted(),
-    );
   });
 
   it("二度投入しても商品が重複せず、減った在庫も戻らない", async () => {

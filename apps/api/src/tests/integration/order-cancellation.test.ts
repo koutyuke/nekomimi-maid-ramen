@@ -73,7 +73,6 @@ beforeEach(async () => {
       price: 500,
       category: "main",
       displayOrder: 1,
-      allergenCheckState: "unchecked",
       updatedAt: now,
     },
     {
@@ -82,7 +81,6 @@ beforeEach(async () => {
       price: 200,
       category: "drink",
       displayOrder: 2,
-      allergenCheckState: "unchecked",
       updatedAt: now,
     },
   ]);

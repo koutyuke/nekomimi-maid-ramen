@@ -102,7 +102,6 @@ beforeEach(async () => {
     price: 500,
     category: "main",
     displayOrder: 1,
-    allergenCheckState: "unchecked",
     updatedAt: new Date(),
   });
   await db.insert(Database.tables.stocks).values({ menuItemId: "ramen", quantity: 10, updatedAt: new Date() });

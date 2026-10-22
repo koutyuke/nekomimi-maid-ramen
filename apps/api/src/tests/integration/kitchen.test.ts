@@ -57,7 +57,6 @@ beforeEach(async () => {
     price: 500,
     category: "main",
     displayOrder: 1,
-    allergenCheckState: "unchecked",
     updatedAt: new Date(),
   });
   await db.insert(Database.tables.orders).values({
@@ -177,7 +176,6 @@ describe("SPEC-KIT-002 明細の独立性と注文全体の集計", () => {
       price: 200,
       category: "drink",
       displayOrder: 2,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     });
     await db
