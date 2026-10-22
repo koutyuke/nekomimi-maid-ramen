@@ -36,7 +36,7 @@ export const StockRepositoryLive = Layer.effect(
           .run("在庫の修正", (db) => {
             const adjustable = exists(
               db
-                .select({ one: sql`1` })
+                .select({ id: users.id })
                 .from(users)
                 .where(and(eq(users.id, actorId), inArray(users.role, STOCK_ADJUSTER_ROLES))),
             );
@@ -44,7 +44,7 @@ export const StockRepositoryLive = Layer.effect(
 
             return db.batch([
               db
-                .select({ previousQuantity: sql<number>`coalesce(${stocks.quantity}, 0)` })
+                .select({ previousQuantity: stocks.quantity })
                 .from(menuItems)
                 .leftJoin(stocks, eq(stocks.menuItemId, menuItems.id))
                 .where(target),
@@ -69,11 +69,14 @@ export const StockRepositoryLive = Layer.effect(
           })
           .pipe(
             Effect.flatMap(([previous, updated]) => {
-              const previousQuantity = previous[0]?.previousQuantity;
-              return previousQuantity !== undefined && updated.length === 1
-                ? decodeAdjustment({ menuItemId, previousQuantity, quantity, adjustedAt }).pipe(
-                    Effect.mapError((cause) => new PersistenceError({ operation: "在庫修正結果の復元", cause })),
-                  )
+              const [row] = previous;
+              return row && updated.length === 1
+                ? decodeAdjustment({
+                    menuItemId,
+                    previousQuantity: row.previousQuantity ?? 0,
+                    quantity,
+                    adjustedAt,
+                  }).pipe(Effect.mapError((cause) => new PersistenceError({ operation: "在庫修正結果の復元", cause })))
                 : Effect.fail(
                     new PersistenceError({ operation: "在庫の修正", cause: new Error("対象または権限がありません") }),
                   );
