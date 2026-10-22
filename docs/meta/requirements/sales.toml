@@ -73,3 +73,15 @@ status = "draft"
 specs = ["SPEC-SAL-006"]
 depends_on = ["REQ-SAL-005", "REQ-INV-003"]
 sources = ["DEC-SYS-002"]
+
+[[requirements]]
+id = "REQ-SAL-007"
+title = "商品の現在価格を変更できる"
+kind = "functional"
+statement = "Admin以上のロールを持つ担当者は、営業中に商品の現在価格を変更し、以後に確定する注文へ適用できる。"
+reason = "営業中に価格を見直しても、会計の金額と確定済み注文の記録を正しく保つため。"
+priority = "should"
+status = "draft"
+specs = ["SPEC-SAL-007"]
+depends_on = ["REQ-SAL-005"]
+sources = ["DEC-SYS-002"]

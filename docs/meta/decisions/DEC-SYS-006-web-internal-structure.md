@@ -105,7 +105,7 @@ fixtureは`{層}/{スライス}/testing/index.ts`を入口とし、Storybookと�
 
 注文の`Order`はEden Treatyの応答から導出し、`OrderLine`と`CookingState`も同じ契約から取り出す。必要項目を限定する`OrderSummary`は`Pick`と`Readonly`で表す。APIと異なる画面固有の状態はページや機能が所有する型として定義し、応答と同じ型を画面名ごとに複製しない。
 
-調理状態の更新APIと処理中の明細を管理するフックは`features/change-cooking-state`が所有する。調理・受け渡しページが共有する表示部品`CookingStateControlUI`も同じ機能へ置く。在庫管理専用のUIと更新APIは`pages/inventory-management`へ置き、同期機能を下位の`features/sync-data`から使う。
+調理状態の更新APIと処理中の明細を管理するフックは`features/change-cooking-state`が所有する。調理・受け渡しページが共有する表示部品`CookingStateControlUI`も同じ機能へ置く。商品管理専用のUIと更新APIは`pages/product-management`へ置き、同期機能を下位の`features/sync-data`から使う。
 
 業務領域の意味を表す表示部品は`entities/{領域}/ui`へ置く。ロールの表示は`StaffRoleBadge`に集約し、利用側は`entities/staff`から直接読み込む。下位の表示部品を使うだけの場合は、`slots`へ渡す必要はない。
 
@@ -122,7 +122,7 @@ Presenterは同じスライスまたは下位の層の表示部品を直接使�
 
 同じ対象を表すpropsは、対象ごとのオブジェクトにまとめる。たとえばロール管理の実行者は、IDとロールを別々に渡さず`currentStaff`として渡す。必要な項目だけを既存の型から選び、機能固有の制約を加える。
 
-表示と表示内の状態だけで完結する部品には、Containerを作らない。外部接続があっても、独立した表示契約が不要な小さな機能は単一部品でよい。在庫管理ページはContainerへ取得・同期・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表と数量入力は`StockTableUI`、認証は共通の`AuthGuard`、アクセス許可は管理者レイアウトの`PermissionGuard`が担当する。スタッフ管理ページはContainerへ取得・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表とロール選択は`StaffTableUI`が担当する。通信や共有状態との接続を分離する場合、小さなContainerは直接`useQuery`や`useMutation`を呼んでよい。複数処理の協調や状態遷移がある場合にフックへ切り出し、純粋な計算は通常の関数にする。具体的な判断手順は[実装ガイド](../../../apps/staff/docs/presentational-container-pattern.md)に記載する。
+表示と表示内の状態だけで完結する部品には、Containerを作らない。外部接続があっても、独立した表示契約が不要な小さな機能は単一部品でよい。商品管理ページはContainerへ取得・同期・更新処理と成功通知を集約し、ページPresenterで取得状態と更新の失敗を表示する。在庫の一覧表と数量入力は`StockTableUI`、価格の一覧表と価格入力は`PriceTableUI`、認証は共通の`AuthGuard`、アクセス許可は管理者レイアウトの`PermissionGuard`が担当する。スタッフ管理ページはContainerへ取得・更新処理を集約し、ページPresenterで取得状態と更新結果を表示する。一覧表とロール選択は`StaffTableUI`が担当する。通信や共有状態との接続を分離する場合、小さなContainerは直接`useQuery`や`useMutation`を呼んでよい。複数処理の協調や状態遷移がある場合にフックへ切り出し、純粋な計算は通常の関数にする。具体的な判断手順は[実装ガイド](../../../apps/staff/docs/presentational-container-pattern.md)に記載する。
 
 ### 部品の置き方
 
