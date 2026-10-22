@@ -1,7 +1,7 @@
 import { Badge, Box, Button, Group, Paper, Stack, Text } from "@mantine/core";
 import { Minus, Plus } from "lucide-react";
 
-import { yen } from "../../lib/format-yen";
+import { yen } from "../../../../shared/lib";
 import type { MenuItem } from "../../../../entities/menu";
 import type { DraftLine } from "../../lib/checkout";
 

@@ -2,7 +2,7 @@ import { Button, SimpleGrid, Stack, Text } from "@mantine/core";
 import { Delete } from "lucide-react";
 import { useId } from "react";
 
-import { yen } from "../../lib/format-yen";
+import { yen } from "../../../../shared/lib";
 
 type ReceivedAmountInputUIProps = {
   value: number | null;
