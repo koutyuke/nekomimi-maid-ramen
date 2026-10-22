@@ -1,5 +1,8 @@
+import { Link } from "@tanstack/react-router";
+
+import { SPONSORS } from "../../../../entities/sponsor";
 import { HOME_SECTION_IDS } from "../../../../shared/config";
-import { Reveal, Wave } from "../../../../shared/ui";
+import { BlurImage, Reveal, Wave } from "../../../../shared/ui";
 import { SectionTitle } from "../section-title/section-title";
 
 export const SponsorSection = () => (
@@ -10,9 +13,17 @@ export const SponsorSection = () => (
   >
     <Wave className="bg-dashed-grid bg-orange-3 [--grid-color:var(--orange-4)]" />
     <SectionTitle>ご協賛</SectionTitle>
-    {/* 掲載を承認されたスポンサー情報がそろうまでは予告だけを出す。 */}
-    <Reveal className="@container mt-6 flex aspect-4/3 w-full max-w-content items-center justify-center squircle-4xl border-4 border-orange-6 bg-orange-1 shadow-lg">
-      <p className="font-caveat text-[15cqw] leading-none font-normal text-orange-11">Coming soon</p>
-    </Reveal>
+    <div className="mt-6 flex w-full max-w-content flex-col gap-6">
+      {SPONSORS.map(({ name, path, logo }) => (
+        <Reveal key={path}>
+          <Link
+            to={path}
+            className="block aspect-4/3 w-full overflow-hidden squircle-4xl border-4 border-orange-6 bg-white shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-8"
+          >
+            <BlurImage {...logo} alt={name} fit="contain" className="size-full" />
+          </Link>
+        </Reveal>
+      ))}
+    </div>
   </section>
 );

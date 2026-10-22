@@ -86,8 +86,8 @@ export const PrivacyPage = () => (
     <section aria-labelledby="contact">
       <h2 id="contact">問い合わせ先</h2>
       <p>猫耳メイドラーメン運営チーム</p>
-      <a className="inline-flex min-h-11 items-center break-all" href="mailto:ac25302@gm.ibaraki-ct.ac.jp">
-        ac25302@gm.ibaraki-ct.ac.jp
+      <a className="inline-flex min-h-11 items-center break-all" href="mailto:staff@nekomimi-ramen.com">
+        staff@nekomimi-ramen.com
       </a>
     </section>
   </div>
