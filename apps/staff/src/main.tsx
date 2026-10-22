@@ -1,5 +1,6 @@
 import "@mantine/core/styles.css";
-// Mantineの指定どおり、通知の見た目はコアの後に読み込む。
+// Mantineの指定どおり、通知と日付入力の見た目はコアの後に読み込む。
+import "@mantine/dates/styles.css";
 import "@mantine/notifications/styles.css";
 
 import { createRouter, RouterProvider } from "@tanstack/react-router";

@@ -65,7 +65,10 @@ beforeEach(() => {
     }),
   );
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 const open = () =>
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
@@ -171,9 +174,13 @@ describe("SPEC-SAL-006 注文管理からの取消", () => {
     expect(cancelled).toBe(1);
   });
   it("営業日を変えたらその日の注文を要求し、開いていた確認を閉じる", async () => {
+    // カレンダーは当日の月を開くため、選ぶ日と同じ月に固定する。
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-22T03:00:00Z"));
     open();
     await confirm();
-    fireEvent.change(screen.getByLabelText("営業日"), { target: { value: "2026-10-23" } });
+    fireEvent.click(screen.getByLabelText("営業日"));
+    fireEvent.click(screen.getByRole("button", { name: "23 10月 2026" }));
     await waitFor(() =>
       expect(requests.mock.calls.some(([url]) => String(url).includes("businessDate=2026-10-23"))).toBe(true),
     );
@@ -182,9 +189,12 @@ describe("SPEC-SAL-006 注文管理からの取消", () => {
   });
 
   it("注文APIの拒否で確認を閉じ、営業日を維持したまま再試行できる", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-22T03:00:00Z"));
     open();
     await screen.findByRole("button", { name: "注文12を取り消す" });
-    fireEvent.change(screen.getByLabelText("営業日"), { target: { value: "2026-10-23" } });
+    fireEvent.click(screen.getByLabelText("営業日"));
+    fireEvent.click(screen.getByRole("button", { name: "23 10月 2026" }));
     await confirm();
     denied = true;
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));

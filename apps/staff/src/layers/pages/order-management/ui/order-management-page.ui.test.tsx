@@ -30,7 +30,8 @@ describe("SPEC-SAL-006 注文一覧の表示とページ切り替え", () => {
       />,
     );
     expect(screen.getByText("2 / 3 ページ")).toBeDefined();
-    fireEvent.change(screen.getByLabelText("営業日"), { target: { value: "2026-10-25" } });
+    fireEvent.click(screen.getByLabelText("営業日"));
+    fireEvent.click(screen.getByRole("button", { name: "25 10月 2026" }));
     view.rerender(
       <OrderManagementPageUI
         {...orderManagementPageFixture}
