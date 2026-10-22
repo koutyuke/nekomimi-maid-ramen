@@ -85,3 +85,15 @@ status = "draft"
 specs = ["SPEC-SAL-007"]
 depends_on = ["REQ-SAL-005"]
 sources = ["DEC-SYS-002"]
+
+[[requirements]]
+id = "REQ-SAL-008"
+title = "営業日ごとの売上を確認できる"
+kind = "functional"
+statement = "Admin以上のロールを持つ担当者は、営業日ごとの売上合計、注文件数、商品別の販売数と売上金額を確認できる。"
+reason = "営業中は売れ行きを見て仕込みや追加調理を判断し、閉店後は現金とシステム上の売上を照合するため。"
+priority = "should"
+status = "draft"
+specs = ["SPEC-SAL-008"]
+depends_on = ["REQ-SAL-005", "REQ-SAL-006"]
+sources = ["DEC-SYS-002"]

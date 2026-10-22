@@ -84,6 +84,27 @@ export class OperationalOrder extends Schema.Class<OperationalOrder>("Operationa
   }
 }
 
+/**
+ * 営業日の売上。未取消の確定注文を、確定時の単価で集計する。
+ *
+ * @param orderCount 注文件数
+ * @param totalAmount 売上合計
+ * @param items 全商品の販売数と売上。販売数が0個の商品も含む
+ */
+export const SalesSummary = Schema.Struct({
+  orderCount: Schema.Int.pipe(Schema.nonNegative()),
+  totalAmount: Amount,
+  items: Schema.Array(
+    Schema.Struct({
+      menuItemId: MenuItemId,
+      name: Schema.String,
+      quantity: Schema.Int.pipe(Schema.nonNegative()),
+      amount: Amount,
+    }),
+  ),
+});
+export type SalesSummary = Schema.Schema.Type<typeof SalesSummary>;
+
 export const canChangeCookingState = (from: CookingState, to: CookingState) =>
   (from === "unstarted" && to === "cooking") || (from === "cooking" && (to === "unstarted" || to === "completed"));
 

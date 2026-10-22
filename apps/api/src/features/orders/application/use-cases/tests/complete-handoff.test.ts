@@ -45,6 +45,7 @@ const run = (
             findByRequestId: () => Effect.succeedNone,
             getRevision: () => Effect.succeed(0),
             findMany: () => Effect.succeed({ data: [], revision: 0 }),
+            summarizeSales: () => Effect.die("Unexpected sales summary"),
           }),
           Layer.succeed(CompleteHandoffCommand, { execute }),
           Layer.succeed(OrderUpdatesGateway, { notify }),

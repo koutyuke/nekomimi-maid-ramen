@@ -1,10 +1,10 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull, sql } from "drizzle-orm";
 import { Effect, Layer, Option, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
 import { Database } from "../../../../core/infra/drizzle";
 import { OrderRepository } from "../../application/ports/outbound/order.repository";
-import { OperationalOrder, Order } from "../../domain/order";
+import { OperationalOrder, Order, SalesSummary } from "../../domain/order";
 import type { ConfirmationRequestId } from "../../domain/order";
 
 const decodeOrder = Schema.decodeUnknown(Order);
@@ -171,6 +171,52 @@ export const OrderRepositoryLive = Layer.effect(
               cause instanceof PersistenceError ? cause : new PersistenceError({ operation: "注文の復元", cause }),
             ),
           ),
+      summarizeSales: (businessDate) => {
+        const sold = and(eq(ordersTable.businessDate, businessDate), isNull(ordersTable.cancelledAt));
+        return database
+          .run("売上の集計", (db) =>
+            db.batch([
+              db
+                .select({ orderCount: count(), totalAmount: sql<number>`coalesce(sum(${ordersTable.totalAmount}), 0)` })
+                .from(ordersTable)
+                .where(sold),
+              db
+                .select({
+                  menuItemId: linesTable.menuItemId,
+                  quantity: sql<number>`sum(${linesTable.quantity})`,
+                  amount: sql<number>`sum(${linesTable.quantity} * ${linesTable.unitPrice})`,
+                })
+                .from(linesTable)
+                .innerJoin(ordersTable, eq(ordersTable.id, linesTable.orderId))
+                .where(sold)
+                .groupBy(linesTable.menuItemId),
+              db
+                .select({ menuItemId: menuTable.id, name: menuTable.name })
+                .from(menuTable)
+                .orderBy(menuTable.displayOrder, menuTable.id),
+              db
+                .select({ revision: Database.tables.resourceRevisions.revision })
+                .from(Database.tables.resourceRevisions)
+                .where(eq(Database.tables.resourceRevisions.scope, "orders")),
+            ]),
+          )
+          .pipe(
+            Effect.flatMap(([[totals], lines, items, revisions]) => {
+              const soldBy = new Map(lines.map((line) => [line.menuItemId, line]));
+              return Schema.decodeUnknown(SalesSummary)({
+                ...totals,
+                items: items.map((item) => ({
+                  ...item,
+                  quantity: soldBy.get(item.menuItemId)?.quantity ?? 0,
+                  amount: soldBy.get(item.menuItemId)?.amount ?? 0,
+                })),
+              }).pipe(
+                Effect.map((data) => ({ data, revision: revisions[0]!.revision })),
+                Effect.mapError((cause) => new PersistenceError({ operation: "売上の復元", cause })),
+              );
+            }),
+          );
+      },
     });
   }),
 );

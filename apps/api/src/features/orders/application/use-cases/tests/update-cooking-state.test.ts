@@ -35,6 +35,7 @@ const repositoryWith = (order: OperationalOrder | null) =>
     findByRequestId: () => Effect.succeedNone,
     getRevision: () => Effect.succeed(0),
     findMany: () => Effect.succeed({ data: [], revision: 0 }),
+    summarizeSales: () => Effect.die("Unexpected sales summary"),
   });
 
 describe("SPEC-KIT-002 調理状況の遷移判定", () => {
