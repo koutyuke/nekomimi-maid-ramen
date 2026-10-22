@@ -14,26 +14,15 @@ type HamburgerMenuUIProps = {
 export const HamburgerMenuUI = ({ staff, sessionStatus, logoutStatus, onLogout }: HamburgerMenuUIProps) => {
   const [opened, setOpened] = useState(false);
   const menuId = useId();
-
-  if (opened && (sessionStatus !== "success" || !staff)) {
+  // 取得失敗時もメニューを開けるようにし、ログアウトで壊れたセッションを捨てられるようにする。
+  const menuKind = sessionStatus === "error" ? "error" : sessionStatus === "success" && staff ? "account" : null;
+  const [shownMenuKind, setShownMenuKind] = useState(menuKind);
+  if (menuKind !== shownMenuKind) {
+    setShownMenuKind(menuKind);
     setOpened(false);
   }
 
-  if (sessionStatus === "error") {
-    return (
-      <Avatar
-        component="output"
-        aria-label="アカウント情報を取得できませんでした"
-        variant="light"
-        radius="xl"
-        color="red"
-        src=""
-        size={44}
-      />
-    );
-  }
-
-  if (sessionStatus !== "success" || !staff) {
+  if (!menuKind) {
     return (
       <Avatar
         component="output"
@@ -46,20 +35,24 @@ export const HamburgerMenuUI = ({ staff, sessionStatus, logoutStatus, onLogout }
       />
     );
   }
-
+  const account = menuKind === "account" ? staff : null;
   return (
     <>
       <ActionIcon
         variant="transparent"
         radius="xl"
         size={44}
-        aria-label="アカウントメニュー"
+        aria-label={account ? "アカウントメニュー" : "アカウントメニュー（アカウント情報を取得できませんでした）"}
         aria-expanded={opened}
         aria-controls={`${menuId}-body`}
         aria-haspopup="dialog"
         onClick={() => setOpened((value) => !value)}
       >
-        <Avatar name={staff.name} color="initials" radius="xl" size={44} aria-hidden="true" />
+        {account ? (
+          <Avatar name={account.name} color="initials" radius="xl" size={44} aria-hidden="true" />
+        ) : (
+          <Avatar variant="light" radius="xl" color="red" src="" size={44} aria-hidden="true" />
+        )}
       </ActionIcon>
       <Drawer
         id={menuId}
@@ -71,7 +64,7 @@ export const HamburgerMenuUI = ({ staff, sessionStatus, logoutStatus, onLogout }
         closeButtonProps={{ "aria-label": "メニューを閉じる", size: 44 }}
       >
         <AccountMenuUI
-          staff={staff}
+          staff={account}
           logoutStatus={logoutStatus}
           onLogout={onLogout}
           onNavigate={() => setOpened(false)}
