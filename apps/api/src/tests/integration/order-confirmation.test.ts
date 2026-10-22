@@ -39,7 +39,12 @@ const confirm = (body: unknown) =>
     }),
   );
 
-const listMenu = () => app.handle(new Request("https://api.nekomimi-ramen.com/menu"));
+const listMenu = () =>
+  app.handle(
+    new Request("https://api.nekomimi-ramen.com/staff/menu", {
+      headers: { origin: "https://staff.nekomimi-ramen.com" },
+    }),
+  );
 
 // `wrangler d1 execute --file`と違い`D1Database.exec`は1行1文しか受け付けないため、投入SQLを文ごとに分けて渡す。
 // ponytail: 文字列リテラルに`;`を書かない前提の素朴な分割。必要になったらSQLパーサへ差し替える。
@@ -119,7 +124,7 @@ describe("SPEC-SAL-005 実際のD1を通した注文確定", () => {
   });
 });
 
-describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () => {
+describe("SPEC-INV-001 実際のD1を通したメニューの販売可否", () => {
   it("在庫ありだけを販売可能とし、在庫0と在庫記録なしは販売不可にする", async () => {
     await db.insert(Database.tables.menuItems).values([
       {
@@ -152,15 +157,15 @@ describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () =
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       items: [
-        { id: "item-ramen", sellable: true },
-        { id: "item-zero-stock", sellable: false },
-        { id: "item-missing-stock", sellable: false },
+        { id: "item-ramen", quantity: 3, sellable: true },
+        { id: "item-zero-stock", quantity: 0, sellable: false },
+        { id: "item-missing-stock", quantity: 0, sellable: false },
       ],
     });
   });
 });
 
-describe("SPEC-VIS-002 投入したメニューの取得", () => {
+describe("SPEC-INV-001 投入したメニューの取得", () => {
   beforeEach(async () => {
     await db.delete(Database.tables.stocks);
     await db.delete(Database.tables.menuItems);
@@ -172,6 +177,7 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
+      revision: expect.any(Number),
       items: [
         { id: "item-ramen", name: "ラーメン", price: 600, category: "main" },
         { id: "item-gyoza", name: "餃子", price: 300, category: "side" },
@@ -186,6 +192,7 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
         sellable: true,
         allergenCheckState: "unchecked",
         containedAllergens: [],
+        quantity: 100,
       })),
     });
   });

@@ -142,7 +142,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 スタッフ向けのURLは`/staff/menu`と`/staff/orders`を使う。`/staff`は利用者の区分を示す接頭辞であり、注文の実装を`features/staff`へ移す理由にはしない。一覧とリビジョン取得のルートは`routes/menu`・`routes/orders`の各領域内へ隣接させる。
 
-商品リポジトリの`findMany()`は表示順の商品・在庫残数・リビジョンを同じ読み取り時点で返す。公開用とスタッフ用のユースケースが必要な項目を選び、公開用は残数を返さず販売可否へ変換する。リポジトリの契約に利用者区分を持ち込まない。
+商品リポジトリの`findMany()`は表示順の商品・在庫残数・リビジョンを同じ読み取り時点で返す。スタッフ用のユースケースが残数から販売可否を求める。リポジトリの契約に利用者区分を持ち込まない。
 
 ### ポートと実装の命名
 
@@ -152,7 +152,7 @@ DBモジュールの外では`core/infra/drizzle`から読み込み、テーブ�
 
 関数名は、可否の判定と状態を変える操作を区別する。`canOperate`や`canChangeRole`は可否を返す判定とし、有効化する操作を表す`enable`へ置き換えない。保存値の更新は`updateRole`のように表す。業務操作には`confirmOrder`のように目的を表す動詞を使い、すべてを`update`へ揃えない。
 
-リポジトリの複数件取得は`findMany`とする。取得条件を受け取る場合は条件に一致する全件を返し、条件を省略した場合は、そのリポジトリが取得対象とする集合の全件を返す。`OrderRepository.findMany`は既定で取消済みを除外し、`includeCancelled`を指定した場合は取消済みも含める。営業日を指定するとその日に絞る。`StaffRepository.findMany`はGoogleアカウントの登録を完了した利用者を返す。条件を使わないリポジトリには条件引数を設けない。ユースケースの一覧提供は`listMenu`や`listOrders`のように表す。
+リポジトリの複数件取得は`findMany`とする。取得条件を受け取る場合は条件に一致する全件を返し、条件を省略した場合は、そのリポジトリが取得対象とする集合の全件を返す。`OrderRepository.findMany`は既定で取消済みを除外し、`includeCancelled`を指定した場合は取消済みも含める。営業日を指定するとその日に絞る。`StaffRepository.findMany`はGoogleアカウントの登録を完了した利用者を返す。条件を使わないリポジトリには条件引数を設けない。ユースケースの一覧提供は`listStaffMenu`や`listOrders`のように表す。
 
 `AuthenticationGateway`はセッション取得を`getSession`にまとめる。担当者だけを必要とする呼び出し元は、`getCurrentStaff`ユースケースを使う。このユースケースがセッションから担当者を取り出し、未認証を`Option.none()`として保つ。`StaffAccessPluginRequirements`は`staffAccessPlugin`が要求する依存型を表す。
 

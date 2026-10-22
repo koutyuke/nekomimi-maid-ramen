@@ -15,7 +15,7 @@ import {
   orderRepositoryMock,
   orderStockAvailabilityGatewayMock,
 } from "../../../features/orders/testing";
-import { authenticationGatewayMock, staffRepositoryMock } from "../../../features/staff/testing";
+import { authenticationGatewayMock, staffFixture, staffRepositoryMock } from "../../../features/staff/testing";
 
 describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () => {
   it("失敗を500として返し、内部の情報を応答へ出さない", async () => {
@@ -26,7 +26,7 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
       Layer.mergeAll(
         realtimeMock,
         orderOperationsMock(),
-        authenticationGatewayMock(),
+        authenticationGatewayMock(staffFixture),
         staffRepositoryMock(),
         menuUpdatesGatewayMock,
         failingMenu,
@@ -44,11 +44,10 @@ describe("SPEC-OPS-002 保存先が失敗したときのメニュー応答", () 
     });
 
     const response = await app.handle(
-      new Request("https://api.nekomimi-ramen.com/menu", {
-        headers: { origin: "https://nekomimi-ramen.com" },
+      new Request("https://api.nekomimi-ramen.com/staff/menu", {
+        headers: { origin: "https://staff.nekomimi-ramen.com" },
       }),
     );
-    expect(response.headers.get("access-control-allow-origin")).toBe("https://nekomimi-ramen.com");
     const body = await response.text();
 
     expect(response.status).toBe(500);

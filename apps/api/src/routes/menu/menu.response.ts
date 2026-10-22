@@ -1,9 +1,10 @@
 import { Option, Schema } from "effect";
 
 import { AllergenCheckState, MenuCategory } from "../../features/menu/public";
-import type { MenuEntry } from "../../features/menu/public";
+import type { StaffMenuEntry } from "../../features/menu/public";
 
-export const MenuResponse = Schema.Struct({
+export const StaffMenuResponse = Schema.Struct({
+  revision: Schema.Int.pipe(Schema.nonNegative()),
   items: Schema.Array(
     Schema.Struct({
       id: Schema.String.annotations({ description: "メニュー項目の識別子" }),
@@ -19,13 +20,15 @@ export const MenuResponse = Schema.Struct({
           name: Schema.String.annotations({ description: "特定原材料名" }),
         }),
       ).annotations({ description: "含まれることを確認した特定原材料" }),
+      quantity: Schema.Int.pipe(Schema.nonNegative()).annotations({ description: "現在の在庫残数" }),
     }),
   ).annotations({ description: "表示順に並んだメニュー項目" }),
-}).annotations({ description: "メニュー一覧" });
-export type MenuResponse = Schema.Schema.Type<typeof MenuResponse>;
+});
+export type StaffMenuResponse = Schema.Schema.Type<typeof StaffMenuResponse>;
 
-export const presentMenu = (entries: ReadonlyArray<MenuEntry>): MenuResponse => ({
-  items: entries.map(({ menuItem, sellable }) => ({
+export const presentStaffMenu = ({ data, revision }: StaffMenuEntry): StaffMenuResponse => ({
+  revision,
+  items: data.map(({ menuItem, quantity, sellable }) => ({
     id: menuItem.id,
     name: menuItem.name,
     description: Option.getOrNull(menuItem.description),
@@ -34,15 +37,6 @@ export const presentMenu = (entries: ReadonlyArray<MenuEntry>): MenuResponse => 
     sellable,
     allergenCheckState: menuItem.allergenCheckState,
     containedAllergens: menuItem.containedAllergens.map((allergen) => ({ id: allergen.id, name: allergen.name })),
+    quantity,
   })),
-});
-
-export const StaffMenuResponse = Schema.Struct({
-  revision: Schema.Int.pipe(Schema.nonNegative()),
-  items: Schema.Array(
-    Schema.Struct({
-      ...MenuResponse.fields.items.value.fields,
-      quantity: Schema.Int.pipe(Schema.nonNegative()).annotations({ description: "現在の在庫残数" }),
-    }),
-  ),
 });

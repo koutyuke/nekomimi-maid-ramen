@@ -157,7 +157,7 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
     expect(JSON.parse(await message)).toMatchObject({ type: "changed", revisions: { menu: expect.any(Number) } });
   });
 
-  it("在庫残数と一致するリビジョンを返し、公開メニューには残数を返さない", async () => {
+  it("在庫残数と一致するリビジョンを返す", async () => {
     const response = await request("/staff/menu");
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
@@ -165,9 +165,6 @@ describe("SPEC-SYS-009 スタッフの通知とリビジョン照合", () => {
       revision: (await revisions()).menu,
       items: [{ id: "ramen", quantity: 10, sellable: true }],
     });
-    const publicMenu = await (await request("/menu")).json();
-    expect(JSON.stringify(publicMenu)).not.toContain("quantity");
-    expect(JSON.stringify(publicMenu)).not.toContain("revision");
   });
 
   it("保存成功後に7接続へ通知し、同じ要求の再送でも注文と在庫を重複更新しない", async () => {
