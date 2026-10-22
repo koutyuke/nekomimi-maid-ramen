@@ -5,24 +5,28 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "../../../../testing/render";
 import { TestWebSocket } from "../../../../testing/websocket";
 import { AuthGuard, PermissionGuard } from "../../../widgets/auth-guard";
-import { InventoryManagementPage } from "./inventory-management-page";
+import { ProductManagementPage } from "./product-management-page";
 
 let quantity = 8;
+let price = 500;
 let revision = 1;
 let menuFails = false;
 let menuDenied = false;
 let updateWait: Promise<void> | undefined;
 let updateFails = false;
+let priceUpdateFails = false;
 let role = "Admin";
 let menuRequests = 0;
 
 beforeEach(() => {
   quantity = 8;
+  price = 500;
   revision = 1;
   menuFails = false;
   menuDenied = false;
   updateWait = undefined;
   updateFails = false;
+  priceUpdateFails = false;
   role = "Admin";
   menuRequests = 0;
   vi.stubGlobal(
@@ -47,7 +51,7 @@ beforeEach(() => {
         }
         return Response.json({
           revision,
-          items: [{ id: "ramen", name: "ラーメン", price: 500, sellable: quantity > 0, quantity }],
+          items: [{ id: "ramen", name: "ラーメン", price, sellable: quantity > 0, quantity }],
         });
       }
       if (url.endsWith("/staff/menu/ramen/stock") && init?.method === "PUT") {
@@ -71,6 +75,21 @@ beforeEach(() => {
           adjustedAt: new Date().toISOString(),
         });
       }
+      if (url.endsWith("/staff/menu/ramen/price") && init?.method === "PUT") {
+        if (priceUpdateFails) {
+          return new Response(null, { status: 403 });
+        }
+        if (typeof init.body !== "string") {
+          throw new Error("Expected JSON body");
+        }
+        const body: unknown = JSON.parse(init.body);
+        if (typeof body !== "object" || body === null || !("price" in body) || typeof body.price !== "number") {
+          throw new Error("Expected price");
+        }
+        price = body.price;
+        revision += 1;
+        return Response.json({ menuItemId: "ramen", price, updatedAt: new Date().toISOString() });
+      }
       throw new Error(`Unexpected request: ${url}`);
     }),
   );
@@ -85,13 +104,13 @@ const renderPage = () =>
     >
       <AuthGuard>
         <PermissionGuard permission="Admin">
-          <InventoryManagementPage />
+          <ProductManagementPage />
         </PermissionGuard>
       </AuthGuard>
     </QueryClientProvider>,
   );
 
-describe("SPEC-INV-004 在庫管理画面", () => {
+describe("SPEC-INV-004 商品管理画面での在庫修正", () => {
   it("数え直した現在数で在庫を上書きし、最新値を表示する", async () => {
     renderPage();
 
@@ -117,7 +136,7 @@ describe("SPEC-INV-004 在庫管理画面", () => {
   it("一覧の取得失敗後、再読み込みで在庫を表示できる", async () => {
     menuFails = true;
     renderPage();
-    await screen.findByText("在庫を取得できません");
+    await screen.findByText("商品情報を取得できません");
     expect(screen.queryByText("接続中")).toBeNull();
     expect(screen.queryByRole("table", { name: "商品別在庫" })).toBeNull();
 
@@ -143,12 +162,13 @@ describe("SPEC-INV-004 在庫管理画面", () => {
     expect(quantity).toBe(0);
   });
 
-  it("Staffには在庫一覧を取得・表示しない", async () => {
+  it("Staffには在庫と価格の一覧を取得・表示しない", async () => {
     role = "Staff";
     renderPage();
     await screen.findByText("このページを閲覧する権限がありません。");
     expect(menuRequests).toBe(0);
     expect(screen.queryByRole("table", { name: "商品別在庫" })).toBeNull();
+    expect(screen.queryByRole("table", { name: "商品別価格" })).toBeNull();
   });
   it("取得を拒否されたら一覧を隠し、権限回復後の再読み込みで復旧できる", async () => {
     renderPage();
@@ -156,10 +176,10 @@ describe("SPEC-INV-004 在庫管理画面", () => {
     menuDenied = true;
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
 
-    await screen.findByText("在庫情報へのアクセスが拒否されました。ログイン状態とスタッフ権限を確認してください。");
+    await screen.findByText("商品情報へのアクセスが拒否されました。ログイン状態とスタッフ権限を確認してください。");
     expect(screen.queryByText("接続中")).toBeNull();
     expect(screen.queryByRole("table", { name: "商品別在庫" })).toBeNull();
-    expect(screen.queryByText("在庫を読み込んでいます")).toBeNull();
+    expect(screen.queryByText("商品情報を読み込んでいます")).toBeNull();
 
     menuDenied = false;
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
@@ -186,7 +206,37 @@ describe("SPEC-INV-004 在庫管理画面", () => {
   });
 });
 
-describe("SPEC-SYS-009 在庫管理の接続状態", () => {
+describe("SPEC-SAL-007 商品管理画面での価格変更", () => {
+  it("入力した価格で更新し、結果と最新の価格を表示する", async () => {
+    renderPage();
+
+    fireEvent.change(await screen.findByRole("textbox", { name: "ラーメンの価格" }), {
+      target: { value: "650" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "ラーメンの価格を更新" }));
+
+    await screen.findByText("ラーメンの価格を650円に更新しました。");
+    await screen.findByText("650円");
+    expect(price).toBe(650);
+  });
+
+  it("価格の更新が拒否されたときは価格の失敗として表示し、価格を変えない", async () => {
+    priceUpdateFails = true;
+    renderPage();
+
+    fireEvent.change(await screen.findByRole("textbox", { name: "ラーメンの価格" }), {
+      target: { value: "650" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "ラーメンの価格を更新" }));
+
+    await screen.findByText("価格を更新できませんでした");
+    expect(screen.queryByText("価格を更新しました")).toBeNull();
+    expect(screen.getByText("500円")).toBeDefined();
+    expect(price).toBe(500);
+  });
+});
+
+describe("SPEC-SYS-009 商品管理の接続状態", () => {
   it("接続待ちと切断中に表示し、在庫更新を継続でき、再接続すると表示を消す", async () => {
     renderPage();
     await screen.findByText("8個");

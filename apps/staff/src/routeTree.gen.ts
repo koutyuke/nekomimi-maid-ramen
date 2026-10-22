@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as StaffRouteImport } from './routes/_staff'
-import { Route as AdminInventoryManagementRouteImport } from './routes/_admin.inventory-management'
+import { Route as AdminProductManagementRouteImport } from './routes/_admin.product-management'
 import { Route as AdminStaffManagementRouteImport } from './routes/_admin.staff-management'
 import { Route as StaffHandoffRouteImport } from './routes/_staff.handoff'
 import { Route as StaffKitchenRouteImport } from './routes/_staff.kitchen'
@@ -32,12 +32,11 @@ const StaffRoute = StaffRouteImport.update({
   id: '/_staff',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminInventoryManagementRoute =
-  AdminInventoryManagementRouteImport.update({
-    id: '/inventory-management',
-    path: '/inventory-management',
-    getParentRoute: () => AdminRoute,
-  } as any)
+const AdminProductManagementRoute = AdminProductManagementRouteImport.update({
+  id: '/product-management',
+  path: '/product-management',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminStaffManagementRoute = AdminStaffManagementRouteImport.update({
   id: '/staff-management',
   path: '/staff-management',
@@ -66,7 +65,7 @@ const StaffSalesRoute = StaffSalesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/inventory-management': typeof AdminInventoryManagementRoute
+  '/product-management': typeof AdminProductManagementRoute
   '/staff-management': typeof AdminStaffManagementRoute
   '/handoff': typeof StaffHandoffRoute
   '/kitchen': typeof StaffKitchenRoute
@@ -75,7 +74,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/inventory-management': typeof AdminInventoryManagementRoute
+  '/product-management': typeof AdminProductManagementRoute
   '/staff-management': typeof AdminStaffManagementRoute
   '/handoff': typeof StaffHandoffRoute
   '/kitchen': typeof StaffKitchenRoute
@@ -87,7 +86,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_admin': typeof AdminRouteWithChildren
   '/_staff': typeof StaffRouteWithChildren
-  '/_admin/inventory-management': typeof AdminInventoryManagementRoute
+  '/_admin/product-management': typeof AdminProductManagementRoute
   '/_admin/staff-management': typeof AdminStaffManagementRoute
   '/_staff/handoff': typeof StaffHandoffRoute
   '/_staff/kitchen': typeof StaffKitchenRoute
@@ -98,7 +97,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/inventory-management'
+    | '/product-management'
     | '/staff-management'
     | '/handoff'
     | '/kitchen'
@@ -107,7 +106,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/inventory-management'
+    | '/product-management'
     | '/staff-management'
     | '/handoff'
     | '/kitchen'
@@ -118,7 +117,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_admin'
     | '/_staff'
-    | '/_admin/inventory-management'
+    | '/_admin/product-management'
     | '/_admin/staff-management'
     | '/_staff/handoff'
     | '/_staff/kitchen'
@@ -155,11 +154,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_admin/inventory-management': {
-      id: '/_admin/inventory-management'
-      path: '/inventory-management'
-      fullPath: '/inventory-management'
-      preLoaderRoute: typeof AdminInventoryManagementRouteImport
+    '/_admin/product-management': {
+      id: '/_admin/product-management'
+      path: '/product-management'
+      fullPath: '/product-management'
+      preLoaderRoute: typeof AdminProductManagementRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/staff-management': {
@@ -201,12 +200,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
-  AdminInventoryManagementRoute: typeof AdminInventoryManagementRoute
+  AdminProductManagementRoute: typeof AdminProductManagementRoute
   AdminStaffManagementRoute: typeof AdminStaffManagementRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminInventoryManagementRoute: AdminInventoryManagementRoute,
+  AdminProductManagementRoute: AdminProductManagementRoute,
   AdminStaffManagementRoute: AdminStaffManagementRoute,
 }
 

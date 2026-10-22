@@ -13,7 +13,7 @@
 
 通常の`Foo`から始め、通信やセッションなしで表示状態を試す、同じ表示を別の接続先で使う、見た目と接続が異なる理由で変わる場合に`FooUI`を抽出する。APIを使うという理由だけでペアにしない。
 
-在庫管理ページは、Containerで一覧取得・同期・在庫更新・再取得を扱い、ページPresenterで取得状態と更新結果を表示する。`StockTableUI`は一覧表と数量入力を担当し、認証は共通の`AuthGuard`、アクセス許可は管理者レイアウトの`PermissionGuard`が担当する。スタッフ管理ページは、Containerで一覧取得・ロール変更・再取得を扱い、ページPresenterで取得状態と更新結果を表示する。`StaffTableUI`は一覧表とロール選択を担当する。調理・受け渡し・注文管理・会計のUIも、表示と操作のテストやStorybookで独立して使うため、分離を維持する。
+商品管理ページは、Containerで一覧取得・同期・在庫と価格の更新・再取得・成功通知を扱い、ページPresenterで取得状態と更新の失敗を表示する。`StockTableUI`は在庫の一覧表と数量入力、`PriceTableUI`は価格の一覧表と価格入力を担当し、認証は共通の`AuthGuard`、アクセス許可は管理者レイアウトの`PermissionGuard`が担当する。スタッフ管理ページは、Containerで一覧取得・ロール変更・再取得を扱い、ページPresenterで取得状態と更新結果を表示する。`StaffTableUI`は一覧表とロール選択を担当する。調理・受け渡し・注文管理・会計のUIも、表示と操作のテストやStorybookで独立して使うため、分離を維持する。
 
 Containerは接続の役割、Compositionは部品を組み合わせる役割である。同じページが両方を担ってよく、`*.composition.tsx`や専用フックを必須にはしない。既存レイアウト、Provider、短い意味的なラッパーは通常の部品に直接書ける。
 
@@ -31,7 +31,7 @@ FSDの依存方向は`app → pages → widgets → features → entities → sh
 
 `entities/{領域}/api`や`shared/api`には通信処理がある。「下位の層は副作用禁止」という規則にはしない。Presenterから通信処理を実行しないことと、層の依存方向を守ることをそれぞれ確認する。
 
-画面だけで完結する処理は、そのページへ置く。在庫管理は`pages/inventory-management`が所有し、同期機能は下位の`features/sync-data`から使う。ファイルが長いという理由だけで`features`や`widgets`へ移さない。
+画面だけで完結する処理は、そのページへ置く。商品管理は`pages/product-management`が所有し、同期機能は下位の`features/sync-data`から使う。ファイルが長いという理由だけで`features`や`widgets`へ移さない。
 
 ## PresenterとContainerの境界
 
@@ -108,7 +108,7 @@ UIのpropsは必要な値と操作を明示し、`ReturnType<typeof usePage>`や
 
 注文管理・調理・受け渡しは、それぞれ`ordersQueries`・`kitchenQueries`・`handoffQueries`と対応する範囲キーを持つ。取消済み注文の取得条件と、更新後に無効化するキャッシュの範囲を利用側で読み分けられるようにする。
 
-更新APIは操作の所有者へ置く。複数画面で使う調理状態の更新は`features/cooking-state/api`、在庫管理専用の更新は`pages/inventory-management/api`が所有する。エラー表示や再取得の方針は、その操作を組み立てるフックまたはContainerが決める。
+更新APIは操作の所有者へ置く。複数画面で使う調理状態の更新は`features/cooking-state/api`、商品管理専用の更新は`pages/product-management/api`が所有する。エラー表示や再取得の方針は、その操作を組み立てるフックまたはContainerが決める。
 
 ## 共通の表示と検証
 

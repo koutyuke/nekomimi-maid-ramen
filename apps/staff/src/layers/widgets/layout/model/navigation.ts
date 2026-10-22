@@ -45,9 +45,9 @@ const adminNavigations: readonly Navigation[] = [
     roles: ["Owner", "Admin"],
   },
   {
-    href: "/inventory-management",
-    label: "在庫管理",
-    description: "商品ごとの在庫確認と管理を行うページ",
+    href: "/product-management",
+    label: "商品管理",
+    description: "商品ごとの在庫と価格を管理するページ",
     roles: ["Owner", "Admin"],
   },
 ];
