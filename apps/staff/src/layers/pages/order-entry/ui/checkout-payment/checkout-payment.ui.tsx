@@ -1,6 +1,6 @@
 import { Paper, Stack, Text } from "@mantine/core";
 
-import { yen } from "../../lib/format-yen";
+import { yen } from "../../../../shared/lib";
 import { ReceivedAmountInputUI } from "./received-amount-input.ui";
 import type { calculateCheckout } from "../../lib/checkout";
 

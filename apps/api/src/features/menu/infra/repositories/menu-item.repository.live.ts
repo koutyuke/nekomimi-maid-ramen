@@ -1,12 +1,21 @@
-import { eq } from "drizzle-orm";
+import { and, eq, exists, inArray, ne } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 
 import { PersistenceError } from "../../../../core/domain/persistence-error";
 import { Database } from "../../../../core/infra/drizzle";
 import { MenuItemRepository } from "../../application/ports/outbound/menu-item.repository";
-import { MenuItem } from "../../domain/menu-item";
+import {
+  MenuItem,
+  MenuItemNotFound,
+  MenuPriceChange,
+  MenuPriceChangeForbidden,
+  PRICE_EDITOR_ROLES,
+} from "../../domain/menu-item";
+import type { MenuItemId } from "../../../../core/domain/ids";
+import type { Price } from "../../../../core/domain/money";
 
 const decodeMenuItems = Schema.decodeUnknown(Schema.Array(MenuItem));
+const decodePriceChange = Schema.decodeUnknown(MenuPriceChange);
 
 export const MenuItemRepositoryLive = Layer.effect(
   MenuItemRepository,
@@ -60,6 +69,50 @@ export const MenuItemRepositoryLive = Layer.effect(
 
           return row.revision;
         }),
+      changePrice: (actorId: string, menuItemId: MenuItemId, price: Price) => {
+        const updatedAt = new Date();
+        const { menuItems, users } = Database.tables;
+
+        return database
+          .run("価格の変更", (db) => {
+            const editable = exists(
+              db
+                .select({ id: users.id })
+                .from(users)
+                .where(and(eq(users.id, actorId), inArray(users.role, PRICE_EDITOR_ROLES))),
+            );
+
+            return db.batch([
+              db
+                .select({ price: menuItems.price, updatedAt: menuItems.updatedAt })
+                .from(menuItems)
+                .where(eq(menuItems.id, menuItemId)),
+              db
+                .update(menuItems)
+                .set({ price, updatedAt })
+                .where(and(eq(menuItems.id, menuItemId), ne(menuItems.price, price), editable))
+                .returning({ price: menuItems.price, updatedAt: menuItems.updatedAt }),
+            ]);
+          })
+          .pipe(
+            Effect.flatMap(
+              ([[current], [updated]]): Effect.Effect<
+                MenuPriceChange,
+                MenuItemNotFound | MenuPriceChangeForbidden | PersistenceError
+              > => {
+                if (!current) {
+                  return Effect.fail(new MenuItemNotFound());
+                }
+                if (!updated && current.price !== price) {
+                  return Effect.fail(new MenuPriceChangeForbidden());
+                }
+                return decodePriceChange({ menuItemId, ...(updated ?? current), changed: updated !== undefined }).pipe(
+                  Effect.mapError((cause) => new PersistenceError({ operation: "価格変更結果の復元", cause })),
+                );
+              },
+            ),
+          );
+      },
     };
 
     return service;

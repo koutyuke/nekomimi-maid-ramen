@@ -19,7 +19,7 @@ const open = (path: string) => {
 };
 
 describe("SPEC-SYS-006 未認証時のスタッフ画面への案内", () => {
-  it.each(["/staff-management", "/inventory-management", "/order-management", "/sales", "/kitchen", "/handoff"])(
+  it.each(["/staff-management", "/product-management", "/order-management", "/sales", "/kitchen", "/handoff"])(
     "%sからログイン画面へ戻し、業務データを取得しない",
     async (path) => {
       const fetch = vi.fn(async (input: RequestInfo | URL) => {
@@ -90,11 +90,11 @@ describe("スタッフ画面内の移動", () => {
     open("/");
 
     expect((await screen.findByRole("link", { name: "スタッフ管理" })).getAttribute("href")).toBe("/staff-management");
-    expect(screen.getByRole("link", { name: "在庫管理" }).getAttribute("href")).toBe("/inventory-management");
+    expect(screen.getByRole("link", { name: "商品管理" }).getAttribute("href")).toBe("/product-management");
     expect(screen.getByRole("link", { name: "注文管理" }).getAttribute("href")).toBe("/order-management");
   });
 
-  it.each(["/staff-management", "/inventory-management"])(
+  it.each(["/staff-management", "/product-management"])(
     "Staffが%sを直接開いても管理データを取得しない",
     async (path) => {
       const fetch = vi.fn(async (input: RequestInfo | URL) => {

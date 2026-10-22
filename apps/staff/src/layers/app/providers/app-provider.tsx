@@ -1,4 +1,5 @@
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 import type { ReactNode } from "react";
@@ -10,6 +11,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => (
   <JotaiProvider>
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme} defaultColorScheme="light">
+        <Notifications position="bottom-right" />
         {children}
       </MantineProvider>
     </QueryClientProvider>

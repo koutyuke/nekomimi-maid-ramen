@@ -1,6 +1,5 @@
 -- メニューの7商品と初期在庫を投入する。
 -- 商品・分類・価格・表示順の正本は docs/product/menu.md である。
--- 何度実行しても行は重複せず、投入後に更新された在庫数は上書きしない。
 INSERT INTO menu_items (id, name, price, category, display_order, updated_at) VALUES
   ('item-ramen', 'ラーメン', 600, 'main', 1, unixepoch() * 1000),
   ('item-gyoza', '餃子', 300, 'side', 2, unixepoch() * 1000),
@@ -11,7 +10,6 @@ INSERT INTO menu_items (id, name, price, category, display_order, updated_at) VA
   ('item-oolong-tea', '烏龍茶', 300, 'drink', 7, unixepoch() * 1000)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
-  price = excluded.price,
   category = excluded.category,
   display_order = excluded.display_order,
   updated_at = excluded.updated_at;

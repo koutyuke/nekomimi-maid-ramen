@@ -93,11 +93,11 @@ describe("SPEC-SYS-006 ログアウトと認証状態の表示", () => {
 });
 
 describe("SPEC-SYS-008 管理ページへの導線", () => {
-  it("Adminにはスタッフ管理と在庫管理へのリンクを表示する", async () => {
+  it("Adminにはスタッフ管理と商品管理へのリンクを表示する", async () => {
     currentRole = "Admin";
     renderPage();
     expect((await screen.findByRole("link", { name: "スタッフ管理" })).getAttribute("href")).toBe("/staff-management");
-    expect(screen.getByRole("link", { name: "在庫管理" }).getAttribute("href")).toBe("/inventory-management");
+    expect(screen.getByRole("link", { name: "商品管理" }).getAttribute("href")).toBe("/product-management");
     expect(screen.getByRole("heading", { name: "スタッフページ" })).toBeDefined();
     expect(screen.getByRole("heading", { name: "管理者ページ" })).toBeDefined();
     expect(screen.getByRole("heading", { name: "一般公開ページ" })).toBeDefined();
@@ -109,7 +109,7 @@ describe("SPEC-SYS-008 管理ページへの導線", () => {
     renderPage();
     await screen.findByRole("region", { name: "ログイン中のスタッフ" });
     expect(screen.queryByRole("link", { name: "スタッフ管理" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "在庫管理" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "商品管理" })).toBeNull();
     expect(screen.getByRole("link", { name: "注文管理" }).getAttribute("href")).toBe("/order-management");
     expect(screen.queryByRole("heading", { name: "管理者ページ" })).toBeNull();
   });

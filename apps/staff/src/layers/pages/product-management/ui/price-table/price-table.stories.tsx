@@ -2,18 +2,18 @@ import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { menuFixture } from "../../../../entities/menu/testing";
-import { StockTableUI } from "./stock-table.ui";
+import { PriceTableUI } from "./price-table.ui";
 
 const meta = {
-  component: StockTableUI,
-  title: "Pages/InventoryManagement/StockTable",
+  component: PriceTableUI,
+  title: "Pages/ProductManagement/PriceTable",
   args: {
     items: menuFixture,
     busy: false,
     updatingMenuItemId: null,
     onUpdate: fn(),
   },
-} satisfies Meta<typeof StockTableUI>;
+} satisfies Meta<typeof PriceTableUI>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

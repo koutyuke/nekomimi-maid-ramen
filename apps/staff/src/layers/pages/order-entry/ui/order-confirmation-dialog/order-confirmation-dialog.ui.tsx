@@ -1,6 +1,6 @@
 import { Alert, Button, Group, Modal, Stack, Text, Title } from "@mantine/core";
 
-import { yen } from "../../lib/format-yen";
+import { yen } from "../../../../shared/lib";
 import type { DraftLine, Receipt, calculateCheckout } from "../../lib/checkout";
 
 export type OrderConfirmationDialogContent =
