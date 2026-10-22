@@ -159,7 +159,7 @@ describe("SPEC-INV-001 実際のD1を通したメニューの販売可否", () =
   });
 });
 
-describe("SPEC-INV-001 投入したメニューの取得", () => {
+describe("SPEC-INV-001 SPEC-SAL-007 投入したメニューの取得", () => {
   beforeEach(async () => {
     await db.delete(Database.tables.stocks);
     await db.delete(Database.tables.menuItems);
@@ -194,5 +194,21 @@ describe("SPEC-INV-001 投入したメニューの取得", () => {
 
     expect(await db.select().from(Database.tables.menuItems).all()).toHaveLength(7);
     expect(await stockOf("item-ramen")).toBe(7);
+  });
+
+  it("二度投入しても、変更済みの価格を初期値へ戻さない", async () => {
+    await db
+      .update(Database.tables.menuItems)
+      .set({ price: 750 })
+      .where(eq(Database.tables.menuItems.id, "item-ramen"));
+
+    await seed();
+
+    const ramen = await db
+      .select()
+      .from(Database.tables.menuItems)
+      .where(eq(Database.tables.menuItems.id, "item-ramen"))
+      .get();
+    expect(ramen?.price).toBe(750);
   });
 });
