@@ -50,6 +50,12 @@ const adminNavigations: readonly Navigation[] = [
     description: "商品ごとの在庫と価格を管理するページ",
     roles: ["Owner", "Admin"],
   },
+  {
+    href: "/sales-summary",
+    label: "売上集計",
+    description: "営業日ごとの売上と商品別の販売数を確認するページ",
+    roles: ["Owner", "Admin"],
+  },
 ];
 
 const publicNavigations: readonly Navigation[] = [
