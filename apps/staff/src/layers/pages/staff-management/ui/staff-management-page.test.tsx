@@ -111,8 +111,6 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     fireEvent.click(screen.getByRole("button", { name: "対象者のロールを変更" }));
     await screen.findByText("対象者のロールをStaffに変更しました。");
     expect(targetRole).toBe("Staff");
-    fireEvent.click(screen.getByRole("button", { name: "更新結果を閉じる" }));
-    expect(screen.queryByText("対象者のロールをStaffに変更しました。")).toBeNull();
   });
 
   it("Adminには他のAdminの変更操作を表示しない", async () => {
@@ -134,8 +132,6 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     expect(listRequests).toBeGreaterThan(previousListRequests);
     expect(sessionRequests).toBeGreaterThan(previousSessionRequests);
     expect(targetRole).toBe("None");
-    fireEvent.click(screen.getByRole("button", { name: "エラーを閉じる" }));
-    expect(screen.queryByRole("alert")).toBeNull();
     changeFails = false;
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "対象者のロールを変更" }).hasAttribute("disabled")).toBe(false),
@@ -148,8 +144,6 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     listFails = true;
     renderPage();
     await screen.findByRole("alert");
-    fireEvent.click(screen.getByRole("button", { name: "エラーを閉じる" }));
-    expect(screen.queryByRole("alert")).toBeNull();
     listFails = false;
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
     await screen.findByRole("combobox", { name: "対象者のロール" });

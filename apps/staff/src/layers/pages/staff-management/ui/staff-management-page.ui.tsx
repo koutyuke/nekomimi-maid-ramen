@@ -1,41 +1,10 @@
-import { Alert, Button, Container, Group, Stack, Text, Title } from "@mantine/core";
+import { Button, Container, Group, Stack, Text, Title } from "@mantine/core";
 import { RefreshCw } from "lucide-react";
-import { useState } from "react";
-import type { ReactNode } from "react";
 
-import { LoadingNotice } from "../../../shared/ui";
+import { ErrorAlert, LoadingNotice } from "../../../shared/ui";
 import { StaffTableUI } from "./staff-table/staff-table.ui";
 import type { StaffListState, RoleUpdateState } from "../model/use-staff-management";
 import type { StaffTableUIProps } from "./staff-table/staff-table.ui";
-
-const DismissibleAlert = ({
-  children,
-  closeButtonLabel,
-  color,
-  title,
-  feedbackRole = "alert",
-}: {
-  children: ReactNode;
-  closeButtonLabel: string;
-  color: "green" | "red";
-  title: string;
-  feedbackRole?: "alert" | "status";
-}) => {
-  const [visible, setVisible] = useState(true);
-  return visible ? (
-    <Alert
-      closeButtonLabel={closeButtonLabel}
-      color={color}
-      onClose={() => setVisible(false)}
-      role={feedbackRole}
-      title={title}
-      variant="light"
-      withCloseButton
-    >
-      {children}
-    </Alert>
-  ) : null;
-};
 
 export type StaffManagementPageUIProps = Pick<StaffTableUIProps, "currentStaff" | "onUpdateRole"> & {
   members: StaffListState;
@@ -74,24 +43,10 @@ export const StaffManagementPageUI = ({
         </Text>
 
         {members.status === "error" && (
-          <DismissibleAlert closeButtonLabel="エラーを閉じる" color="red" title="利用者一覧を取得できません">
-            権限と通信状況を確認して再試行してください。
-          </DismissibleAlert>
+          <ErrorAlert title="利用者一覧を取得できません">権限と通信状況を確認して再試行してください。</ErrorAlert>
         )}
         {roleUpdate.status === "error" && (
-          <DismissibleAlert closeButtonLabel="エラーを閉じる" color="red" title="ロールを変更できませんでした">
-            権限と通信状況を確認し、もう一度お試しください。
-          </DismissibleAlert>
-        )}
-        {roleUpdate.status === "success" && (
-          <DismissibleAlert
-            closeButtonLabel="更新結果を閉じる"
-            color="green"
-            feedbackRole="status"
-            title="ロールを変更しました"
-          >
-            {roleUpdate.result.name}のロールを{roleUpdate.result.role}に変更しました。
-          </DismissibleAlert>
+          <ErrorAlert title="ロールを変更できませんでした">権限と通信状況を確認し、もう一度お試しください。</ErrorAlert>
         )}
 
         {members.status === "pending" && <LoadingNotice>利用者一覧を読み込んでいます</LoadingNotice>}
