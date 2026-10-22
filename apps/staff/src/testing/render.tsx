@@ -1,4 +1,5 @@
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { createMemoryHistory, createRouter, RouterContextProvider } from "@tanstack/react-router";
 import { render as testingLibraryRender } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -12,7 +13,10 @@ export const render = (ui: ReactNode) => {
   return testingLibraryRender(ui, {
     wrapper: ({ children }) => (
       <RouterContextProvider router={router}>
-        <MantineProvider theme={theme}>{children}</MantineProvider>
+        <MantineProvider theme={theme}>
+          <Notifications />
+          {children}
+        </MantineProvider>
       </RouterContextProvider>
     ),
   });
