@@ -21,3 +21,4 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const LoggingOut: Story = { args: { logoutStatus: "pending" } };
 export const LogoutFailed: Story = { args: { logoutStatus: "error" } };
+export const SessionError: Story = { args: { staff: null } };

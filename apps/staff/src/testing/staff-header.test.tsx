@@ -147,6 +147,22 @@ describe("SPEC-SYS-005・SPEC-SYS-006 共通ヘッダーとアカウント操作
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("認証情報の取得失敗時も赤いアバターからメニューを開き、ログアウトできる", async () => {
+    sessionFails = true;
+    open("/sales");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "アカウントメニュー（アカウント情報を取得できませんでした）" }),
+    );
+    const menu = within(await screen.findByRole("dialog", { name: "アカウントメニュー" }));
+    expect(menu.getByRole("alert").textContent).toContain("アカウント情報を取得できませんでした");
+    expect(menu.queryByRole("link")).toBeNull();
+    // 壊れたセッションがログアウトで破棄され、次の確認では未ログインと判定される状況を再現する。
+    sessionFails = false;
+    fireEvent.click(menu.getByRole("button", { name: "ログアウト" }));
+    await screen.findByRole("button", { name: "Googleでログイン" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
   it("認証確認中はヘッダーとフッターを残し、業務データの取得は始めない", async () => {
     let release!: () => void;
     sessionGate = new Promise<void>((resolve) => {

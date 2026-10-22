@@ -1,4 +1,6 @@
-import { Alert, Button, Container, Divider, Flex, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Alert, Button, Container, Divider, Flex, Stack, Text, Title } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
+import ja from "dayjs/locale/ja";
 import { RefreshCw } from "lucide-react";
 
 import { ErrorAlert, ConnectingIndicator } from "../../../shared/ui";
@@ -50,14 +52,15 @@ export const OrderManagementPageUI = ({
         </Button>
       </Flex>
 
-      <TextInput
-        type="date"
+      <DatePickerInput
         label="営業日"
+        locale={ja.name}
+        valueFormat="YYYY年M月D日"
         value={businessDate}
         disabled={cancellationPending}
-        onChange={(event) => {
-          if (event.currentTarget.value) {
-            onBusinessDateChange(event.currentTarget.value);
+        onChange={(value) => {
+          if (value) {
+            onBusinessDateChange(value);
           }
         }}
       />

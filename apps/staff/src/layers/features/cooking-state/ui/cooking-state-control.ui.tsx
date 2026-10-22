@@ -89,15 +89,6 @@ export const CookingStateControlUI = ({
         {editable && line.cookingState === "cooking" && (
           <Group grow>
             <Button
-              mih={44}
-              disabled={disabled}
-              aria-label={`注文${orderNumber}の${line.name}を完成`}
-              onClick={() => setOpened(true)}
-            >
-              完成
-            </Button>
-
-            <Button
               variant="default"
               mih={44}
               disabled={disabled}
@@ -105,6 +96,15 @@ export const CookingStateControlUI = ({
               onClick={() => onUpdate("unstarted")}
             >
               未調理に戻す
+            </Button>
+
+            <Button
+              mih={44}
+              disabled={disabled}
+              aria-label={`注文${orderNumber}の${line.name}を完成`}
+              onClick={() => setOpened(true)}
+            >
+              完成
             </Button>
           </Group>
         )}

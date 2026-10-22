@@ -30,6 +30,3 @@ export const Loading: Story = { args: { members: { status: "pending" } } };
 export const Failed: Story = { args: { members: { status: "error" } } };
 export const Updating: Story = { args: { roleUpdate: { status: "pending" } } };
 export const UpdateFailed: Story = { args: { roleUpdate: { status: "error" } } };
-export const Updated: Story = {
-  args: { roleUpdate: { status: "success", result: { name: "スタッフ", role: "Admin" } } },
-};

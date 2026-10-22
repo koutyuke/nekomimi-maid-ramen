@@ -1,4 +1,4 @@
-import { Button, Group, NativeSelect, Table, Text } from "@mantine/core";
+import { Button, Group, Select, Table, Text } from "@mantine/core";
 
 import { StaffRoleBadge } from "../../../../entities/staff";
 import type { Staff, StaffRole } from "../../../../entities/staff";
@@ -49,7 +49,8 @@ export const StaffTableUI = ({ currentStaff, members, busy, onUpdateRole }: Staf
                   }}
                 >
                   <Group align="end" gap="sm" wrap="nowrap">
-                    <NativeSelect
+                    <Select
+                      allowDeselect={false}
                       aria-label={`${member.name}のロール`}
                       data={currentStaff.role === "Owner" ? ["None", "Staff", "Admin"] : ["None", "Staff"]}
                       defaultValue={member.role}

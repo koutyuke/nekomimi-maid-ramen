@@ -1,3 +1,4 @@
+import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { match } from "ts-pattern";
 
@@ -10,11 +11,8 @@ export type StaffListState =
   | { status: "error" }
   | { status: "success"; data: readonly Staff[] };
 
-export type RoleUpdateState =
-  | { status: "idle" }
-  | { status: "pending" }
-  | { status: "error" }
-  | { status: "success"; result: Pick<Staff, "name" | "role"> };
+// 成功は画面右下の通知で知らせるため、状態として持たない。
+export type RoleUpdateState = { status: "idle" } | { status: "pending" } | { status: "error" };
 
 export const useStaffManagement = () => {
   const queryClient = useQueryClient();
@@ -23,6 +21,13 @@ export const useStaffManagement = () => {
   const members = useQuery({ ...staffQueries.list(), enabled: canManage });
   const mutation = useMutation({
     mutationFn: updateRole,
+    onSuccess: ({ name, role }) => {
+      notifications.show({
+        color: "green",
+        title: "ロールを変更しました",
+        message: `${name}のロールを${role}に変更しました。`,
+      });
+    },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: staffQueryScopes.all() });
     },
@@ -40,10 +45,9 @@ export const useStaffManagement = () => {
 
   const roleUpdate = match(mutation)
     .returnType<RoleUpdateState>()
-    .with({ status: "idle" }, () => ({ status: "idle" }))
+    .with({ status: "idle" }, { status: "success" }, () => ({ status: "idle" }))
     .with({ status: "pending" }, () => ({ status: "pending" }))
     .with({ status: "error" }, () => ({ status: "error" }))
-    .with({ status: "success" }, ({ data }) => ({ status: "success", result: data }))
     .exhaustive();
 
   if (!staff || (staff.role !== "Owner" && staff.role !== "Admin")) {
