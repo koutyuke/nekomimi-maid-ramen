@@ -1,1 +1,1 @@
-export { isPublicOrigin, isTrustedOrigin } from "./origins";
+export { isTrustedOrigin } from "./origins";

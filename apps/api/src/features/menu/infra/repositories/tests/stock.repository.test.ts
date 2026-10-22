@@ -19,12 +19,10 @@ const adjust = (quantity: number) =>
   );
 const snapshot = async () => ({
   stocks: await db.select().from(Database.tables.stocks),
-  adjustments: await db.select().from(Database.tables.stockAdjustments),
   revisions: await db.select().from(Database.tables.resourceRevisions),
 });
 
 beforeEach(async () => {
-  await db.delete(Database.tables.stockAdjustments);
   await db.delete(Database.tables.menuItems);
   await db.delete(Database.tables.users);
   await db.insert(Database.tables.menuItems).values({
@@ -33,7 +31,6 @@ beforeEach(async () => {
     price: 500,
     category: "main",
     displayOrder: 1,
-    allergenCheckState: "unchecked",
     updatedAt: new Date(),
   });
   await db.insert(Database.tables.users).values({
@@ -48,8 +45,8 @@ beforeEach(async () => {
   await db.insert(Database.tables.stocks).values({ menuItemId: itemId, quantity: 3, updatedAt: new Date() });
 });
 
-describe("SPEC-INV-004 SPEC-SYS-009 在庫修正の原子性と履歴", () => {
-  it("在庫更新が失敗した場合は履歴とリビジョンも取り消す", async () => {
+describe("SPEC-INV-004 SPEC-SYS-009 在庫修正の原子性と修正前の数量", () => {
+  it("在庫更新が失敗した場合は失敗を返し、在庫とリビジョンを変えない", async () => {
     const before = await snapshot();
     await env.DB.prepare(
       "CREATE TRIGGER fail_stock_adjustment BEFORE UPDATE ON stocks BEGIN SELECT RAISE(ABORT, 'forced failure'); END",
@@ -63,7 +60,7 @@ describe("SPEC-INV-004 SPEC-SYS-009 在庫修正の原子性と履歴", () => {
     }
   });
 
-  it("同時修正でもそれぞれが実際に上書きした直前の数量を履歴に残す", async () => {
+  it("同時修正でもそれぞれが実際に上書きした直前の数量を返す", async () => {
     const results = await Promise.all([adjust(8), adjust(9)]);
     const adjustments = results.map((result) => {
       expect(result._tag).toBe("Right");
@@ -73,9 +70,8 @@ describe("SPEC-INV-004 SPEC-SYS-009 在庫修正の原子性と履歴", () => {
       return result.right;
     });
     const first = adjustments.find((adjustment) => adjustment.previousQuantity === 3)!;
-    const second = adjustments.find((adjustment) => adjustment.id !== first.id)!;
+    const second = adjustments.find((adjustment) => adjustment !== first)!;
     expect(second.previousQuantity).toBe(first.quantity);
     expect((await snapshot()).stocks[0]?.quantity).toBe(second.quantity);
-    expect((await snapshot()).adjustments).toHaveLength(2);
   });
 });

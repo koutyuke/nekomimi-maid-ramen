@@ -39,7 +39,12 @@ const confirm = (body: unknown) =>
     }),
   );
 
-const listMenu = () => app.handle(new Request("https://api.nekomimi-ramen.com/menu"));
+const listMenu = () =>
+  app.handle(
+    new Request("https://api.nekomimi-ramen.com/staff/menu", {
+      headers: { origin: "https://staff.nekomimi-ramen.com" },
+    }),
+  );
 
 // `wrangler d1 execute --file`と違い`D1Database.exec`は1行1文しか受け付けないため、投入SQLを文ごとに分けて渡す。
 // ponytail: 文字列リテラルに`;`を書かない前提の素朴な分割。必要になったらSQLパーサへ差し替える。
@@ -64,11 +69,9 @@ beforeEach(async () => {
   await db.insert(Database.tables.menuItems).values({
     id: "item-ramen",
     name: "ラーメン",
-    description: null,
     price: 500,
     category: "main",
     displayOrder: 1,
-    allergenCheckState: "unchecked",
     updatedAt: new Date(),
   });
   await db.insert(Database.tables.stocks).values({ menuItemId: "item-ramen", quantity: 3, updatedAt: new Date() });
@@ -119,27 +122,23 @@ describe("SPEC-SAL-005 実際のD1を通した注文確定", () => {
   });
 });
 
-describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () => {
+describe("SPEC-INV-001 実際のD1を通したメニューの販売可否", () => {
   it("在庫ありだけを販売可能とし、在庫0と在庫記録なしは販売不可にする", async () => {
     await db.insert(Database.tables.menuItems).values([
       {
         id: "item-zero-stock",
         name: "餃子",
-        description: null,
         price: 400,
         category: "side",
         displayOrder: 2,
-        allergenCheckState: "unchecked",
         updatedAt: new Date(),
       },
       {
         id: "item-missing-stock",
         name: "お茶",
-        description: null,
         price: 200,
         category: "drink",
         displayOrder: 3,
-        allergenCheckState: "unchecked",
         updatedAt: new Date(),
       },
     ]);
@@ -152,26 +151,27 @@ describe("SPEC-VIS-001 実際のD1を通したメニューの販売可否", () =
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       items: [
-        { id: "item-ramen", sellable: true },
-        { id: "item-zero-stock", sellable: false },
-        { id: "item-missing-stock", sellable: false },
+        { id: "item-ramen", quantity: 3, sellable: true },
+        { id: "item-zero-stock", quantity: 0, sellable: false },
+        { id: "item-missing-stock", quantity: 0, sellable: false },
       ],
     });
   });
 });
 
-describe("SPEC-VIS-002 投入したメニューの取得", () => {
+describe("SPEC-INV-001 投入したメニューの取得", () => {
   beforeEach(async () => {
     await db.delete(Database.tables.stocks);
     await db.delete(Database.tables.menuItems);
     await seed();
   });
 
-  it("7商品を表示順で返し、すべて販売可能かつ特定原材料は未確認である", async () => {
+  it("7商品を表示順で返し、すべて販売可能である", async () => {
     const response = await listMenu();
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
+      revision: expect.any(Number),
       items: [
         { id: "item-ramen", name: "ラーメン", price: 600, category: "main" },
         { id: "item-gyoza", name: "餃子", price: 300, category: "side" },
@@ -180,22 +180,8 @@ describe("SPEC-VIS-002 投入したメニューの取得", () => {
         { id: "item-orange-juice", name: "オレンジジュース", price: 300, category: "drink" },
         { id: "item-ginger-ale", name: "ジンジャーエール", price: 300, category: "drink" },
         { id: "item-oolong-tea", name: "烏龍茶", price: 300, category: "drink" },
-      ].map((item) => ({
-        ...item,
-        description: null,
-        sellable: true,
-        allergenCheckState: "unchecked",
-        containedAllergens: [],
-      })),
+      ].map((item) => ({ ...item, sellable: true, quantity: 100 })),
     });
-  });
-
-  it("特定原材料の9品目を登録する", async () => {
-    const allergens = await db.select().from(Database.tables.allergens).all();
-
-    expect(allergens.map((allergen) => allergen.name).toSorted()).toEqual(
-      ["えび", "かに", "カシューナッツ", "くるみ", "小麦", "そば", "卵", "乳", "落花生"].toSorted(),
-    );
   });
 
   it("二度投入しても商品が重複せず、減った在庫も戻らない", async () => {

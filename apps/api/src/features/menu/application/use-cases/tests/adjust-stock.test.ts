@@ -11,11 +11,9 @@ import { adjustStock } from "../adjust-stock";
 const item = menuItemFixture({ id: "ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 const quantity = StockQuantity.make(8);
 const adjustment = new StockAdjustment({
-  id: "adjustment-1",
   menuItemId: item.id,
   previousQuantity: StockQuantity.make(3),
   quantity,
-  adjustedBy: "admin",
   adjustedAt: new Date("2026-09-13T00:00:00Z"),
 });
 

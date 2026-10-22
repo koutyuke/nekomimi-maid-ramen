@@ -5,7 +5,9 @@ import { MenuItemId } from "../../../core/domain/ids";
 export const StockQuantity = Schema.Int.pipe(Schema.nonNegative(), Schema.brand("StockQuantity"));
 export type StockQuantity = Schema.Schema.Type<typeof StockQuantity>;
 
-export const canAdjustStock = (role: string): boolean => role === "Owner" || role === "Admin";
+export const STOCK_ADJUSTER_ROLES = ["Owner", "Admin"] as const;
+
+export const canAdjustStock = (role: string): boolean => STOCK_ADJUSTER_ROLES.some((adjuster) => adjuster === role);
 
 export class StockAdjustmentForbidden extends Data.TaggedError("StockAdjustmentForbidden") {}
 
@@ -23,11 +25,9 @@ export class Stock extends Schema.Class<Stock>("Stock")({
 }) {}
 
 export class StockAdjustment extends Schema.Class<StockAdjustment>("StockAdjustment")({
-  id: Schema.String,
   menuItemId: MenuItemId,
   previousQuantity: StockQuantity,
   quantity: StockQuantity,
-  adjustedBy: Schema.String,
   adjustedAt: Schema.DateFromSelf,
 }) {}
 

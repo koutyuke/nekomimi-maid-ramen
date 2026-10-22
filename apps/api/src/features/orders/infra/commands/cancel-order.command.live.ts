@@ -46,9 +46,15 @@ export const CancelOrderCommandLive = Layer.effect(
               db
                 .insert(stocksTable)
                 .select(
-                  sql`select ${linesTable.menuItemId}, ${linesTable.quantity}, ${cancelledAt.getTime()}
-                      from ${linesTable} inner join ${ordersTable} on ${linesTable.orderId} = ${ordersTable.id}
-                      where ${eligible}`,
+                  db
+                    .select({
+                      menuItemId: linesTable.menuItemId,
+                      quantity: linesTable.quantity,
+                      updatedAt: sql<Date>`${cancelledAt.getTime()}`.as("updated_at"),
+                    })
+                    .from(linesTable)
+                    .innerJoin(ordersTable, eq(linesTable.orderId, ordersTable.id))
+                    .where(eligible),
                 )
                 .onConflictDoUpdate({
                   target: stocksTable.menuItemId,

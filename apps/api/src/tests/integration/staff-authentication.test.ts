@@ -220,7 +220,6 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
       price: 500,
       category: "main",
       displayOrder: 1,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     });
     await db.insert(Database.tables.stocks).values({ menuItemId: "test-ramen", quantity: 2, updatedAt: new Date() });
@@ -446,14 +445,13 @@ const loggedInStaff = async (claims: Record<string, unknown> = {}) => {
 };
 
 describe("SPEC-INV-004 在庫の登録・修正", () => {
-  it("Admin以上だけが現在数を上書きでき、変更前後の数量と担当者を記録する", async () => {
+  it("Admin以上だけが現在数を上書きでき、変更前後の数量を返す", async () => {
     await db.insert(Database.tables.menuItems).values({
       id: "test-ramen",
       name: "ラーメン",
       price: 500,
       category: "main",
       displayOrder: 1,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     });
     const owner = await loggedInStaff({ sub: "google-owner", email: config.ownerEmail });
@@ -462,17 +460,16 @@ describe("SPEC-INV-004 在庫の登録・修正", () => {
 
     expect((await adjustStock(staff.cookie, "test-ramen", 8)).status).toBe(403);
     expect((await adjustStock(owner.cookie, "test-ramen", -1)).status).toBe(422);
-    expect((await adjustStock(owner.cookie, "test-ramen", 8)).status).toBe(200);
-    expect((await adjustStock(owner.cookie, "test-ramen", 3)).status).toBe(200);
+    const registered = await adjustStock(owner.cookie, "test-ramen", 8);
+    const corrected = await adjustStock(owner.cookie, "test-ramen", 3);
+    expect(registered.status).toBe(200);
+    expect(corrected.status).toBe(200);
+    expect([await registered.json(), await corrected.json()]).toMatchObject([
+      { previousQuantity: 0, quantity: 8 },
+      { previousQuantity: 8, quantity: 3 },
+    ]);
 
     expect(await db.select().from(Database.tables.stocks)).toMatchObject([{ menuItemId: "test-ramen", quantity: 3 }]);
-    const { results } = await env.DB.prepare(
-      "SELECT previous_quantity, quantity, adjusted_by FROM stock_adjustments ORDER BY adjusted_at, rowid",
-    ).all();
-    expect(results).toEqual([
-      { previous_quantity: 0, quantity: 8, adjusted_by: owner.staff.id },
-      { previous_quantity: 8, quantity: 3, adjusted_by: owner.staff.id },
-    ]);
     await db.update(Database.tables.users).set({ role: "None" }).where(eq(Database.tables.users.id, owner.staff.id));
     const denied = await runtime.runPromise(
       saveStock(
@@ -483,7 +480,6 @@ describe("SPEC-INV-004 在庫の登録・修正", () => {
     );
     expect(denied).toMatchObject({ _tag: "Left", left: { _tag: "PersistenceError" } });
     expect((await db.select().from(Database.tables.stocks))[0]?.quantity).toBe(3);
-    expect(await env.DB.prepare("SELECT count(*) AS count FROM stock_adjustments").first("count")).toBe(2);
   });
 });
 

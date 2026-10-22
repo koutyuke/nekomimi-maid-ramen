@@ -47,21 +47,17 @@ beforeEach(async () => {
     {
       id: "item-ramen",
       name: "ラーメン",
-      description: null,
       price: 500,
       category: "main",
       displayOrder: 1,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     },
     {
       id: "item-gyoza",
       name: "餃子",
-      description: null,
       price: 400,
       category: "side",
       displayOrder: 2,
-      allergenCheckState: "unchecked",
       updatedAt: new Date(),
     },
   ]);

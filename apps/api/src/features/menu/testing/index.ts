@@ -1,4 +1,4 @@
-export { allergenFixture, menuItemFixture } from "./fixture/menu-item.fixture";
+export { menuItemFixture } from "./fixture/menu-item.fixture";
 export {
   failingInventoryAvailabilityFacadeMock,
   inventoryAvailabilityFacadeMock,

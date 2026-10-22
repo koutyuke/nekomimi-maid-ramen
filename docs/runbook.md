@@ -43,7 +43,7 @@ pnpm --filter @nekomimi/api db:seed:local     # メニューと初期在庫を�
 pnpm --filter @nekomimi/api db:studio         # Drizzle Studioを開く
 ```
 
-初期データは`apps/api/seed.sql`で管理する。再実行しても行は重複せず、投入後に変更された説明文、原材料の確認状態、在庫数は上書きしない。本番への初期データ投入は、移行後に`pnpm --filter @nekomimi/api db:seed:remote`を実行する。
+初期データは`apps/api/seed.sql`で管理する。再実行しても行は重複せず、投入後に変更された在庫数は上書きしない。本番への初期データ投入は、移行後に`pnpm --filter @nekomimi/api db:seed:remote`を実行する。
 
 ### 検査
 
@@ -93,7 +93,7 @@ pnpm --filter @nekomimi/staff run build && pnpm --filter @nekomimi/staff exec wr
 
 スタッフ同期を変更した場合は、D1の移行、API、スタッフ画面の順に配備し、開いているスタッフ画面を再読み込みする。`apps/api/wrangler.jsonc`の`STAFF_UPDATES`バインディングとSQLite形式のDurable Object移行が必要である。
 
-公開サイトのプレビューでは公開メニューも確認できる。スタッフ画面の`workers.dev`プレビューは本番認証の許可対象外であるため、業務操作は開発環境または本番ホストで確認する。
+公開サイトはAPIへ接続しないため、プレビューで全画面を確認できる。スタッフ画面の`workers.dev`プレビューは本番認証の許可対象外であるため、業務操作は開発環境または本番ホストで確認する。
 
 ## Google OAuthの設定
 

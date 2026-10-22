@@ -31,7 +31,7 @@ beforeEach(async () => {
     .run();
 });
 
-describe("SPEC-VIS-002 メニュー列挙値の移行", () => {
+describe("メニュー列挙値の移行", () => {
   it("不正な旧データを検出したら移行を取り消す", async () => {
     await db.prepare("UPDATE menu_items SET category = 'invalid'").run();
 
@@ -40,8 +40,6 @@ describe("SPEC-VIS-002 メニュー列挙値の移行", () => {
   });
 
   it("既存データと参照を保持し、定義外の値を拒否する", async () => {
-    await db.prepare("INSERT INTO allergens (id, name) VALUES ('wheat', '小麦')").run();
-    await db.prepare("INSERT INTO menu_item_allergens (menu_item_id, allergen_id) VALUES ('ramen', 'wheat')").run();
     await db.prepare("INSERT INTO stocks (menu_item_id, quantity, updated_at) VALUES ('ramen', 10, 1000)").run();
     await db
       .prepare(
@@ -61,17 +59,15 @@ describe("SPEC-VIS-002 メニュー列挙値の移行", () => {
       (
         await db
           .prepare(
-            "SELECT 'allergens' AS name, count(*) AS total FROM menu_item_allergens UNION ALL SELECT 'stocks', count(*) FROM stocks UNION ALL SELECT 'lines', count(*) FROM order_lines ORDER BY name",
+            "SELECT 'stocks' AS name, count(*) AS total FROM stocks UNION ALL SELECT 'lines', count(*) FROM order_lines ORDER BY name",
           )
           .all()
       ).results,
     ).toEqual([
-      { name: "allergens", total: 1 },
       { name: "lines", total: 1 },
       { name: "stocks", total: 1 },
     ]);
     expect((await db.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
     await expect(db.prepare("UPDATE menu_items SET category = 'invalid'").run()).rejects.toThrow();
-    await expect(db.prepare("UPDATE menu_items SET allergen_check_state = 'invalid'").run()).rejects.toThrow();
   });
 });

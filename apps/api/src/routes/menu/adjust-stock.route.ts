@@ -47,7 +47,7 @@ export const adjustStockRoute = (run: EffectRunner<AdjustStockRequirements>, ori
       detail: {
         operationId: "adjustStock",
         summary: "商品の現在在庫数を登録・修正",
-        description: "数え直した現在の数量で在庫を上書きし、変更前後の数量・担当者・日時を記録する。",
+        description: "数え直した現在の数量で在庫を上書きし、変更前後の数量と日時を返す。",
         tags: ["在庫管理"],
       },
       params: Schema.standardSchemaV1(Schema.Struct({ menuItemId: MenuItemId })),
