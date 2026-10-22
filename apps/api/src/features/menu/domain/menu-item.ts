@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Data, Schema } from "effect";
 
 import { MenuItemId } from "../../../core/domain/ids";
 import { MenuCategory } from "../../../core/domain/menu-category";
@@ -18,4 +18,23 @@ export class MenuItem extends Schema.Class<MenuItem>("MenuItem")({
   price: Price,
   category: MenuCategory,
   displayOrder: DisplayOrder,
+}) {}
+
+export const PRICE_EDITOR_ROLES = ["Owner", "Admin"] as const;
+
+export const canChangePrice = (role: string): boolean => PRICE_EDITOR_ROLES.some((editor) => editor === role);
+
+export class MenuPriceChangeForbidden extends Data.TaggedError("MenuPriceChangeForbidden") {}
+export class MenuItemNotFound extends Data.TaggedError("MenuItemNotFound") {}
+
+/**
+ * 価格変更の結果。
+ *
+ * @param changed 価格が変わったか。同じ価格への変更では`false`とし、`updatedAt`は変更前のままとなる。
+ */
+export class MenuPriceChange extends Schema.Class<MenuPriceChange>("MenuPriceChange")({
+  menuItemId: MenuItemId,
+  price: Price,
+  updatedAt: Schema.DateFromSelf,
+  changed: Schema.Boolean,
 }) {}

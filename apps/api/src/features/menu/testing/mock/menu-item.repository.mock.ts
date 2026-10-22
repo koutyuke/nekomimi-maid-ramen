@@ -16,7 +16,12 @@ export const menuItemRepositoryMock = (menuItems: readonly MenuItem[], stocks: r
         revision: 0,
       }),
     getRevision: () => Effect.succeed(0),
+    changePrice: () => Effect.die("Unexpected price change"),
   });
 
 export const failingMenuItemRepositoryMock = (error: PersistenceError) =>
-  Layer.succeed(MenuItemRepository, { findMany: () => Effect.fail(error), getRevision: () => Effect.fail(error) });
+  Layer.succeed(MenuItemRepository, {
+    findMany: () => Effect.fail(error),
+    getRevision: () => Effect.fail(error),
+    changePrice: () => Effect.fail(error),
+  });
