@@ -52,7 +52,7 @@ describe("SPEC-INV-001 SPEC-SYS-009 特定原材料と説明文を削除する�
 
     await applyD1Migrations(
       db,
-      env.TEST_MIGRATIONS.filter((entry) => entry.name >= "0011"),
+      env.TEST_MIGRATIONS.filter((entry) => entry.name.startsWith("0011")),
     );
 
     expect({

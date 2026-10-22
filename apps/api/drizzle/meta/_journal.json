@@ -85,6 +85,13 @@
       "when": 1792639659207,
       "tag": "0011_remove_allergens_and_descriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1792640735352,
+      "tag": "0012_drop_stock_adjustments",
+      "breakpoints": true
     }
   ]
 }

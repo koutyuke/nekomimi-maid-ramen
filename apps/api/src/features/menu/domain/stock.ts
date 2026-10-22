@@ -23,7 +23,6 @@ export class Stock extends Schema.Class<Stock>("Stock")({
 }) {}
 
 export class StockAdjustment extends Schema.Class<StockAdjustment>("StockAdjustment")({
-  id: Schema.String,
   menuItemId: MenuItemId,
   previousQuantity: StockQuantity,
   quantity: StockQuantity,

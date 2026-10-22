@@ -28,6 +28,16 @@ export const adjustStock = (
     const updates = yield* MenuUpdatesGateway;
 
     const adjustment = yield* repository.adjust(actor.id, menuItemId, quantity);
+    yield* Effect.logInfo("在庫を修正した").pipe(
+      Effect.annotateLogs({
+        operation: "stock.adjust",
+        menuItemId: adjustment.menuItemId,
+        previousQuantity: adjustment.previousQuantity,
+        quantity: adjustment.quantity,
+        adjustedBy: adjustment.adjustedBy,
+        adjustedAt: adjustment.adjustedAt.toISOString(),
+      }),
+    );
     yield* updates.notify();
 
     return adjustment;

@@ -1,4 +1,4 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Logger } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 import { PersistenceError } from "../../../../../core/domain/persistence-error";
@@ -11,13 +11,24 @@ import { adjustStock } from "../adjust-stock";
 const item = menuItemFixture({ id: "ramen", name: "ラーメン", price: 500, displayOrder: 1 });
 const quantity = StockQuantity.make(8);
 const adjustment = new StockAdjustment({
-  id: "adjustment-1",
   menuItemId: item.id,
   previousQuantity: StockQuantity.make(3),
   quantity,
   adjustedBy: "admin",
   adjustedAt: new Date("2026-09-13T00:00:00Z"),
 });
+
+const captureLogs = () => {
+  const messages: string[] = [];
+  const layer = Logger.replace(
+    Logger.defaultLogger,
+    Logger.map(Logger.logfmtLogger, (rendered) => {
+      messages.push(rendered);
+    }),
+  );
+
+  return { messages, layer };
+};
 
 describe("SPEC-INV-004 在庫修正の成立条件と通知", () => {
   it.each(["Owner", "Admin"] as const)("%sは保存された実際の修正前数量を返し、保存後に通知する", async (role) => {
@@ -43,6 +54,42 @@ describe("SPEC-INV-004 在庫修正の成立条件と通知", () => {
     expect(result).toBe(adjustment);
     expect(adjust).toHaveBeenCalledExactlyOnceWith("admin", item.id, quantity);
     expect(notify).toHaveBeenCalledOnce();
+  });
+
+  it("保存した修正前後の数量・担当者・日時をログへ記録し、保存に失敗した修正は記録しない", async () => {
+    const run = (adjust: () => Effect.Effect<StockAdjustment, PersistenceError>) => {
+      const { messages, layer } = captureLogs();
+      return Effect.runPromise(
+        adjustStock({ id: "admin", role: "Admin" }, item.id, quantity).pipe(
+          Effect.exit,
+          Effect.provide(
+            Layer.mergeAll(
+              layer,
+              menuItemRepositoryMock([item]),
+              Layer.succeed(StockRepository, { findMany: () => Effect.succeed([]), adjust }),
+              Layer.succeed(MenuUpdatesGateway, { notify: () => Effect.void }),
+            ),
+          ),
+        ),
+      ).then(() => messages.filter((message) => message.includes("operation=stock.adjust")));
+    };
+
+    const saved = await run(() => Effect.succeed(adjustment));
+    const failed = await run(() =>
+      Effect.fail(new PersistenceError({ operation: "在庫の修正", cause: new Error("failure") })),
+    );
+
+    expect(saved).toHaveLength(1);
+    for (const field of [
+      "menuItemId=ramen",
+      "previousQuantity=3",
+      "quantity=8",
+      "adjustedBy=admin",
+      "adjustedAt=2026-09-13T00:00:00.000Z",
+    ]) {
+      expect(saved[0]).toContain(field);
+    }
+    expect(failed).toEqual([]);
   });
 
   it.each(["Staff", "None"] as const)("HTTPを通さない%sの呼び出しでも保存・通知を拒否する", async (role) => {
