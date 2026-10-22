@@ -103,11 +103,11 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
         .map((row) => within(row).getAllByRole("cell")[0]?.textContent),
     ).toEqual(["オーナー", "担当者 (You)", "対象者"]);
     expect(screen.getByText("Owner").closest(".mantine-Badge-root")).not.toBeNull();
-    const select = screen.getByRole("combobox", { name: "対象者のロール" });
-    expect(screen.queryByRole("option", { name: "Admin" })).toBeNull();
     expect(screen.queryByRole("combobox", { name: "オーナーのロール" })).toBeNull();
     expect(screen.queryByRole("combobox", { name: "担当者のロール" })).toBeNull();
-    fireEvent.change(select, { target: { value: "Staff" } });
+    fireEvent.click(screen.getByRole("combobox", { name: "対象者のロール" }));
+    expect(screen.queryByRole("option", { name: "Admin" })).toBeNull();
+    fireEvent.click(screen.getByRole("option", { name: "Staff" }));
     fireEvent.click(screen.getByRole("button", { name: "対象者のロールを変更" }));
     await screen.findByText("対象者のロールをStaffに変更しました。");
     expect(targetRole).toBe("Staff");
@@ -124,7 +124,8 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     currentRole = "Owner";
     changeFails = true;
     renderPage();
-    fireEvent.change(await screen.findByRole("combobox", { name: "対象者のロール" }), { target: { value: "Admin" } });
+    fireEvent.click(await screen.findByRole("combobox", { name: "対象者のロール" }));
+    fireEvent.click(screen.getByRole("option", { name: "Admin" }));
     const previousListRequests = listRequests;
     const previousSessionRequests = sessionRequests;
     fireEvent.click(screen.getByRole("button", { name: "対象者のロールを変更" }));
@@ -159,7 +160,8 @@ describe("SPEC-SYS-008 ロール管理画面", () => {
     });
     renderPage();
     const select = await screen.findByRole("combobox", { name: "対象者のロール" });
-    fireEvent.change(select, { target: { value: "Staff" } });
+    fireEvent.click(select);
+    fireEvent.click(screen.getByRole("option", { name: "Staff" }));
     fireEvent.click(screen.getByRole("button", { name: "対象者のロールを変更" }));
     await waitFor(() => expect(select.hasAttribute("disabled")).toBe(true));
     expect(screen.getByRole("button", { name: "再読み込み" }).hasAttribute("disabled")).toBe(true);
