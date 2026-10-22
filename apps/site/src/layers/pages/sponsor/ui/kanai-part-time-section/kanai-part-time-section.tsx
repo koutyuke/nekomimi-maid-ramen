@@ -11,16 +11,11 @@ export const KanaiPartTimeSection = () => (
   >
     <Wave className="bg-dashed-grid bg-crimson-3 [--grid-color:var(--crimson-4)]" />
     <div className="w-full max-w-content">
-      <h2 className="text-5xl leading-12 font-bold text-crimson-9">
+      <h2 className="text-center text-5xl leading-12 font-bold text-crimson-9">
         アルバイト
         <br />
         募集中！
       </h2>
-      <p className="mt-6 text-base leading-6">
-        お祭り、ステージ、学園祭。
-        <br />
-        みんなが楽しむあの場所を、裏側からいっしょにつくるお仕事です。
-      </p>
       <div className="relative mt-6">
         <BlurImage
           {...IMAGES.stage}
@@ -33,7 +28,12 @@ export const KanaiPartTimeSection = () => (
           その日に現金で！
         </p>
       </div>
-      <div className="mt-12 text-center">
+      <p className="mt-4 text-base leading-6">
+        お祭り、ステージ、学園祭。
+        <br />
+        みんなが楽しむあの場所を、裏側からいっしょにつくるお仕事です。
+      </p>
+      <div className="mt-8 text-center">
         <p className="font-caveat text-xl text-crimson-9">Work</p>
         <h3 className="text-2xl leading-9 font-bold">どんなお仕事？</h3>
         <HeadingUnderline className="mx-auto h-2.5 w-30 text-crimson-9" aria-hidden />
@@ -89,7 +89,7 @@ export const KanaiPartTimeSection = () => (
           { title: "イベントやお祭りが好きな人", description: "にぎやかな現場の空気が好きなら、きっと楽しめます。" },
           { title: "車で現場まで移動できる人", description: "会場は茨城県内の各地。日によって行き先が変わります。" },
         ].map(({ title, description }) => (
-          <li key={title} className="flex gap-2.5 rounded-2xl bg-crimson-3 px-4 py-3">
+          <li key={title} className="flex gap-2.5 rounded-2xl bg-crimson-1 px-4 py-3">
             <CircleCheck className="size-6 shrink-0 text-crimson-9" aria-hidden />
             <div>
               <p className="text-base font-bold text-slate-12">{title}</p>
