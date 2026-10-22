@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { SPONSORS } from "../../../../entities/sponsor";
 import brandIcon from "../../../../shared/assets/brand-icon.svg";
 import brandLogo from "../../../../shared/assets/brand-logo-start.svg";
 import { HOME_SECTION_IDS } from "../../../../shared/config";
@@ -67,7 +68,11 @@ export const HamburgerMenu = () => {
                 ))}
               </MenuGroup>
               <MenuGroup title="Sponsors">
-                <p className="px-2 text-lg leading-8 text-slate-11">Coming soon</p>
+                {SPONSORS.map(({ name, path }) => (
+                  <Link key={path} to={path} className={itemClassName} onClick={close}>
+                    {name}
+                  </Link>
+                ))}
               </MenuGroup>
               <MenuGroup title="Site Detail">
                 <a

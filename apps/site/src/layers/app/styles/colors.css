@@ -1,3 +1,7 @@
+@import "@radix-ui/colors/crimson.css";
+@import "@radix-ui/colors/crimson-dark.css";
+@import "@radix-ui/colors/yellow.css";
+@import "@radix-ui/colors/yellow-dark.css";
 @import "@radix-ui/colors/slate.css";
 @import "@radix-ui/colors/slate-dark.css";
 @import "@radix-ui/colors/tomato.css";
@@ -91,4 +95,28 @@
   --color-blue-10: var(--blue-10);
   --color-blue-11: var(--blue-11);
   --color-blue-12: var(--blue-12);
+  --color-crimson-1: var(--crimson-1);
+  --color-crimson-2: var(--crimson-2);
+  --color-crimson-3: var(--crimson-3);
+  --color-crimson-4: var(--crimson-4);
+  --color-crimson-5: var(--crimson-5);
+  --color-crimson-6: var(--crimson-6);
+  --color-crimson-7: var(--crimson-7);
+  --color-crimson-8: var(--crimson-8);
+  --color-crimson-9: var(--crimson-9);
+  --color-crimson-10: var(--crimson-10);
+  --color-crimson-11: var(--crimson-11);
+  --color-crimson-12: var(--crimson-12);
+  --color-yellow-1: var(--yellow-1);
+  --color-yellow-2: var(--yellow-2);
+  --color-yellow-3: var(--yellow-3);
+  --color-yellow-4: var(--yellow-4);
+  --color-yellow-5: var(--yellow-5);
+  --color-yellow-6: var(--yellow-6);
+  --color-yellow-7: var(--yellow-7);
+  --color-yellow-8: var(--yellow-8);
+  --color-yellow-9: var(--yellow-9);
+  --color-yellow-10: var(--yellow-10);
+  --color-yellow-11: var(--yellow-11);
+  --color-yellow-12: var(--yellow-12);
 }

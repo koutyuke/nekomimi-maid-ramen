@@ -19,6 +19,7 @@ type BlurImageProps = {
   className?: string;
   loading?: "eager" | "lazy";
   fit?: CSSProperties["objectFit"];
+  objectPosition?: CSSProperties["objectPosition"];
 };
 
 const loadedSources = new Set<string>();
@@ -32,6 +33,7 @@ export const BlurImage = ({
   className = "",
   loading = "lazy",
   fit = "cover",
+  objectPosition,
 }: BlurImageProps) => {
   const [loaded, setLoaded] = useState(() => loadedSources.has(src));
   return (
@@ -40,7 +42,7 @@ export const BlurImage = ({
         src={placeholder}
         alt=""
         aria-hidden
-        style={{ objectFit: fit }}
+        style={{ objectFit: fit, objectPosition }}
         className={`absolute inset-0 size-full scale-110 blur-md transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-0" : "opacity-100"}`}
       />
       <img
@@ -54,7 +56,7 @@ export const BlurImage = ({
           loadedSources.add(src);
           setLoaded(true);
         }}
-        style={{ objectFit: fit }}
+        style={{ objectFit: fit, objectPosition }}
         className={`absolute inset-0 size-full transition-opacity duration-300 motion-reduce:transition-none ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>

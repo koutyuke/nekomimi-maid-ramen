@@ -26,7 +26,9 @@ describe("ハンバーガーメニュー", () => {
     const trigger = screen.getByRole("button", { name: "メニューを開く" });
     fireEvent.click(trigger);
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Coming soon")).toBeDefined();
+    expect(within(dialog).getByRole("link", { name: "味噌乃マルショウ 那珂後台店" }).getAttribute("href")).toBe(
+      "/sponsors/marushou",
+    );
 
     fireEvent.click(within(dialog).getByRole("link", { name: "アクセス" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
