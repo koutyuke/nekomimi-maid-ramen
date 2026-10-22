@@ -64,7 +64,7 @@ export const StockRepositoryLive = Layer.effect(
             Effect.flatMap(([previous, updated]) => {
               const previousQuantity = previous[0]?.previousQuantity;
               return previousQuantity !== undefined && updated.length === 1
-                ? decodeAdjustment({ menuItemId, previousQuantity, quantity, adjustedBy: actorId, adjustedAt }).pipe(
+                ? decodeAdjustment({ menuItemId, previousQuantity, quantity, adjustedAt }).pipe(
                     Effect.mapError((cause) => new PersistenceError({ operation: "在庫修正結果の復元", cause })),
                   )
                 : Effect.fail(

@@ -26,7 +26,6 @@ export class StockAdjustment extends Schema.Class<StockAdjustment>("StockAdjustm
   menuItemId: MenuItemId,
   previousQuantity: StockQuantity,
   quantity: StockQuantity,
-  adjustedBy: Schema.String,
   adjustedAt: Schema.DateFromSelf,
 }) {}
 
