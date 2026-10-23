@@ -5,7 +5,7 @@ import { VenueMap } from "./venue-map/venue-map";
 
 const ACCESS_ROWS = [
   { label: "Date", value: "10/24(土)・25(日)", note: "一般公開は10/24(土)のみ" },
-  { label: "Open", value: "10:00〜16:00", note: "ご注文は15:30まで" },
+  { label: "Open", value: "9:00〜17:00", note: "ご注文は16:30まで" },
   { label: "Place", value: "茨城高専\nサッカー場", note: null },
 ] as const;
 
