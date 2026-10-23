@@ -68,7 +68,6 @@ export const makeAuthenticationGateway = (d1: D1Database, config: Authentication
         clientId: config.googleClientId,
         clientSecret: config.googleClientSecret,
         hd: config.schoolDomain,
-        // ログアウトしてもGoogleのログイン状態は残るため、毎回選択させて別アカウントへ切り替えられるようにする。
         prompt: "select_account",
         redirectURI: new URL(config.googleCallbackPath, config.apiBaseURL).toString(),
         includeGrantedScopes: false,
