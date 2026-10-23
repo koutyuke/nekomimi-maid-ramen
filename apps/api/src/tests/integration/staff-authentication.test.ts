@@ -143,7 +143,7 @@ afterEach(() => {
 afterAll(() => runtime.dispose());
 
 describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
-  it("要求するスコープと戻り先を固定し、学校ドメインとPKCEを指定する", async () => {
+  it("要求するスコープと戻り先を固定し、学校ドメイン、PKCE、毎回のアカウント選択を指定する", async () => {
     const response = await start();
     expect(response.status).toBe(200);
     const { url } = Schema.decodeUnknownSync(Schema.Struct({ url: Schema.String }))(await response.json());
@@ -152,6 +152,7 @@ describe("SPEC-SYS-006 Google認証とD1セッションの接続", () => {
     expect(params.get("redirect_uri")).toBe(`${apiOrigin}/auth/google/callback`);
     expect(params.get("hd")).toBe(domain);
     expect(params.get("code_challenge_method")).toBe("S256");
+    expect(params.get("prompt")).toBe("select_account");
   });
   it("初回はNoneになり、別端末でも同じ利用者としてログインする", async () => {
     const first = await login();
