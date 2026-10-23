@@ -16,6 +16,7 @@ export default defineConfig({
     }),
   ],
   test: {
+    isolate: false,
     setupFiles: ["./testing/setup/apply-migrations.ts"],
   },
 });
